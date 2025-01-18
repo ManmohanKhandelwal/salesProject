@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="antialiased vsc-initialized">
         <Navbar />
-        {children}
+        <div className="relative p-4">{children}</div>
       </body>
     </html>
   );
