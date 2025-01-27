@@ -5,7 +5,7 @@ const Dashboard = () => {
   return (
     <div className="pt-3 mx-5">
       <Header />
-      <section className="pt-4 grid grid-cols-3 gap-2">
+      <section className="pt-5 grid grid-cols-3 gap-2">
         <div className="col-span-1 flex flex-col gap-4">
           <div className="">
             <SalesCard

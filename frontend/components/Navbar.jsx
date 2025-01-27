@@ -1,13 +1,27 @@
 "use client";
 
 import { pages } from "@/constants";
-import { Bell, CircleUserRound, Minus, Sun } from "lucide-react";
+import { Bell, CircleUserRound, Minus, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Navbar = () => {
   const [activePage, setActivePage] = useState(0);
+  const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme") || "light";
+    setTheme(storedTheme);
+    document.documentElement.classList.toggle("dark", storedTheme === "dark");
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
+  };
   return (
     <>
       <nav className="flex items-center justify-between px-4 py-2 bg-white shadow-md">
@@ -53,8 +67,15 @@ const Navbar = () => {
               <Bell size={22} className="cursor-pointer" />
               <div className="absolute h-2 w-2 rounded-full bg-red-500 top-0 right-0"></div>
             </div>
-            <div className="bg-red-700 rounded-full p-1">
-              <Sun size={22} className="cursor-pointer text-white" />
+            <div
+              className="border-2 border-red-500 rounded-xl p-1"
+              onClick={toggleTheme}
+            >
+              {theme === "light" ? (
+                <Sun size={22} className="cursor-pointer " />
+              ) : (
+                <Moon size={22} className="cursor-pointer " />
+              )}
             </div>
           </div>
 

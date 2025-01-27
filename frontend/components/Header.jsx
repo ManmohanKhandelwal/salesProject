@@ -1,5 +1,6 @@
 import { branches, cities } from "@/constants";
 import FilterDropdown from "./FilterDropdown";
+import DateRangeFilter from "./DateRangeFilter";
 
 const Header = () => {
   return (
@@ -16,6 +17,7 @@ const Header = () => {
       <div className="flex items-center gap-2">
         <FilterDropdown filter={branches} name="Branch" />
         <FilterDropdown filter={cities} name="City" />
+        <DateRangeFilter name="Date Range" />
       </div>
     </div>
   );
