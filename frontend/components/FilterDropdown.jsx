@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { ScrollArea } from "./ui/scroll-area";
 
 const FilterDropdown = ({ filter, name }) => {
   const [selectedBranches, setSelectedBranches] = useState(
@@ -64,15 +65,17 @@ const FilterDropdown = ({ filter, name }) => {
 
         <DropdownMenuSeparator />
 
-        {filter.map((item) => (
-          <DropdownMenuCheckboxItem
-            key={item.id}
-            checked={selectedBranches.includes(item.id)}
-            onCheckedChange={() => handleSelect(item.id)}
-          >
-            {item.title}
-          </DropdownMenuCheckboxItem>
-        ))}
+        <ScrollArea className="h-72">
+          {filter.map((item) => (
+            <DropdownMenuCheckboxItem
+              key={item.id}
+              checked={selectedBranches.includes(item.id)}
+              onCheckedChange={() => handleSelect(item.id)}
+            >
+              {item.title}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
   );
