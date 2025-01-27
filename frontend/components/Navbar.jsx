@@ -1,13 +1,7 @@
 "use client";
 
 import { pages } from "@/constants";
-import {
-  Bell,
-  CircleUserRound,
-  Minus,
-  SeparatorHorizontal,
-  Sun,
-} from "lucide-react";
+import { Bell, CircleUserRound, Minus, Sun } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -24,10 +18,10 @@ const Navbar = () => {
             alt="logo"
             width={50}
             height={50}
-            className="rounded-full"
+            className=""
           />
           <h1 className="ml-2 text-xl font-semibold text-gray-800">
-            Sales Dashboard
+            BG Distributors Pvt. Ltd.
           </h1>
         </div>
 
@@ -44,7 +38,7 @@ const Navbar = () => {
                   <h1 className="text-gray-900 font-semibold">{page.title}</h1>
 
                   {activePage === page.id && (
-                    <div className="absolute inset-0 bg-blue-700 rounded-full bg-opacity-65"></div>
+                    <div className="absolute inset-0 bg-red-700 rounded-full bg-opacity-65"></div>
                   )}
                 </Link>
               </li>
@@ -59,7 +53,7 @@ const Navbar = () => {
               <Bell size={22} className="cursor-pointer" />
               <div className="absolute h-2 w-2 rounded-full bg-red-500 top-0 right-0"></div>
             </div>
-            <div className="bg-blue-700 rounded-full p-1">
+            <div className="bg-red-700 rounded-full p-1">
               <Sun size={22} className="cursor-pointer text-white" />
             </div>
           </div>
