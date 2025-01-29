@@ -28,7 +28,7 @@ const Header = () => {
       </div>
 
       {/* FILTERS */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 flex-wrap">
         <FilterDropdown filter={years} name="Year" />
         <FilterDropdown filter={months} name="Month" />
         <FilterDropdown filter={branches} name="Branch" />
