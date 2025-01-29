@@ -15,38 +15,32 @@ import { ScrollArea } from "./ui/scroll-area";
 
 const FilterDropdown = ({ filter, name }) => {
   const [selectedBranches, setSelectedBranches] = useState(
-    filter.map((item) => item.id) // Default
+    filter.map((item) => item.id) // Initially, select all items
   );
 
   const handleSelect = (branchId) => {
     if (branchId === "all") {
       // Handle "All" selection
-      if (selectedBranches.includes("all")) {
-        setSelectedBranches([]); // Unselect all
+      if (selectedBranches.length === filter.length) {
+        setSelectedBranches([]); // Deselect all
       } else {
         setSelectedBranches(filter.map((item) => item.id)); // Select all
       }
     } else {
-      // Handle individual branch selection
       setSelectedBranches((prev) => {
+        if (prev.length === filter.length) {
+          // Deselect all and select only the current item if all are selected
+          return [branchId];
+        }
+
         const updatedSelection = prev.includes(branchId)
-          ? prev.filter((id) => id !== branchId) // Remove branch
-          : [...prev, branchId]; // Add branch
+          ? prev.filter((id) => id !== branchId) // Deselect the item
+          : [...prev, branchId]; // Select the item
 
-        // Automatically select "All" if all items are selected
-        if (
-          updatedSelection.length === filter.length - 1 &&
-          !updatedSelection.includes("all")
-        ) {
-          return [...updatedSelection, "all"];
-        }
-
-        // Remove "All" if any individual item is deselected
-        if (updatedSelection.includes("all") && branchId !== "all") {
-          return updatedSelection.filter((id) => id !== "all");
-        }
-
-        return updatedSelection;
+        // Automatically select "All" if all individual items are selected
+        return updatedSelection.length === filter.length
+          ? filter.map((item) => item.id)
+          : updatedSelection;
       });
     }
   };
