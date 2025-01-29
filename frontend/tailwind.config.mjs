@@ -57,6 +57,14 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        neonGreen:
+          "0 0 10px rgba(58, 255, 197, 0.8), 0 0 15px rgba(58, 255, 197, 0.6)", // Green neon shadow
+        neonPink:
+          "0 0 8px rgba(255, 20, 147, 0.8), 0 0 12px rgba(255, 20, 147, 0.6)", // Pink neon shadow
+        neonBlue:
+          "0 0 10px rgba(0, 204, 255, 1), 0 0 18px rgba(0, 204, 255, 0.9)", // Blue neon shadow
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

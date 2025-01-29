@@ -22,9 +22,10 @@ const Navbar = () => {
     localStorage.setItem("theme", newTheme);
     document.documentElement.classList.toggle("dark", newTheme === "dark");
   };
+
   return (
     <>
-      <nav className="flex items-center justify-between px-4 py-2 bg-white shadow-md">
+      <nav className="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 shadow-md">
         {/* LOGO */}
         <div className="flex items-center">
           <Image
@@ -34,7 +35,7 @@ const Navbar = () => {
             height={50}
             className=""
           />
-          <h1 className="ml-2 text-xl font-semibold text-gray-800">
+          <h1 className="ml-2 text-xl font-semibold text-gray-800 dark:text-white">
             BG Distributors Pvt. Ltd.
           </h1>
         </div>
@@ -49,7 +50,9 @@ const Navbar = () => {
                   className="relative py-2 px-4 tracking-wide inline-block"
                   onClick={() => setActivePage(page.id)}
                 >
-                  <h1 className="text-gray-900 font-semibold">{page.title}</h1>
+                  <h1 className="text-gray-900 dark:text-white font-semibold">
+                    {page.title}
+                  </h1>
 
                   {activePage === page.id && (
                     <div className="absolute inset-0 bg-red-700 rounded-full bg-opacity-65"></div>
@@ -64,7 +67,10 @@ const Navbar = () => {
         <div className="relative flex items-center">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Bell size={22} className="cursor-pointer" />
+              <Bell
+                size={22}
+                className="cursor-pointer text-gray-800 dark:text-white"
+              />
               <div className="absolute h-2 w-2 rounded-full bg-red-500 top-0 right-0"></div>
             </div>
             <div
@@ -72,20 +78,36 @@ const Navbar = () => {
               onClick={toggleTheme}
             >
               {theme === "light" ? (
-                <Sun size={22} className="cursor-pointer " />
+                <Sun
+                  size={22}
+                  className="cursor-pointer text-gray-800 dark:text-white"
+                />
               ) : (
-                <Moon size={22} className="cursor-pointer " />
+                <Moon
+                  size={22}
+                  className="cursor-pointer text-gray-800 dark:text-white"
+                />
               )}
             </div>
           </div>
 
-          <Minus size={45} className="rotate-90 text-gray-400" />
+          <Minus
+            size={45}
+            className="rotate-90 text-gray-400 dark:text-gray-500"
+          />
 
           <div className="flex items-center gap-2">
-            <CircleUserRound size={35} className="cursor-pointer" />
+            <CircleUserRound
+              size={35}
+              className="cursor-pointer text-gray-800 dark:text-white"
+            />
             <div className="">
-              <p className="text-gray-800 font-semibold">User Name</p>
-              <p className="text-gray-500 text-sm">user@gmail.com</p>
+              <p className="text-gray-800 dark:text-white font-semibold">
+                User Name
+              </p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                user@gmail.com
+              </p>
             </div>
           </div>
         </div>

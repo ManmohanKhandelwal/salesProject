@@ -43,7 +43,7 @@ const Dashboard = () => {
         </div>
 
         {/* PIE CHARTS */}
-        <div className="col-span-2 grid grid-cols-2">
+        <div className="col-span-2 grid grid-cols-2 px-4 border border-gray-200 rounded-lg shadow-md">
           <div className="flex flex-col items-center col-span-1">
             <h1 className="text-xl font-semibold">Retailing by Channel</h1>
             <RetailChannel />
@@ -70,7 +70,7 @@ const Dashboard = () => {
 
       {/* BOTTOM SECTION */}
       <section className="pt-5 grid grid-cols-2 gap-4">
-        <div className="col-span-1 flex flex-col items-center">
+        <div className="col-span-1 flex flex-col items-center px-2">
           <h1 className="text-xl font-semibold pb-2">
             Retailing by Month and Year
           </h1>
