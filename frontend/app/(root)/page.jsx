@@ -1,8 +1,10 @@
 import Header from "@/components/Header";
 import RetailCategory from "@/components/RetailCategory";
 import RetailChannel from "@/components/RetailChannel";
+import RetailMonthYear from "@/components/RetailMonthYear";
 import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
+import TrendCoverageRetail from "@/components/TrendCoverageRetail";
 
 const Dashboard = () => {
   const brandformData = {
@@ -67,7 +69,21 @@ const Dashboard = () => {
       </section>
 
       {/* BOTTOM SECTION */}
-      <section></section>
+      <section className="pt-5 grid grid-cols-2 gap-4">
+        <div className="col-span-1 flex flex-col items-center">
+          <h1 className="text-xl font-semibold pb-2">
+            Retailing by Month and Year
+          </h1>
+          <RetailMonthYear />
+        </div>
+
+        <div className="col-span-1 flex flex-col items-center">
+          <h1 className="text-xl font-semibold pb-2">
+            Coverage & Retail Trend
+          </h1>
+          <TrendCoverageRetail />
+        </div>
+      </section>
     </div>
   );
 };
