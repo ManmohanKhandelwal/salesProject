@@ -66,7 +66,7 @@ const FilterDropdown = ({ filter, name }) => {
               checked={selectedBranches.includes(item.id)}
               onCheckedChange={() => handleSelect(item.id)}
             >
-              {item.title}
+              {item["New Branch"]}
             </DropdownMenuCheckboxItem>
           ))}
         </ScrollArea>
