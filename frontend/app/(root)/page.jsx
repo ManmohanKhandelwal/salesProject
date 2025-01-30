@@ -1,10 +1,12 @@
+import CategoryStats from "@/components/CategoryStats";
 import Header from "@/components/Header";
 import RetailCategory from "@/components/RetailCategory";
 import RetailChannel from "@/components/RetailChannel";
 import RetailMonthYear from "@/components/RetailMonthYear";
 import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
-import TrendCoverageRetail from "@/components/TrendCoverageRetail";
+import TrendCoverage from "@/components/TrendCoverage";
+import TrendRetail from "@/components/TrendRetail";
 
 const Dashboard = () => {
   const brandformData = {
@@ -30,6 +32,7 @@ const Dashboard = () => {
               data="₹10,000"
               trend="up"
               percentChange="+10%"
+              className="bg-sale-card-gradient text-white"
             />
           </div>
           <div className="">
@@ -60,15 +63,12 @@ const Dashboard = () => {
             <SummaryCard title="Highest Retailing Branch" data={branchData} />
           </div>
           <div>
-            <SummaryCard
-              title="Highest Retailing Brandform"
-              data={brandformData}
-            />
+            <SummaryCard title="Highest Retailing Brand" data={brandformData} />
           </div>
         </div>
       </section>
 
-      {/* BOTTOM SECTION */}
+      {/* MIDDLE SECTION */}
       <section className="pt-5 grid grid-cols-2 gap-4">
         <div className="col-span-1 flex flex-col items-center px-2">
           <h1 className="text-xl font-semibold pb-2">
@@ -78,10 +78,23 @@ const Dashboard = () => {
         </div>
 
         <div className="col-span-1 flex flex-col items-center">
-          <h1 className="text-xl font-semibold pb-2">
-            Coverage & Retail Trend
-          </h1>
-          <TrendCoverageRetail />
+          <h1 className="text-xl font-semibold">Category Statistics</h1>
+          <p className=" text-gray-600 dark:text-gray-300 mb-1">
+            Track category-wise retailing
+          </p>
+          <CategoryStats />
+        </div>
+      </section>
+
+      {/* BOTTOM SECTION */}
+      <section className="pt-5 grid grid-cols-2 gap-4 border border-gray-200 rounded-lg px-3">
+        <div className="col-span-1 flex flex-col items-center">
+          <h1 className="text-xl font-semibold pb-2">Retail Trend</h1>
+          <TrendRetail />
+        </div>
+        <div className="col-span-1 flex flex-col items-center">
+          <h1 className="text-xl font-semibold pb-2">Coverage Trend</h1>
+          <TrendCoverage />
         </div>
       </section>
     </div>

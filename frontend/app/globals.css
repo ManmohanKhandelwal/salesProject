@@ -39,7 +39,8 @@ body {
     --color-bar-1: #ff6f61;
     --color-bar-2: #6b5b95;
     --color-line-1: #1e90ff;
-    --color-line-2: #ffd700;
+    --color-line-2: #ff7300;
+    --color-tick: #000;
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -71,6 +72,7 @@ body {
     --color-bar-2: #ff8c00;
     --color-line-1: #ff1493;
     --color-line-2: #32cd32;
+    --color-tick: #fff;
   }
 }
 

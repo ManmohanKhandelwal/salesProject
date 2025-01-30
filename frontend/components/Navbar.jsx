@@ -8,20 +8,24 @@ import { useEffect, useState } from "react";
 
 const Navbar = () => {
   const [activePage, setActivePage] = useState(0);
-  const [theme, setTheme] = useState("light");
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem("theme") || "light";
-    setTheme(storedTheme);
-    document.documentElement.classList.toggle("dark", storedTheme === "dark");
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") {
+      setDarkMode(true);
+    }
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
 
   return (
     <>
@@ -75,9 +79,9 @@ const Navbar = () => {
             </div>
             <div
               className="border-2 border-red-500 rounded-xl p-1"
-              onClick={toggleTheme}
+              onClick={() => setDarkMode(!darkMode)}
             >
-              {theme === "light" ? (
+              {darkMode ? (
                 <Sun
                   size={22}
                   className="cursor-pointer text-gray-800 dark:text-white"

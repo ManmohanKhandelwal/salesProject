@@ -2,12 +2,12 @@
 /** @type {import('tailwindcss').Config} */
 
 export default {
-  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -64,6 +64,10 @@ export default {
           "0 0 8px rgba(255, 20, 147, 0.8), 0 0 12px rgba(255, 20, 147, 0.6)", // Pink neon shadow
         neonBlue:
           "0 0 10px rgba(0, 204, 255, 1), 0 0 18px rgba(0, 204, 255, 0.9)", // Blue neon shadow
+      },
+      backgroundImage: {
+        "sale-card-gradient":
+          "linear-gradient(153deg, rgba(121,9,70,1) 15%, rgba(255,111,97,1) 83%);",
       },
     },
   },
