@@ -69,6 +69,15 @@ export default {
         "sale-card-gradient":
           "linear-gradient(153deg, rgba(121,9,70,1) 15%, rgba(255,111,97,1) 83%);",
       },
+      animation: {
+        'fade-in': 'fadeIn 0.3s ease-in-out forwards',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+      },
     },
   },
   plugins: [require("tailwindcss-animate"),require("tailwind-scrollbar-hide")],
