@@ -79,7 +79,7 @@ const Dashboard = () => {
 
         <div className="col-span-1 flex flex-col items-center">
           <h1 className="text-xl font-semibold">Category Statistics</h1>
-          <p className=" text-gray-600 dark:text-gray-300 mb-1">
+          <p className=" text-gray-600 dark:text-gray-300 mb-1 pb-2">
             Track category-wise retailing
           </p>
           <CategoryStats />

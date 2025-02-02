@@ -9,13 +9,19 @@ import {
 import { ScrollArea } from "./ui/scroll-area";
 
 const data = [
-  { name: "Group A", retail: 2487, fill: "#FF6F61" },
-  { name: "Group B", retail: 1828, fill: "#0088FE" },
-  { name: "Group C", retail: 1463, fill: "#00C49F" },
-  { name: "Group D", retail: 1302, fill: "#FFBB28" },
-  { name: "Group E", retail: 1046, fill: "#FF8042" },
-  { name: "Group F", retail: 976, fill: "#AF19FF" },
+  { name: "Group A", retail: 2487, target: 3000, fill: "#FF6F61" },
+  { name: "Group B", retail: 1828, target: 2000, fill: "#0088FE" },
+  { name: "Group C", retail: 1463, target: 1800, fill: "#00C49F" },
+  { name: "Group D", retail: 1302, target: 1600, fill: "#FFBB28" },
+  { name: "Group E", retail: 1046, target: 1500, fill: "#FF8042" },
+  { name: "Group F", retail: 976, target: 1200, fill: "#AF19FF" },
 ];
+
+// Normalize data for the chart (calculate percentage)
+const normalizedData = data.map((item) => ({
+  ...item,
+  achievedPercentage: (item.retail / item.target) * 100,
+}));
 
 const style = {
   top: "50%",
@@ -30,14 +36,17 @@ const CategoryStats = () => {
       <div className="relative">
         <ResponsiveContainer width="100%" height={250}>
           <RadialBarChart
-            cx="50%"
-            cy="50%"
             innerRadius="10%"
             outerRadius="80%"
             barSize={10}
-            data={data}
+            data={normalizedData}
           >
-            <RadialBar minAngle={15} background clockWise dataKey="retail" />
+            <RadialBar
+              minAngle={15}
+              background
+              clockWise
+              dataKey="achievedPercentage"
+            />
             <Legend
               iconSize={10}
               layout="vertical"
@@ -61,7 +70,9 @@ const CategoryStats = () => {
               />
               <p className="font-semibold text-lg">{item.name}</p>
             </span>
-            <span className="text-lg">{item.retail}</span>
+            <span className="text-lg">
+              {item.retail} / {item.target}
+            </span>
           </div>
         ))}
       </ScrollArea>
