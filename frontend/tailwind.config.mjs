@@ -78,6 +78,10 @@ export default {
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
       },
+      fontFamily: {
+        'roboto': ['Roboto', 'sans-serif'],
+        'open-sans': ['Open Sans', 'sans-serif'],
+      },
     },
   },
   plugins: [require("tailwindcss-animate"),require("tailwind-scrollbar-hide")],

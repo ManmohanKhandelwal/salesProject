@@ -173,7 +173,7 @@ const Store = () => {
       "SM":"Biswajit Bardhan",
       "BE":"Biswajit Bardhan",
       "STL":"Avijit Das"
-    }
+    },
   ]);
 
   const debouncedSearch = debounce(async (q) => {
@@ -216,12 +216,12 @@ const Store = () => {
           <div className="text-md font-semibold text-gray-500 tracking-wide">Tabular view of Stores</div>
         </div>
         <div className="col-span-3 flex justify-center items-center relative">
-          <div className="w-5/6">
-            <input className="px-2 py-1.5 border-black dark:border-orange-500 border-2 outline-none rounded-full w-full dark:text-black" placeholder="Search here" value={searchQuery} onChange={handleSearchInputChange}></input>
+          <div className="w-5/6 -mb-2">
+            <input className="px-2 py-1.5 border-green-400 dark:border-orange-500 border-2 outline-none rounded-full w-full dark:text-black" placeholder="Search here" value={searchQuery} onChange={handleSearchInputChange}></input>
           </div>
-          <ul className={`${hideSearch?"hidden":""} z-30 absolute top-24 max-h-44 overflow-y-auto scrollbar-hide md:top-16 lg:top-14 left-50 rounded-xl bg-slate-100 shadow-md shadow-gray-700 w-5/6  dark:text-black`}>
+          <ul className={`${hideSearch?"hidden":""} z-30 absolute top-24 max-h-48 overflow-y-auto scrollbar-hide md:top-16 lg:top-14 left-50 rounded-b-lg bg-slate-100 shadow-md shadow-gray-700 w-5/6  dark:text-black`}>
           {searchedStores && searchedStores?.length >0 && searchedStores.map((result,index) =>
-            (<li key={result.id} className={`${index!==searchedStores.length-1?"border-b-slate-300 border-b":""} py-2 px-4 whitespace-pre cursor-pointer truncate`} onClick={() => handleSeachResultClick(result.id,index)}><strong>↖   {result["New Code"]}</strong></li>
+            (<li key={result.id} className={`${index!==searchedStores.length-1?"border-b-slate-300 border-b":""} py-2 px-4 whitespace-pre cursor-pointer truncate text-sm`} onClick={() => handleSeachResultClick(result.id,index)}><strong>↖   {result["New Code"]}</strong></li>
           ))}
           </ul>
         </div>
@@ -262,22 +262,22 @@ const Store = () => {
       </div>
       {selectedItem !== null && (
   <div className="fixed inset-0 flex items-center justify-center z-50">
-    <div className="w-1/3 h-80 bg-slate-100 text-black p-5 rounded-2xl border-green-400 border-2 shadow-lg shadow-green-300 transition-all duration-300 ease-in-out opacity-0 scale-95 animate-fade-in">
+    <div className="w-1/3 h-80 bg-gradient-to-br from-green-50 to-green-200 dark:from-green-100 dark:to-green-300 text-black p-5 rounded-3xl border-green-200 border-2 shadow-sm shadow-green-500 transition-all duration-300 ease-in-out opacity-0 scale-95 animate-fade-in">
       <div className="grid grid-rows-9 gap-1">
         <div className="grid grid-cols-3 mb-1">
-          <div className="text-center font-bold tracking-wider text-[18px] text-green-600 font-sans underline col-start-2 -mt-1">Store Details</div>
+          <div className="text-center font-bold tracking-wider text-[20px] text-green-700 font-open-sans col-start-2 -mt-2 mb-0.5">Store Details</div>
           <div className="col-start-3 flex justify-end pr-3">
-            <span className="text-sm cursor-pointer" onClick={() => handleSeachResultClick(-1, -1)}>❌</span>
+            <span className="text-sm cursor-pointer " onClick={() => handleSeachResultClick(-1, -1)}>❌</span>
           </div>
         </div>
-        <div className="tracking-wide"><strong className="text-green-600">Old Code:</strong> {searchedStores[selectedItem[1]]["Old Code"]}</div>
-        <div className="tracking-wide"><strong className="text-green-600">New Code:</strong> {searchedStores[selectedItem[1]]["New Code"]}</div>
-        <div className="tracking-wide"><strong className="text-green-600">New Branch:</strong> {searchedStores[selectedItem[1]]["New Branch"].toUpperCase()}</div>
-        <div className="tracking-wide"><strong className="text-green-600">DSE Code:</strong> {searchedStores[selectedItem[1]]["DSE Code"]}</div>
-        <div className="tracking-wide"><strong className="text-green-600">ZM:</strong> {searchedStores[selectedItem[1]]["ZM"].toUpperCase()}</div>
-        <div className="tracking-wide"><strong className="text-green-600">SM:</strong> {searchedStores[selectedItem[1]]["SM"].toUpperCase()}</div>
-        <div className="tracking-wide"><strong className="text-green-600">BE:</strong> {searchedStores[selectedItem[1]]["BE"].toUpperCase()}</div>
-        <div className="tracking-wide"><strong className="text-green-600">STL:</strong> {searchedStores[selectedItem[1]]["STL"].toUpperCase()}</div>
+        <div className="tracking-wider text-sm">🏷️<strong className="text-green-600">Old Code:</strong> {searchedStores[selectedItem[1]]["Old Code"]}</div>
+        <div className="tracking-wider text-sm">🏷️<strong className="text-green-600">New Code:</strong> {searchedStores[selectedItem[1]]["New Code"]}</div>
+        <div className="tracking-wider text-sm">🌍<strong className="text-green-600">New Branch:</strong> {searchedStores[selectedItem[1]]["New Branch"].toUpperCase()}</div>
+        <div className="tracking-wider text-sm">🏢<strong className="text-green-600">DSE Code:</strong> {searchedStores[selectedItem[1]]["DSE Code"]}</div>
+        <div className="tracking-wider text-sm">👤<strong className="text-green-600">ZM:</strong> {searchedStores[selectedItem[1]]["ZM"].toUpperCase()}</div>
+        <div className="tracking-wider text-sm">👤<strong className="text-green-600">SM:</strong> {searchedStores[selectedItem[1]]["SM"].toUpperCase()}</div>
+        <div className="tracking-wider text-sm">👤<strong className="text-green-600">BE:</strong> {searchedStores[selectedItem[1]]["BE"].toUpperCase()}</div>
+        <div className="tracking-wider text-sm">👤<strong className="text-green-600">STL:</strong> {searchedStores[selectedItem[1]]["STL"].toUpperCase()}</div>
       </div>
     </div>
   </div>
