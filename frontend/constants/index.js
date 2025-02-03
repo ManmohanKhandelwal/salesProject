@@ -10,6 +10,11 @@ export const pages = [
     path: "/store",
     title: "Stores",
   },
+  {
+    id: 2,
+    path: "/product",
+    title: "Products",
+  },
 ];
 
 // FILTER YEARS
