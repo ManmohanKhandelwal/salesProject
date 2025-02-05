@@ -1,3 +1,4 @@
+"use client";
 import CategoryStats from "@/components/CategoryStats";
 import Header from "@/components/Header";
 import RetailCategory from "@/components/RetailCategory";
@@ -7,20 +8,14 @@ import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
 import TrendCoverage from "@/components/TrendCoverage";
 import TrendRetail from "@/components/TrendRetail";
+import { DashboardInitialData } from "@/constants/dashBoardData";
+import { useState } from "react";
 
 const Dashboard = () => {
-  const brandformData = {
-    title: "Tide",
-    value: "₹10,000",
-  };
-  const branchData = {
-    title: "Pune",
-    value: "₹10,000",
-  };
-
+  const [dashboardData, setDashboardData] = useState(DashboardInitialData);
   return (
     <div className="pt-3 mx-5">
-      <Header />
+      <Header SetDashboarddata={setDashboardData} />
 
       {/* TOP SECTION */}
       <section className="pt-5 grid grid-cols-4 gap-4">
@@ -49,21 +44,33 @@ const Dashboard = () => {
         <div className="col-span-2 grid grid-cols-2 px-4 border border-gray-200 rounded-lg shadow-md">
           <div className="flex flex-col items-center col-span-1">
             <h1 className="text-xl font-semibold">Retailing by Channel</h1>
-            <RetailChannel />
+            <RetailChannel
+              ChannelData={dashboardData?.retailChannelData}
+              BrandData={dashboardData?.retailChannelBrandData}
+            />
           </div>
           <div className="flex flex-col items-center col-span-1">
             <h1 className="text-xl font-semibold">Retailing by Category</h1>
-            <RetailCategory />
+            <RetailCategory
+              ChannelData={dashboardData?.retailCategoryChannelData}
+              BrandData={dashboardData?.retailCategoryBrandData}
+            />
           </div>
         </div>
 
         {/* SUMMARY CARDS */}
         <div className="col-span-1 flex flex-col gap-4">
           <div>
-            <SummaryCard title="Highest Retailing Branch" data={branchData} />
+            <SummaryCard
+              title="Highest Retailing Branch"
+              data={dashboardData?.branchData}
+            />
           </div>
           <div>
-            <SummaryCard title="Highest Retailing Brand" data={brandformData} />
+            <SummaryCard
+              title="Highest Retailing Brand"
+              data={dashboardData?.brandformData}
+            />
           </div>
         </div>
       </section>
@@ -74,7 +81,9 @@ const Dashboard = () => {
           <h1 className="text-xl font-semibold pb-2">
             Retailing by Month and Year
           </h1>
-          <RetailMonthYear />
+          <RetailMonthYear
+            RetailMonthYearData={dashboardData?.retailMonthYearData}
+          />
         </div>
 
         <div className="col-span-1 flex flex-col items-center">
@@ -82,7 +91,7 @@ const Dashboard = () => {
           <p className=" text-gray-600 dark:text-gray-300 mb-1 pb-2">
             Track category-wise retailing
           </p>
-          <CategoryStats />
+          <CategoryStats CategoryStatsData={dashboardData?.categoryStatsData} />
         </div>
       </section>
 
@@ -90,11 +99,11 @@ const Dashboard = () => {
       <section className="pt-5 grid grid-cols-2 gap-4 border border-gray-200 rounded-lg px-3">
         <div className="col-span-1 flex flex-col items-center">
           <h1 className="text-xl font-semibold pb-2">Retail Trend</h1>
-          <TrendRetail />
+          <TrendRetail TrendRetailData={dashboardData?.trendRetailData} />
         </div>
         <div className="col-span-1 flex flex-col items-center">
           <h1 className="text-xl font-semibold pb-2">Coverage Trend</h1>
-          <TrendCoverage />
+          <TrendCoverage TrendCoverageData={dashboardData?.trendCoverageData} />
         </div>
       </section>
     </div>

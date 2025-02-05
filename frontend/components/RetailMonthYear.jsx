@@ -1,32 +1,17 @@
 "use client";
 
 import {
-  BarChart,
   Bar,
-  XAxis,
-  YAxis,
+  BarChart,
   CartesianGrid,
-  Tooltip,
   Legend,
   ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 
-const data = [
-  { name: "January", 2023: 4000, 2024: 2400, amt: 2400 },
-  { name: "February", 2023: 3000, 2024: 1398, amt: 2210 },
-  { name: "March", 2023: 2000, 2024: 5800, amt: 2290 },
-  { name: "April", 2023: 2780, 2024: 3908, amt: 2000 },
-  { name: "May", 2023: 1890, 2024: 4800, amt: 2181 },
-  { name: "June", 2023: 2390, 2024: 3800, amt: 2500 },
-  { name: "July", 2023: 3490, 2024: 4300, amt: 2100 },
-  { name: "August", 2023: 5490, 2024: 4600, amt: 2100 },
-  { name: "September", 2023: 3990, 2024: 4100, amt: 2100 },
-  { name: "October", 2023: 3460, 2024: 4305, amt: 2100 },
-  { name: "November", 2023: 3690, 2024: 4370, amt: 2100 },
-  { name: "December", 2023: 3190, 2024: 4800, amt: 2100 },
-];
-
-const RetailMonthYear = () => {
+const RetailMonthYear = ({ RetailMonthYearData }) => {
   const vibrantColors = ["#FF6F61", "#6B5B95"]; // Light mode vibrant colors
   const darkColors = ["#00FFFF", "#FF8C00"]; // Contrasting dark mode colors
 
@@ -35,7 +20,7 @@ const RetailMonthYear = () => {
       <BarChart
         width={500}
         height={300}
-        data={data}
+        data={RetailMonthYearData}
         margin={{
           top: 5,
           bottom: 5,

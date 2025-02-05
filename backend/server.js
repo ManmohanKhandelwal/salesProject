@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mySqlPool from "./config/db.js";
 
 import retailRoutes from "./routes/retailRoutes.js";
+import { SQLSelect } from "./utils/queryFormatter.js";
 
 dotenv.config();
 
@@ -20,8 +21,9 @@ app.use("/retail", retailRoutes);
 const PORT = process.env.PORT || 5000;
 
 mySqlPool
-  .query("SELECT 1")
-  .then(() => {
+  .query(SQLSelect(["*"], "channel_mappings"))
+  .then((res) => {
+    console.dir(res,{depth:null});
     console.log("MySQL DB Connected.");
 
     app.listen(PORT, () => {
