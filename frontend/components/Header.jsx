@@ -115,6 +115,7 @@ import {
 import FilterDropdown from "./FilterDropdown";
 import DateRangeFilter from "./DateRangeFilter";
 import { useState } from "react";
+import { CircleCheck } from "lucide-react";
 
 // Define all filters dynamically
 const filtersToShow = [
@@ -145,7 +146,7 @@ const filtersToShow = [
   },
 ];
 
-const Header = ({SetDashboarddata}) => {
+const Header = ({ SetDashboarddata }) => {
   // Stores selected values for each dropdown
   const [selectedFilters, setSelectedFilters] = useState({
     //initial Filters
@@ -183,10 +184,10 @@ const Header = ({SetDashboarddata}) => {
 
       {/* SUBMIT BUTTON */}
       <button
-        className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+        className="bg-blue-500 text-white rounded-full p-1"
         onClick={submitForm}
       >
-        Submit
+        <CircleCheck />
       </button>
     </div>
   );
