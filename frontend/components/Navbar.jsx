@@ -1,12 +1,16 @@
 "use client";
 
 import { pages } from "@/constants";
-import { Bell, CircleUserRound, Minus, Moon, Sun } from "lucide-react";
+import { Bell, Minus, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { UserButton, useUser } from "@clerk/nextjs";
+
 const Navbar = () => {
+  const { isSignedIn, user, isLoaded } = useUser();
+
   const [activePage, setActivePage] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -101,16 +105,13 @@ const Navbar = () => {
           />
 
           <div className="flex items-center gap-2">
-            <CircleUserRound
-              size={35}
-              className="cursor-pointer text-gray-800 dark:text-white"
-            />
+            <UserButton />
             <div className="">
               <p className="text-gray-800 dark:text-white font-semibold">
-                User Name
+                {user?.fullName}
               </p>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                user@gmail.com
+                {user?.emailAddresses[0].emailAddress}
               </p>
             </div>
           </div>
