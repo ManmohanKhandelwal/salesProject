@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Detect Remote & Git Pull",
+      "type": "shell",
+      "command": "git pull $(git remote | ForEach-Object {$_}) main",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "close": true
+      }
+    },
+    {
+      "label": "Run Backend",
+      "type": "shell",
+      "command": "npm i ;  npm run dev",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "backend"
+      }
+    },
+    {
+      "label": "Run Frontend",
+      "type": "shell",
+      "command": "npm i ;  npm run dev",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "frontend"
+      }
+    },
+    {
+      "label": "Run Everything",
+      "dependsOn": ["Detect Remote & Git Pull", "Start Frontend & Backend"],
+      "problemMatcher": [],
+      "group": "build",
+      "dependsOrder": "sequence"
+    },
+    {
+      "label": "Start Frontend & Backend",
+      "dependsOn": ["Run Backend", "Run Frontend"],
+      "problemMatcher": [],
+      "dependsOrder": "parallel",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}

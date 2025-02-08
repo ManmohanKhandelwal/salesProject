@@ -38,15 +38,15 @@
 // const Header = () => {
 
 //   //UseState to store the selected filters
-//   const [selectedFilters, setSelectedFilters] = useState({
+//   const [SelectedFilters, SetSelectedFilters] = useState({
 //     //Set the default values of filters
 //   });
 //   const submitForm = () => {
-//     console.log(selectedFilters);
+//     console.log(SelectedFilters);
 //     //fetch api url with selected filters
 //     //also pass the parent graphical states here as props to update the data and show it.
 //   //Why the Filterdropdown is not having onchange attribute due to usage of external libs
-//   // so make them such that on change it should save values in usestate->selectedFilters
+//   // so make them such that on change it should save values in usestate->SelectedFilters
 //   // onsubmit buttons it should use that
 //   };
 //   return (
@@ -80,7 +80,7 @@
 //             filter={filter.filterModule}
 //             name={filter.filterLabel}
 //             // onChanges={(selected) => {
-//             //   setSelectedFilters({ ...selectedFilters, [filter.filterLabel]: selected });
+//             //   SetSelectedFilters({ ...SelectedFilters, [filter.filterLabel]: selected });
 //             // }}
 //           />
 //         ))}
@@ -146,15 +146,11 @@ const filtersToShow = [
   },
 ];
 
-const Header = ({ SetDashboarddata }) => {
-  // Stores selected values for each dropdown
-  const [selectedFilters, setSelectedFilters] = useState({
-    //initial Filters
-  });
+const Header = ({ SelectedFilters,SetSelectedFilters }) => {
 
   const submitForm = () => {
-    console.log("Selected Filters:", selectedFilters);
-    // Use `selectedFilters` to fetch API data and update UI
+    console.log("Selected Filters:", SelectedFilters);
+    // Use `SelectedFilters` to fetch API data and update UI
     // SetDashboarddata(fetchResponse);
   };
 
@@ -176,8 +172,8 @@ const Header = ({ SetDashboarddata }) => {
             filter={filter.filterModule}
             name={filter.filterLabel}
             filterKey={filter.filterKey} // Unique key to store selection
-            selectedFilters={selectedFilters}
-            setSelectedFilters={setSelectedFilters}
+            selectedFilters={SelectedFilters}
+            setSelectedFilters={SetSelectedFilters}
           />
         ))}
       </div>
