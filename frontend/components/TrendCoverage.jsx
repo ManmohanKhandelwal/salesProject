@@ -30,7 +30,7 @@ const TrendCoverage = ({ TrendCoverageData }) => {
           tick={{ fill: "var(--color-tick)", fontWeight: "bold" }}
         />
 
-        <Tooltip />
+        <Tooltip contentStyle={{ color: "#000" }} />
         <Legend />
         <Line
           yAxisId="left"

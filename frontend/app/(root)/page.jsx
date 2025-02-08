@@ -28,6 +28,7 @@ const Dashboard = () => {
               trend="up"
               percentChange="+10%"
               className="bg-sale-card-gradient text-white"
+              isShadow={false}
             />
           </div>
           <div className="">

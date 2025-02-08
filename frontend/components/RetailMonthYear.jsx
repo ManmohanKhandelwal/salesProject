@@ -27,8 +27,11 @@ const RetailMonthYear = ({ RetailMonthYearData }) => {
         }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
+        <XAxis
+          dataKey="name"
+          tick={{ fill: "var(--color-tick)", fontWeight: "bold" }}
+        />
+        <YAxis tick={{ fill: "var(--color-tick)", fontWeight: "bold" }} />
         <Tooltip contentStyle={{ color: "#000" }} />
         <Legend />
         <Bar dataKey="2023" fill={`var(--color-bar-1, ${vibrantColors[0]})`} />
