@@ -21,9 +21,9 @@ app.use("/retail", retailRoutes);
 const PORT = process.env.PORT || 5000;
 
 mySqlPool
-  .query(SQLSelect(["*"], "channel_mappings"))
+  .query(SQLSelect(["*"], "channel_mapping"))
   .then((res) => {
-    console.dir(res,{depth:null});
+    console.dir(res, { depth: null });
     console.log("MySQL DB Connected.");
 
     app.listen(PORT, () => {

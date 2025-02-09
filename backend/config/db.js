@@ -8,6 +8,7 @@ const mySqlPool = mysql.createPool({
   password: process.env.DB_RDS_PASSWORD,
   port: process.env.DB_RDS_PORT,
   database: process.env.DB_RDS_DATABASE,
+  connectTimeout: 60000,
 });
 
 export default mySqlPool;
