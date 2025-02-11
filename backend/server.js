@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mySqlPool from "./config/db.js";
 
 import retailRoutes from "./routes/retailRoutes.js";
+import storeRoutes from "./routes/storeRoutes.js";
 import { SQLSelect } from "./utils/queryFormatter.js";
 
 dotenv.config();
@@ -17,7 +18,7 @@ app.get("/test", (req, res) => {
   res.status(200).send("Testing!");
 });
 app.use("/retail", retailRoutes);
-
+app.use ("/store", storeRoutes);
 const PORT = process.env.PORT || 5000;
 
 mySqlPool

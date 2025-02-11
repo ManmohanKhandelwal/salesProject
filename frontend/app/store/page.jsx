@@ -1,203 +1,43 @@
 "use client"
-import { debounce, result } from "lodash";
+import debounce from "lodash.debounce";
+import axios from 'axios';
 import FilterDropdown from "@/components/FilterDropdown";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback  } from "react";
 const Store = () => {
-  const [storeList, setStoreList] = useState([
-    {
-      id:1,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:2,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:3,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:4,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:5,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:6,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:7,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:8,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:9,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:10,
-      "Old Code":"GAGA_01098",
-      "New Code":"GAGA_01098",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-  ]);
+  const [storeList, setStoreList] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [searchedStores,setSearchedStores] = useState([
-    {
-      id:11,
-      "Old Code":"GAGA_01099",
-      "New Code":"GAGA_01099",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:12,
-      "Old Code":"GAGA_01100",
-      "New Code":"GAGA_01100",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:13,
-      "Old Code":"GAGA_01111",
-      "New Code":"GAGA_01111",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:14,
-      "Old Code":"GAGA_01112",
-      "New Code":"GAGA_01112",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-    {
-      id:15,
-      "Old Code":"GAGA_01113",
-      "New Code":"GAGA_01113",
-      "New Branch":"North",
-      "DSE Code":"BGAGA_MS001",
-      "ZM":"Somnath Banerjee",
-      "SM":"Biswajit Bardhan",
-      "BE":"Biswajit Bardhan",
-      "STL":"Avijit Das"
-    },
-  ]);
+  const [searchedStores,setSearchedStores] = useState(null);
 
   const [expandedRowId, setExpandedRowId] = useState(null);
 
+  const [loading, setLoading] = useState(false);
+
   const toggleRow = (id) => {
-    setExpandedRowId(expandedRowId === id ? null : id); // Toggle or collapse
+    setExpandedRowId(expandedRowId === id ? null : id);
   };
 
-  const debouncedSearch = debounce(async (q) => {
+  const debouncedSearch = useCallback(debounce(async (q) => {
     if (!q) return;
 
     try {
-      //const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-      //const data = await res.json();
-      //setSearchedStores(data);
+      const response = await axios.get('http://localhost:5000/store/getStoreByID', {
+        params: { Old_Store_Code: q },
+    });
+    
+    setSearchedStores(response.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  }, 500); 
+      console.error('Error fetching data:', error.message);
+    } finally {
+      setLoading(false);
+  }
+  }, 300),[]); 
 
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
-
+    console.log(value);
     debouncedSearch(value);
   };
  
@@ -207,8 +47,21 @@ const Store = () => {
     };
   }, [debouncedSearch]);
 
+  useEffect(() => {
+    const fetchStoreList = async() =>{
+      try {
+        const response = await axios.get('http://localhost:5000/store/getStores');
+        setStoreList(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error.message);
+      }
+    }
+    fetchStoreList();
+  },[])
+
   const [selectedItem,setSelectedItem] = useState(null);
   const [hideSearch, setHideSearch] = useState(false);
+  
   const handleSeachResultClick = (id,index) => {
     if(index===-1) setSelectedItem(null);
     else setSelectedItem([id,index]);
@@ -226,8 +79,8 @@ const Store = () => {
             <input className="px-2 py-1.5 border-green-400 dark:border-orange-500 border-2 outline-none rounded-full w-full dark:text-black" placeholder="Search here" value={searchQuery} onChange={handleSearchInputChange}></input>
           </div>
           <ul className={`${hideSearch?"hidden":""} z-30 absolute top-24 max-h-48 overflow-y-auto scrollbar-hide md:top-16 lg:top-14 left-50 rounded-b-lg bg-slate-100 shadow-md shadow-gray-700 w-4/5 rounded-t-sm dark:text-black`}>
-          {searchedStores && searchedStores?.length >0 && searchedStores.map((result,index) =>
-            (<li key={result.id} className={`${index!==searchedStores.length-1?"border-b-slate-300 border-b":""} py-2 px-4 whitespace-pre cursor-pointer truncate text-sm`} onClick={() => handleSeachResultClick(result.id,index)}><strong>↖   {result["New Code"]}</strong></li>
+          {searchQuery && searchedStores && searchedStores?.length >0 && searchedStores.map((result,index) =>
+            (<li key={result["Id"]} className={`${index!==searchedStores.length-1?"border-b-slate-300 border-b":""} py-2 px-4 whitespace-pre cursor-pointer truncate text-sm`} onClick={() => handleSeachResultClick(result.id,index)}><strong>↖   {result["Old_Store_Code"]}</strong></li>
           ))}
           </ul>
         </div>
@@ -252,13 +105,13 @@ const Store = () => {
             </tr>
           </thead>
           <tbody>
-            {storeList.map((store,index)=>(
-                <React.Fragment key={store.id}>
+            {storeList && storeList.length>0 && storeList.map((store,index)=>(
+                <React.Fragment key={store["Id"]}>
                   <tr onClick={() => toggleRow(store.id)} className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <td title={store["Old Code"]} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white  text-center truncate px-1`}>{store["Old Code"]}</td>
-                    <td title={store["New Code"]} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["New Code"]}</td>
-                    <td title={store["New Branch"].toUpperCase()}  className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["New Branch"].toUpperCase()}</td>
-                    <td title={store["DSE Code"]} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["DSE Code"]}</td>
+                    <td title={store["Old_Store_Code"]} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white  text-center truncate px-1`}>{store["Old_Store_Code"]}</td>
+                    <td title={store["New_Store_Code"]} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["New_Store_Code"]}</td>
+                    <td title={store["New_Branch"].toUpperCase()}  className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["New_Branch"].toUpperCase()}</td>
+                    <td title={store["DSE_Code"]} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["DSE_Code"]}</td>
                     <td title={store["ZM"].toUpperCase()} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["ZM"].toUpperCase()}</td>
                     <td title={store["SM"].toUpperCase()} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["SM"].toUpperCase()}</td>
                     <td title={store["BE"].toUpperCase()} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["BE"].toUpperCase()}</td>
@@ -293,10 +146,10 @@ const Store = () => {
             <span className="text-sm cursor-pointer " onClick={() => handleSeachResultClick(-1, -1)}>❌</span>
           </div>
         </div>
-        <div className="tracking-wider text-sm col-span-2 flex justify-end mr-6">🏷️<strong className="text-green-600">Old Code:</strong> {searchedStores[selectedItem[1]]["Old Code"]}</div>
-        <div className="tracking-wider text-sm col-span-2 flex justify-start ml-6">🏷️<strong className="text-green-600">New Code:</strong> {searchedStores[selectedItem[1]]["New Code"]}</div>
-        <div className="tracking-wider text-sm col-span-2 flex justify-end mr-6">🌍<strong className="text-green-600">New Branch:</strong> {searchedStores[selectedItem[1]]["New Branch"].toUpperCase()}</div>
-        <div className="tracking-wider text-sm col-span-2 flex justify-start ml-6">🏢<strong className="text-green-600">DSE Code:</strong> {searchedStores[selectedItem[1]]["DSE Code"]}</div>
+        <div className="tracking-wider text-sm col-span-2 flex justify-end mr-6">🏷️<strong className="text-green-600">Old Code:</strong> {searchedStores[selectedItem[1]]["Old_Store_Code"]}</div>
+        <div className="tracking-wider text-sm col-span-2 flex justify-start ml-6">🏷️<strong className="text-green-600">New Code:</strong> {searchedStores[selectedItem[1]]["New_Store_Code"]}</div>
+        <div className="tracking-wider text-sm col-span-2 flex justify-end mr-6">🌍<strong className="text-green-600">New Branch:</strong> {searchedStores[selectedItem[1]]["New_Branch"].toUpperCase()}</div>
+        <div className="tracking-wider text-sm col-span-2 flex justify-start ml-6">🏢<strong className="text-green-600">DSE Code:</strong> {searchedStores[selectedItem[1]]["DSE_Code"]}</div>
         <div className="tracking-wider text-sm col-span-2 flex justify-end mr-6">👤<strong className="text-green-600">ZM:</strong> {searchedStores[selectedItem[1]]["ZM"].toUpperCase()}</div>
         <div className="tracking-wider text-sm col-span-2 flex justify-start ml-6">👤<strong className="text-green-600">SM:</strong> {searchedStores[selectedItem[1]]["SM"].toUpperCase()}</div>
         <div className="tracking-wider text-sm col-span-2 flex justify-end mr-6">👤<strong className="text-green-600">BE:</strong> {searchedStores[selectedItem[1]]["BE"].toUpperCase()}</div>
