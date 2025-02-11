@@ -3,6 +3,9 @@ import debounce from "lodash.debounce";
 import axios from 'axios';
 import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback  } from "react";
+import { HashLoader } from "react-spinners";
+
+
 const Store = () => {
   const [storeList, setStoreList] = useState(null);
 
@@ -12,7 +15,7 @@ const Store = () => {
 
   const [expandedRowId, setExpandedRowId] = useState(null);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const toggleRow = (id) => {
     setExpandedRowId(expandedRowId === id ? null : id);
@@ -25,7 +28,7 @@ const Store = () => {
       const response = await axios.get('http://localhost:5000/store/getStoreByID', {
         params: { Old_Store_Code: q },
     });
-    
+    /*if(!response.ok) throw new Error("Couldn't find searched store")*/
     setSearchedStores(response.data);
     } catch (error) {
       console.error('Error fetching data:', error.message);
@@ -51,9 +54,12 @@ const Store = () => {
     const fetchStoreList = async() =>{
       try {
         const response = await axios.get('http://localhost:5000/store/getStores');
+        /*if(!response.ok) throw new Error("Couldn't find stores");*/
         setStoreList(response.data);
       } catch (error) {
         console.error('Error fetching data:', error.message);
+      } finally{
+        setLoading(false);
       }
     }
     fetchStoreList();
@@ -91,7 +97,17 @@ const Store = () => {
         </div>
       </div>
       <div className={`mt-8 flex justify-center ${selectedItem!==null?"blur-[10px]":""}`}>
-        <table className="table-fixed border-collapse dark:border-white border-black border-2 w-full max-h-screen overflow-y-auto">
+        {loading ? <HashLoader loading={loading} color="rgb(74 222 128 / var(--tw-bg-opacity, 1))" size={75}
+        aria-label="Loading Spinner"
+        data-testid="loader" 
+        style={{
+          display: "block",
+          position: "fixed",
+          top:"50%",
+          left: "50%",
+          transform: "rotate(165deg)",
+        }}/> : 
+        (<table className="table-fixed border-collapse dark:border-white border-black border-2 w-full max-h-screen overflow-y-auto">
           <thead className="sticky top-0 dark:text-black z-20">
             <tr>
               <th className="w-1/12 border-r-2 border-b-2 border-black dark:bg-green-400 bg-green-300">Old Code</th>
@@ -107,7 +123,7 @@ const Store = () => {
           <tbody>
             {storeList && storeList.length>0 && storeList.map((store,index)=>(
                 <React.Fragment key={store["Id"]}>
-                  <tr onClick={() => toggleRow(store.id)} className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <tr onClick={() => toggleRow(store["Id"])} className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
                     <td title={store["Old_Store_Code"]} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white  text-center truncate px-1`}>{store["Old_Store_Code"]}</td>
                     <td title={store["New_Store_Code"]} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["New_Store_Code"]}</td>
                     <td title={store["New_Branch"].toUpperCase()}  className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["New_Branch"].toUpperCase()}</td>
@@ -117,7 +133,7 @@ const Store = () => {
                     <td title={store["BE"].toUpperCase()} className={`w-1/12 border-r-2 border-black ${(storeList.length-1)===index?"":"border-b-2 "} tracking-wide  dark:border-white text-center truncate px-1`}>{store["BE"].toUpperCase()}</td>
                     <td title={store["STL"].toUpperCase()} className={`w-2/12 ${(storeList.length-1)===index?"":"border-b-2 border-black"} tracking-wide text-center dark:border-white truncate px-1`}>{store["STL"].toUpperCase()}</td>
                   </tr>
-                  {expandedRowId === store.id && (
+                  {expandedRowId === store["Id"] && (
                     <tr>
                       <td colSpan="8" className="p-4 bg-gray-50 dark:bg-gray-800">
                         <div>
@@ -132,9 +148,10 @@ const Store = () => {
                     </tr>
                   )}
                 </React.Fragment>
-              ))}
+              ))
+            }
           </tbody>
-        </table>
+        </table>)}
       </div>
       {selectedItem !== null && (
   <div className="fixed inset-0 flex items-center justify-center z-50">
