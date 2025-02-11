@@ -1,11 +1,5 @@
 import { NextResponse } from "next/server";
 
-/**
- * Handles POST requests to the dashboard route.
- *
- * @param {Request} req - The incoming request object.
- * @returns {NextResponse} - The response containing the initial dashboard data.
- */
 export async function POST(req) {
   try {
     let data;
