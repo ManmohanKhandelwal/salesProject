@@ -2,8 +2,9 @@ import { ScrollArea } from "./ui/scroll-area";
 
 const CategoryStats = ({ CategoryStatsData }) => {
   const sortedCategories = [...CategoryStatsData].sort(
-    (a, b) => b.retailing - a.retailing
+    (a, b) => b.total_retailing - a.total_retailing
   );
+  console.log(sortedCategories);
 
   const getBackgroundColor = (index) => {
     if (index === 0) return "bg-yellow-400 dark:bg-yellow-600"; // Gold
@@ -28,7 +29,7 @@ const CategoryStats = ({ CategoryStatsData }) => {
                   {category.name}
                 </h3>
                 <p className="text-lg font-medium text-gray-800 dark:text-gray-300">
-                  Retailing: ₹{category.retailing.toLocaleString()}
+                  Retailing: ₹{category.total_retailing.toLocaleString()}
                 </p>
               </div>
             </div>

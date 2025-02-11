@@ -1,0 +1,1 @@
+export const TIME_TO_UPDATE_CACHE = 15 * 24 * 60 * 60 *1000 ; // 15 Days

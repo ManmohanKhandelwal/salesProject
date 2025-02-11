@@ -14,6 +14,15 @@ import fetchDashBoardData from "@/lib/utils";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
+    totalRetailingValue: 0,
+    topRetailingBrand: {
+      title: "",
+      value: "",
+    },
+    topRetailingBranch: {
+      title: "",
+      value: "",
+    },
     retailChannelData: [],
     retailChannelBrandData: [],
     retailCategoryChannelData: [],
@@ -70,7 +79,7 @@ const Dashboard = () => {
             <div className="col-span-1 flex flex-col gap-4">
               <SalesCard
                 title="Total Retailing"
-                data="₹10,000"
+                data={"₹ "+dashboardData?.totalRetailingValue}
                 trend="up"
                 percentChange="+10%"
                 className="bg-sale-card-gradient text-white"
@@ -78,7 +87,7 @@ const Dashboard = () => {
               />
               <SalesCard
                 title="Total Sales"
-                data="3,456"
+                data="₹3,456"
                 trend="down"
                 percentChange="-7.5%"
               />
@@ -143,12 +152,12 @@ const Dashboard = () => {
               <h1 className="text-xl font-semibold pb-2">Retail Trend</h1>
               <TrendRetail TrendRetailData={dashboardData?.trendRetailData} />
             </div>
-            <div className="col-span-1 flex flex-col items-center">
+            {/* <div className="col-span-1 flex flex-col items-center">
               <h1 className="text-xl font-semibold pb-2">Coverage Trend</h1>
               <TrendCoverage
                 TrendCoverageData={dashboardData?.trendCoverageData}
               />
-            </div>
+            </div> */}
           </section>
         </>
       )}
