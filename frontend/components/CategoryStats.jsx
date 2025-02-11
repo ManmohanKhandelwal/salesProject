@@ -1,73 +1,39 @@
-"use client";
-
-import {
-  Legend,
-  RadialBar,
-  RadialBarChart,
-  ResponsiveContainer,
-} from "recharts";
 import { ScrollArea } from "./ui/scroll-area";
 
-// Normalize data for the chart (calculate percentage) Function
-function normalizedData(data) {
-  return data.map((item) => ({
-    ...item,
-    achievedPercentage: (item.retail / item.target) * 100,
-  }));
-}
-
-const style = {
-  top: "50%",
-  right: 0,
-  transform: "translate(0, -50%)",
-  lineHeight: "24px",
-};
-
 const CategoryStats = ({ CategoryStatsData }) => {
-  return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="relative">
-        <ResponsiveContainer width="100%" height={250}>
-          <RadialBarChart
-            innerRadius="10%"
-            outerRadius="80%"
-            barSize={10}
-            data={normalizedData(CategoryStatsData)}
-          >
-            <RadialBar
-              minAngle={15}
-              background
-              clockWise
-              dataKey="achievedPercentage"
-            />
-            <Legend
-              iconSize={10}
-              layout="vertical"
-              verticalAlign="middle"
-              wrapperStyle={style}
-            />
-          </RadialBarChart>
-        </ResponsiveContainer>
-      </div>
+  const sortedCategories = [...CategoryStatsData].sort(
+    (a, b) => b.retailing - a.retailing
+  );
 
-      <ScrollArea className="mt-1 h-52">
-        {CategoryStatsData.map((item) => (
-          <div
-            key={item.name}
-            className="flex justify-between items-center text-sm mb-1"
-          >
-            <span className="flex items-center">
-              <div
-                className="w-3 h-3 rounded-full mr-2"
-                style={{ backgroundColor: item.fill }}
-              />
-              <p className="font-semibold text-lg">{item.name}</p>
-            </span>
-            <span className="text-lg">
-              {item.retail} / {item.target}
-            </span>
-          </div>
-        ))}
+  const getBackgroundColor = (index) => {
+    if (index === 0) return "bg-yellow-400 dark:bg-yellow-600"; // Gold
+    if (index === 1) return "bg-gray-300 dark:bg-gray-500"; // Silver
+    if (index === 2) return "bg-amber-700 dark:bg-amber-900"; // Bronze
+    return "bg-white dark:bg-gray-800"; // Default
+  };
+
+  return (
+    <div className="w-full p-6">
+      <ScrollArea className="h-[470px] pb-2">
+        <div className="flex flex-col gap-4 items-center">
+          {sortedCategories.map((category, index) => (
+            <div
+              key={index}
+              className={`w-full max-w-md p-4 rounded-2xl shadow-md transform hover:scale-105 transition-transform duration-200 flex justify-between items-center ${getBackgroundColor(
+                index
+              )}`}
+            >
+              <div className="w-full flex justify-between">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  {category.name}
+                </h3>
+                <p className="text-lg font-medium text-gray-800 dark:text-gray-300">
+                  Retailing: ₹{category.retailing.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </ScrollArea>
     </div>
   );

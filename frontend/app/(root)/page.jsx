@@ -41,7 +41,7 @@ const Dashboard = () => {
     subBrandform: "all",
   });
 
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -116,9 +116,9 @@ const Dashboard = () => {
           </section>
 
           {/* MIDDLE SECTION */}
-          <section className="pt-5 grid grid-cols-2 gap-4">
-            <div className="col-span-1 flex flex-col items-center px-2">
-              <h1 className="text-xl font-semibold pb-2">
+          <section className="pt-5 grid grid-cols-5 gap-4 pb-3">
+            <div className="col-span-3 flex flex-col items-center px-2">
+              <h1 className="text-xl font-bold pb-2">
                 Retailing by Month and Year
               </h1>
               <RetailMonthYear
@@ -126,8 +126,8 @@ const Dashboard = () => {
               />
             </div>
 
-            <div className="col-span-1 flex flex-col items-center">
-              <h1 className="text-xl font-semibold">Category Statistics</h1>
+            <div className="col-span-2 flex flex-col items-center">
+              <h1 className="text-2xl font-bold">Top Retailing Categories</h1>
               <p className="text-gray-600 dark:text-gray-300 mb-1 pb-2">
                 Track category-wise retailing
               </p>
