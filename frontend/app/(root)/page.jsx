@@ -24,9 +24,7 @@ const Dashboard = () => {
       value: "",
     },
     retailChannelData: [],
-    retailChannelBrandData: [],
     retailCategoryChannelData: [],
-    retailCategoryBrandData: [],
     branchData: [],
     brandformData: [],
     retailMonthYearData: [],
@@ -79,7 +77,7 @@ const Dashboard = () => {
             <div className="col-span-1 flex flex-col gap-4">
               <SalesCard
                 title="Total Retailing"
-                data={"₹ "+dashboardData?.totalRetailingValue}
+                data={dashboardData?.totalRetailingValue}
                 trend="up"
                 percentChange="+10%"
                 className="bg-sale-card-gradient text-white"
@@ -87,7 +85,7 @@ const Dashboard = () => {
               />
               <SalesCard
                 title="Total Sales"
-                data="₹3,456"
+                data="3456"
                 trend="down"
                 percentChange="-7.5%"
               />
@@ -97,16 +95,12 @@ const Dashboard = () => {
             <div className="col-span-2 grid grid-cols-2 px-4 border border-gray-200 rounded-lg shadow-md">
               <div className="flex flex-col items-center col-span-1">
                 <h1 className="text-xl font-semibold">Retailing by Channel</h1>
-                <RetailChannel
-                  ChannelData={dashboardData?.retailChannelData}
-                  BrandData={dashboardData?.retailChannelBrandData}
-                />
+                <RetailChannel ChannelData={dashboardData?.retailChannelData} />
               </div>
               <div className="flex flex-col items-center col-span-1">
                 <h1 className="text-xl font-semibold">Retailing by Category</h1>
                 <RetailCategory
                   ChannelData={dashboardData?.retailCategoryChannelData}
-                  BrandData={dashboardData?.retailCategoryBrandData}
                 />
               </div>
             </div>
@@ -150,7 +144,9 @@ const Dashboard = () => {
           <section className="pt-5 grid grid-cols-2 gap-4 border border-gray-200 rounded-lg px-3">
             <div className="col-span-1 flex flex-col items-center">
               <h1 className="text-xl font-semibold pb-2">Retail Trend</h1>
-              <TrendRetail TrendRetailData={dashboardData?.trendRetailData} />
+              <TrendRetail
+                TrendRetailData={dashboardData?.retailMonthYearData}
+              />
             </div>
             {/* <div className="col-span-1 flex flex-col items-center">
               <h1 className="text-xl font-semibold pb-2">Coverage Trend</h1>

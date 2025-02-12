@@ -12,16 +12,10 @@ const COLORS = [
 ];
 
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  percent,
-  index,
-}) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+
+// Label Function (Shows in Cr)
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 1.25;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -29,43 +23,53 @@ const renderCustomizedLabel = ({
     <text
       x={x}
       y={y}
-      fill="white"
+      fill="currentColor"
+      fontSize={12}
+      fontWeight="semi-bold"
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
     >
-      {`${(percent * 100).toFixed(0)}%`}
+      {value.toFixed(1)} Cr {/* Display in Cr */}
     </text>
   );
 };
 
+// Tooltip (Shows Exact Amount)
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-2 border rounded shadow-md text-black">
+        <p className="font-bold">{payload[0].name}</p>
+        <p>Value: {Math.round(payload[0].value * 10000000).toLocaleString()} {/* Exact Amount */}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 const RetailCategory = ({ ChannelData, BrandData }) => {
+  // Convert ChannelData values to Cr
+  const formattedChannelData = ChannelData.map((item) => ({
+    ...item,
+    value: item.value / 10000000, // Convert to Cr
+  }));
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart width={600} height={400}>
         <Pie
           dataKey="value"
-          data={ChannelData}
+          data={formattedChannelData}
           cx="50%"
           cy="50%"
-          outerRadius={60}
-          labelLine={false}
-          label={renderCustomizedLabel}
+          outerRadius={100}
+          label={renderCustomizedLabel} // Show in Cr
         >
-          {ChannelData.map((entry, index) => (
+          {formattedChannelData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <Pie
-          dataKey="value"
-          data={BrandData}
-          cx="50%"
-          cy="50%"
-          innerRadius={70}
-          outerRadius={90}
-          fill="#8884d8"
-          label
-        ></Pie>
-        <Tooltip />
+        <Tooltip content={<CustomTooltip />} />
       </PieChart>
     </ResponsiveContainer>
   );

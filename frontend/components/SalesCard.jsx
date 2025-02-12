@@ -1,5 +1,5 @@
 import { TrendingDown, TrendingUp } from "lucide-react";
-import React from "react";
+import { useState } from "react";
 
 const SalesCard = ({
   title,
@@ -9,6 +9,8 @@ const SalesCard = ({
   className,
   isShadow = true,
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div
       className={`w-full p-4 ${
@@ -18,7 +20,9 @@ const SalesCard = ({
       }`}
     >
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold dark:text-white">{title}</h1>
+        <h1 className="text-xl font-semibold dark:text-white">
+          {title} {isHovered ? "" : " (in CR)"}
+        </h1>
         <div
           className={`flex items-center gap-2 ${
             trend === "up" ? "bg-green-400" : "bg-red-500"
@@ -29,7 +33,16 @@ const SalesCard = ({
         </div>
       </div>
 
-      <h1 className="text-4xl font-bold pt-2 dark:text-white">{data}</h1>
+      {/* Show in Cr by default, exact amount on hover */}
+      <h1
+        className="text-4xl font-bold pt-2 dark:text-white relative cursor-pointer transition-all duration-300"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {isHovered
+          ? data.toLocaleString()
+          : `${(data / 10000000).toFixed(2)} Cr`}
+      </h1>
     </div>
   );
 };

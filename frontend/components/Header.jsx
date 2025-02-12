@@ -112,10 +112,8 @@ import {
   years,
   zm,
 } from "@/constants";
-import FilterDropdown from "./FilterDropdown";
-import DateRangeFilter from "./DateRangeFilter";
-import { useState } from "react";
 import { CircleCheck } from "lucide-react";
+import FilterDropdown from "./FilterDropdown";
 
 // Define all filters dynamically
 const filtersToShow = [
@@ -146,8 +144,7 @@ const filtersToShow = [
   },
 ];
 
-const Header = ({ SelectedFilters,SetSelectedFilters }) => {
-
+const Header = ({ SelectedFilters, SetSelectedFilters }) => {
   const submitForm = () => {
     console.log("Selected Filters:", SelectedFilters);
     // Use `SelectedFilters` to fetch API data and update UI
@@ -155,7 +152,7 @@ const Header = ({ SelectedFilters,SetSelectedFilters }) => {
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col items-center text-center space-y-4">
       {/* HEADING */}
       <div>
         <h1 className="text-3xl font-bold">Sales Overview</h1>
@@ -164,8 +161,8 @@ const Header = ({ SelectedFilters,SetSelectedFilters }) => {
         </p>
       </div>
 
-      {/* FILTERS */}
-      <div className="flex items-center gap-1 flex-wrap">
+      {/* FILTERS SECTION */}
+      <div className="flex flex-wrap justify-center gap-3 p-4 border border-gray-300 rounded-lg w-full">
         {filtersToShow.map((filter) => (
           <FilterDropdown
             key={filter.filterKey}
@@ -176,15 +173,14 @@ const Header = ({ SelectedFilters,SetSelectedFilters }) => {
             setSelectedFilters={SetSelectedFilters}
           />
         ))}
+        {/* SUBMIT BUTTON */}
+        <button
+          className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
+          onClick={submitForm}
+        >
+          <CircleCheck />
+        </button>
       </div>
-
-      {/* SUBMIT BUTTON */}
-      <button
-        className="bg-blue-500 text-white rounded-full p-1"
-        onClick={submitForm}
-      >
-        <CircleCheck />
-      </button>
     </div>
   );
 };

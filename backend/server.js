@@ -2,10 +2,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 
-import dashBoardRoutes from "./routes/dashBoardRoutes.js";
+import mySqlPool from "./config/db.js";
+import dashBoardrouter from "./routes/dashBoardRoutes.js";
 import retailRoutes from "./routes/retailRoutes.js";
 import storeRoutes from "./routes/storeRoutes.js";
-import mySqlPool from "./config/db.js";
+import updatePSRSummaryRoute from "./routes/updatePSRSummaryTable.js";
 dotenv.config();
 
 const app = express();
@@ -18,7 +19,8 @@ app.get("/test", (req, res) => {
 });
 app.use("/retail", retailRoutes);
 app.use("/store", storeRoutes);
-app.use("/Dashboard", dashBoardRoutes);
+app.use("/Dashboard", dashBoardrouter);
+app.use("/DB",updatePSRSummaryRoute);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
