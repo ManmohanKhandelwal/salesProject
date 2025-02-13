@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 
-import CategoryStats from "@/components/CategoryStats";
+import BrandFormStats from "@/components/BrandFormStats";
 import Header from "@/components/Header";
-import RetailCategory from "@/components/RetailCategory";
-import RetailChannel from "@/components/RetailChannel";
+import RetailCategoryPieChart from "@/components/RetailCategoryPieChart";
+import RetailChannelPieChart from "@/components/RetailChannelPieChart";
 import RetailMonthYear from "@/components/RetailMonthYear";
 import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
@@ -26,7 +26,7 @@ const Dashboard = () => {
     branchData: [],
     brandformData: [],
     retailMonthYearData: [],
-    categoryStatsData: [],
+    topTenBrandForm: [],
     trendRetailData: [],
     trendCoverageData: [],
   });
@@ -93,11 +93,13 @@ const Dashboard = () => {
             <div className="col-span-2 grid grid-cols-2 px-4 border border-gray-200 rounded-lg shadow-md">
               <div className="flex flex-col items-center col-span-1">
                 <h1 className="text-xl font-semibold">Retailing by Channel</h1>
-                <RetailChannel ChannelData={dashboardData?.retailChannelData} />
+                <RetailChannelPieChart
+                  ChannelData={dashboardData?.retailChannelData}
+                />
               </div>
               <div className="flex flex-col items-center col-span-1">
                 <h1 className="text-xl font-semibold">Retailing by Category</h1>
-                <RetailCategory
+                <RetailCategoryPieChart
                   ChannelData={dashboardData?.retailCategoryChannelData}
                 />
               </div>
@@ -128,12 +130,12 @@ const Dashboard = () => {
             </div>
 
             <div className="col-span-2 flex flex-col items-center">
-              <h1 className="text-2xl font-bold">Top Retailing Categories</h1>
+              <h1 className="text-2xl font-bold">Top Retailing BrandForm</h1>
               <p className="text-gray-600 dark:text-gray-300 mb-1 pb-2">
-                Track category-wise retailing
+                Track BrandForm-wise retailing
               </p>
-              <CategoryStats
-                CategoryStatsData={dashboardData?.categoryStatsData}
+              <BrandFormStats
+                TopTenBrandForm={dashboardData?.topTenBrandForm}
               />
             </div>
           </section>

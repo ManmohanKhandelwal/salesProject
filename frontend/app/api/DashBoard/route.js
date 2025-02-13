@@ -23,7 +23,7 @@ export async function POST(req) {
         branchData: data.topRetailingBranch,
         brandformData: data.topRetailingBrand,
         retailMonthYearData: data.retailTrendByMonthAndYear,
-        categoryStatsData: data.retailTopTen,
+        topTenBrandForm: data.topTenBrandForm,
       };
       data = dataToSend;
     } else {

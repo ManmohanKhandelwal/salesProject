@@ -58,7 +58,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-const RetailChannel = ({ ChannelData }) => {
+const RetailChannelPieChart = ({ ChannelData }) => {
   const slicedChannelData = ChannelData.slice(0, 9).map((item) => ({
     ...item,
     value: item.value / 10000000, // Convert to Cr
@@ -85,4 +85,4 @@ const RetailChannel = ({ ChannelData }) => {
   );
 };
 
-export default RetailChannel;
+export default RetailChannelPieChart;

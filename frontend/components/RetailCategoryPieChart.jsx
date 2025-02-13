@@ -57,7 +57,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-const RetailCategory = ({ ChannelData, BrandData }) => {
+const RetailCategoryPieChart = ({ ChannelData }) => {
   // Convert ChannelData values to Cr
   const formattedChannelData = ChannelData.map((item) => ({
     ...item,
@@ -85,4 +85,4 @@ const RetailCategory = ({ ChannelData, BrandData }) => {
   );
 };
 
-export default RetailCategory;
+export default RetailCategoryPieChart;

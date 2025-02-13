@@ -38,7 +38,7 @@ export const getDashBoardData = async (req, res) => {
       [retailingByChannel],
       [retailingByCategory],
       [retailTrend],
-      [retailTopTen],
+      [topTenBrandForm],
     ] = await Promise.all([
       mySqlPool.query(
         SQLSelect({
@@ -51,9 +51,12 @@ export const getDashBoardData = async (req, res) => {
       ),
       mySqlPool.query(
         SQLSelect({
-          Queries: ["channel_description", "SUM(retailing) as totalRetailing"],
-          TableName: "psr_data",
-          GroupBy: ["channel_description"],
+          Queries: ["cm.broad_channel", "SUM(pd.retailing) as totalRetailing"],
+          TableName: "psr_data pd",
+          JoinBy: {
+            "channel_mapping cm ": "pd.customer_type = cm.customer_type",
+          },
+          GroupBy: ["cm.broad_channel"],
           Limit: 0,
         })
       ),
@@ -77,18 +80,19 @@ export const getDashBoardData = async (req, res) => {
           Limit: 0,
         })
       ),
-      mySqlPool.query(`
-        SELECT sm.New_Branch, SUM(pd.retailing) AS total_retailing
-        FROM psr_data pd
-        JOIN store_mapping sm ON pd.customer_code = sm.Old_Store_Code
-        GROUP BY sm.New_Branch
-        ORDER BY total_retailing DESC
-        LIMIT 10;
-`),
+      mySqlPool.query(
+        SQLSelect({
+          Queries: ["brandform", "SUM(retailing) as totalRetailing"],
+          TableName: "psr_data",
+          GroupBy: ["brandform"],
+          OrderBy: ["totalRetailing DESC"],
+          Limit: 10,
+        })
+      ),
     ]);
 
     const formattedRetailingByChannel = retailingByChannel.map((row) => ({
-      name: row.channel_description,
+      name: row.broad_channel,
       value: parseFloat(row.totalRetailing),
     }));
 
@@ -117,7 +121,7 @@ export const getDashBoardData = async (req, res) => {
         value: dashboardData.highest_retailing_branch_value,
       },
       retailTrendByMonthAndYear: formattedRetailTrend,
-      retailTopTen: retailTopTen,
+      topTenBrandForm: topTenBrandForm,
     };
 
     // Save the new data to cache

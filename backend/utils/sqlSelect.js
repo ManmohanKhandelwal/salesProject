@@ -1,21 +1,10 @@
-/**
- * Generates a SQL SELECT query string based on the provided parameters.
- *
- * @param {Object} params - The parameters for the SQL SELECT query.
- * @param {Array<string>} [params.Queries=["*"]] - The columns to select in the query.
- * @param {string} [params.TableName=""] - The name of the table to query.
- * @param {Object} [params.Where={}] - The conditions for the WHERE clause.
- * @param {Array<string>} [params.GroupBy=[]] - The columns to group by in the query.
- * @param {number} [params.Limit=10] - The limit for the number of rows to return.
- * @param {boolean} [params.IsDeleted=false] - Whether to include a condition for deleted rows.
- * @returns {string} The generated SQL SELECT query string.
- * @throws {Error} If Queries is not a non-empty array or TableName is not a non-empty string.
- */
 export const SQLSelect = ({
   Queries = ["*"],
   TableName = "",
   Where = {},
+  JoinBy = {},
   GroupBy = [],
+  OrderBy = "",
   Limit = 10,
   IsDeleted = false,
 }) => {
@@ -28,24 +17,39 @@ export const SQLSelect = ({
 
   let query = `SELECT ${Queries.join(", ")} FROM ${TableName}`;
 
+  // Handle JOIN clause dynamically
+  if (Object.keys(JoinBy).length > 0) {
+    Object.entries(JoinBy).forEach(([table, condition]) => {
+      query += ` JOIN ${table} ON ${condition}`;
+    });
+  }
+
   // Handle WHERE clause dynamically
+  let conditions = [];
   if (Object.keys(Where).length > 0) {
-    const conditions = Object.entries(Where)
-      .map(([key, value]) => `${key} = '${value}'`)
-      .join(" AND ");
-    if (IsDeleted) {
-      conditions += ` AND isDeleted = 1`;
-    }
-    query += ` WHERE ${conditions}`;
+    conditions = Object.entries(Where).map(([key, value]) => `${key} = '${value}'`);
+  }
+  if (IsDeleted) {
+    conditions.push(`isDeleted = 1`);
+  }
+  if (conditions.length > 0) {
+    query += ` WHERE ${conditions.join(" AND ")}`;
   }
 
   // Handle GROUP BY clause
   if (Array.isArray(GroupBy) && GroupBy.length > 0) {
     query += ` GROUP BY ${GroupBy.join(", ")}`;
   }
-  //Add limit clause
-  if(Limit!=0)
-  query += ` LIMIT ${Limit}`;
+
+  // Handle ORDER BY clause
+  if (OrderBy !== "") {
+    query += ` ORDER BY ${OrderBy}`;
+  }
+
+  // Add LIMIT clause
+  if (Limit !== 0) {
+    query += ` LIMIT ${Limit}`;
+  }
 
   return query;
 };
