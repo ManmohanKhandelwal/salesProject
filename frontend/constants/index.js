@@ -15,6 +15,11 @@ export const pages = [
     path: "/product",
     title: "Products",
   },
+  {
+    id: 3,
+    path: "/upload",
+    title: "Upload",
+  },
 ];
 
 // FILTER YEARS
