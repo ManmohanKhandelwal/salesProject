@@ -8,8 +8,6 @@ import RetailChannel from "@/components/RetailChannel";
 import RetailMonthYear from "@/components/RetailMonthYear";
 import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
-import TrendCoverage from "@/components/TrendCoverage";
-import TrendRetail from "@/components/TrendRetail";
 import fetchDashBoardData from "@/lib/utils";
 
 const Dashboard = () => {

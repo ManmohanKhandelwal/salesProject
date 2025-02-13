@@ -14,8 +14,15 @@ const COLORS = [
 const RADIAN = Math.PI / 180;
 
 // Label Function (Shows in Cr)
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
-  const radius = innerRadius + (outerRadius - innerRadius) *1.25;
+const renderCustomizedLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  value,
+}) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 1.25;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -41,7 +48,10 @@ const CustomTooltip = ({ active, payload }) => {
     return (
       <div className="bg-white p-2 border rounded shadow-md text-black">
         <p className="font-bold">{payload[0].name}</p>
-        <p>Value: {Math.round(payload[0].value * 10000000).toLocaleString()} {/* Exact Amount */}</p>
+        <p>
+          Value: {Math.round(payload[0].value * 10000000).toLocaleString()}{" "}
+          {/* Exact Amount */}
+        </p>
       </div>
     );
   }
@@ -62,7 +72,7 @@ const RetailChannel = ({ ChannelData }) => {
           data={slicedChannelData}
           cx="50%"
           cy="50%"
-          outerRadius={100}
+          outerRadius={80}
           label={renderCustomizedLabel} // Show in Cr
         >
           {slicedChannelData.map((entry, index) => (
