@@ -146,6 +146,7 @@ const filtersToShow = [
 
 const Header = ({ SelectedFilters, SetSelectedFilters }) => {
   const submitForm = () => {
+    // console.clear();
     console.log("Selected Filters:", SelectedFilters);
     // Use `SelectedFilters` to fetch API data and update UI
     // SetDashboarddata(fetchResponse);

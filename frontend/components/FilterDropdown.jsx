@@ -76,8 +76,7 @@
 //   );
 // };
 
-// export default FilterDropdown;
-"use client";
+// export default FilterDropdown;"use client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -89,7 +88,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
-import { useEffect } from "react";
 import { ScrollArea } from "./ui/scroll-area";
 
 const FilterDropdown = ({
@@ -99,25 +97,31 @@ const FilterDropdown = ({
   selectedFilters,
   setSelectedFilters,
 }) => {
+  // Get the selected values for this specific filter category (e.g., years, months)
+  const selectedItems = selectedFilters[filterKey] || ["all"];
+
   const handleSelection = (id) => {
     setSelectedFilters((prevFilters) => {
-      const currentSelection = prevFilters[filterKey] || [];
+      let updatedSelection;
 
       if (id === "all") {
-        // If "all" is already selected, deselect everything; otherwise, select all items
-        const allSelected = currentSelection.length === filter.length;
-        return {
-          ...prevFilters,
-          [filterKey]: allSelected ? [] : filter.map((item) => item.id),
-        };
+        // If "All" is selected, reset the selection to only "All"
+        updatedSelection = ["all"];
       } else {
-        // Toggle individual item selection
-        const updatedSelection = currentSelection.includes(id)
-          ? currentSelection.filter((b) => b !== id) // Remove if exists
-          : [...currentSelection, id]; // Add if not exists
+        // If an item is selected, remove "All" and toggle selection
+        updatedSelection = selectedItems.includes(id)
+          ? selectedItems.filter((item) => item !== id) // Deselect
+          : [...selectedItems.filter((item) => item !== "all"), id]; // Select and remove "All"
 
-        return { ...prevFilters, [filterKey]: updatedSelection };
+        // If all individual items are selected, replace with "All"
+        if (updatedSelection.length === filter.length) {
+          updatedSelection = ["all"];
+        }
       }
+
+      console.log(`${filterKey} Selected:`, updatedSelection); // Log selected items
+
+      return { ...prevFilters, [filterKey]: updatedSelection };
     });
   };
 
@@ -132,15 +136,15 @@ const FilterDropdown = ({
 
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>Select {name}</DropdownMenuLabel>
-
         <DropdownMenuSeparator />
 
         <ScrollArea className="h-72">
+          {/* Individual Options */}
           {filter.map((item) => (
             <DropdownMenuCheckboxItem
               key={item.id}
-              checked={selectedFilters[filterKey]?.includes(item.id) || false}
-              onSelect={() => handleSelection(item.id)}
+              checked={selectedItems.includes(item.id)}
+              onCheckedChange={() => handleSelection(item.id)}
             >
               {item.title}
             </DropdownMenuCheckboxItem>

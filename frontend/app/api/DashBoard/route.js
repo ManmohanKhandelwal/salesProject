@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 export async function POST(req) {
   try {
     let data;
-
+    const conditions = await req.json();
+    console.log(conditions);
     if (process.env.NODE_ENV === "development") {
       const res = await fetch("http://localhost:5000/Dashboard/DashboardData", {
         method: "GET",

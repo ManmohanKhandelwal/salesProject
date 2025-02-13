@@ -9,18 +9,13 @@ import RetailMonthYear from "@/components/RetailMonthYear";
 import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
 import fetchDashBoardData from "@/lib/utils";
+import CustomLoader from "@/components/ui/loader";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
     totalRetailingValue: 0,
-    topRetailingBrand: {
-      title: "",
-      value: "",
-    },
-    topRetailingBranch: {
-      title: "",
-      value: "",
-    },
+    topRetailingBrand: { title: "", value: "" },
+    topRetailingBranch: { title: "", value: "" },
     retailChannelData: [],
     retailCategoryChannelData: [],
     branchData: [],
@@ -30,28 +25,30 @@ const Dashboard = () => {
     trendRetailData: [],
     trendCoverageData: [],
   });
+
   const [selectedFilters, setSelectedFilters] = useState({
-    years: "all",
-    months: "all",
-    branches: "all",
-    zm: "all",
-    sm: "all",
-    be: "all",
-    channel: "all",
-    broadChannel: "all",
-    shortChannel: "all",
-    category: "all",
-    brand: "all",
-    brandform: "all",
-    subBrandform: "all",
+    years: ["all"],
+    months: ["all"],
+    branches: ["all"],
+    zm: ["all"],
+    sm: ["all"],
+    be: ["all"],
+    channel: ["all"],
+    broadChannel: ["all"],
+    shortChannel: ["all"],
+    category: ["all"],
+    brand: ["all"],
+    brandform: ["all"],
+    subBrandform: ["all"],
   });
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    fetchDashBoardData(selectedFilters).then(setDashboardData);
-    setLoading(false);
+    fetchDashBoardData(selectedFilters)
+      .then((data) => setDashboardData(data))
+      .finally(() => setLoading(false)); // Ensure loading state is removed only after fetch is done
   }, []);
 
   return (
@@ -62,12 +59,15 @@ const Dashboard = () => {
         SetSelectedFilters={setSelectedFilters}
       />
 
-      {/* ✅ Show Loading Indicator */}
-      {loading ? (
-        <div className="text-center text-lg font-semibold py-10">
-          Loading Dashboard...
+      {/* ✅ Show Full-Page Loader While Loading */}
+      {loading && (
+        <div className="fixed inset-0 flex justify-center items-center bg-white bg-opacity-80 z-50">
+          <CustomLoader />
         </div>
-      ) : (
+      )}
+
+      {/* ✅ Render Content After Loading */}
+      {!loading && (
         <>
           {/* TOP SECTION */}
           <section className="pt-5 grid grid-cols-4 gap-4">
@@ -134,9 +134,7 @@ const Dashboard = () => {
               <p className="text-gray-600 dark:text-gray-300 mb-1 pb-2">
                 Track BrandForm-wise retailing
               </p>
-              <BrandFormStats
-                TopTenBrandForm={dashboardData?.topTenBrandForm}
-              />
+              <BrandFormStats TopTenBrandForm={dashboardData?.topTenBrandForm} />
             </div>
           </section>
         </>

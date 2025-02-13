@@ -12,7 +12,6 @@ import {
 } from "recharts";
 
 const RetailMonthYear = ({ RetailMonthYearData }) => {
-  console.log(RetailMonthYearData);
 
   const vibrantColors = ["#FF6F61", "#6B5B95"]; // Light mode vibrant colors
   
