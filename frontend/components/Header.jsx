@@ -162,7 +162,7 @@ const Header = ({ SelectedFilters, SetSelectedFilters }) => {
       </div>
 
       {/* FILTERS SECTION */}
-      <div className="flex flex-wrap justify-center gap-3 p-4 border border-gray-300 rounded-lg w-full">
+      <div className="flex flex-wrap items-center justify-center gap-3 p-4 border border-gray-300 rounded-lg w-full">
         {filtersToShow.map((filter) => (
           <FilterDropdown
             key={filter.filterKey}

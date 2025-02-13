@@ -118,7 +118,7 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* MIDDLE SECTION */}
+          {/* BOTTOM SECTION */}
           <section className="pt-5 grid grid-cols-5 gap-4 pb-3">
             <div className="col-span-3 flex flex-col items-center px-2">
               <h1 className="text-xl font-bold pb-2">
@@ -138,22 +138,6 @@ const Dashboard = () => {
                 CategoryStatsData={dashboardData?.categoryStatsData}
               />
             </div>
-          </section>
-
-          {/* BOTTOM SECTION */}
-          <section className="pt-5 grid grid-cols-2 gap-4 border border-gray-200 rounded-lg px-3">
-            <div className="col-span-1 flex flex-col items-center">
-              <h1 className="text-xl font-semibold pb-2">Retail Trend</h1>
-              <TrendRetail
-                TrendRetailData={dashboardData?.retailMonthYearData}
-              />
-            </div>
-            {/* <div className="col-span-1 flex flex-col items-center">
-              <h1 className="text-xl font-semibold pb-2">Coverage Trend</h1>
-              <TrendCoverage
-                TrendCoverageData={dashboardData?.trendCoverageData}
-              />
-            </div> */}
           </section>
         </>
       )}
