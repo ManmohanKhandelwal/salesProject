@@ -2,19 +2,29 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    let data;
     const conditions = await req.json();
-    console.log(conditions);
+
+    let data;
+    // Check if any array in the object contains a value other than "all"
+    const hasFilters = Object.values(conditions).some(
+      (arr) => Array.isArray(arr) && arr.some((value) => value !== "all")
+    );
     if (process.env.NODE_ENV === "development") {
-      const res = await fetch("http://localhost:5000/Dashboard/DashboardData", {
-        method: "GET",
+      const url = hasFilters
+        ? "http://localhost:5000/Dashboard/FilterredDashBoardData"
+        : "http://localhost:5000/Dashboard/DashboardData";
+
+      const res = await fetch(url, {
+        method: hasFilters ? "POST" : "GET",
         headers: {
           "Content-Type": "application/json",
         },
+        body: hasFilters ? JSON.stringify(conditions) : null,
       });
 
-      if (!res.ok) throw new Error("Failed to fetch dashboard data");
+      if (!res.ok) throw new Error(`Failed to fetch dashboard data from ${url}`);
       data = await res.json();
+
       const dataToSend = {
         totalRetailingValue: data.totalRetailingValue,
         topRetailingBrand: data.topRetailingBrand,
@@ -26,6 +36,7 @@ export async function POST(req) {
         retailMonthYearData: data.retailTrendByMonthAndYear,
         topTenBrandForm: data.topTenBrandForm,
       };
+
       data = dataToSend;
     } else {
       data = { message: "Dashboard API is disabled in production" };

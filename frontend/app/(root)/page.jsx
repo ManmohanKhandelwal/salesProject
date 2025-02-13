@@ -8,8 +8,8 @@ import RetailChannelPieChart from "@/components/RetailChannelPieChart";
 import RetailMonthYear from "@/components/RetailMonthYear";
 import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
-import fetchDashBoardData from "@/lib/utils";
 import CustomLoader from "@/components/ui/loader";
+import fetchDashBoardData from "@/lib/utils";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -57,6 +57,7 @@ const Dashboard = () => {
         SetDashboarddata={setDashboardData}
         SelectedFilters={selectedFilters}
         SetSelectedFilters={setSelectedFilters}
+        SetLoading={setLoading}
       />
 
       {/* ✅ Show Full-Page Loader While Loading */}

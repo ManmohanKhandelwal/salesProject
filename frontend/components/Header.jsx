@@ -112,6 +112,7 @@ import {
   years,
   zm,
 } from "@/constants";
+import fetchDashBoardData from "@/lib/utils";
 import { CircleCheck } from "lucide-react";
 import FilterDropdown from "./FilterDropdown";
 
@@ -144,12 +145,21 @@ const filtersToShow = [
   },
 ];
 
-const Header = ({ SelectedFilters, SetSelectedFilters }) => {
+const Header = ({
+  SelectedFilters,
+  SetSelectedFilters,
+  SetDashboarddata,
+  SetLoading,
+}) => {
   const submitForm = () => {
     // console.clear();
     console.log("Selected Filters:", SelectedFilters);
-    // Use `SelectedFilters` to fetch API data and update UI
-    // SetDashboarddata(fetchResponse);
+    SetLoading(true);
+    // fetchDashBoardData(SelectedFilters)
+    //   .then((data) => SetDashboarddata(data))
+    //   .finally(() => 
+        SetLoading(false)
+    // );
   };
 
   return (

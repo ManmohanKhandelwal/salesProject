@@ -142,9 +142,9 @@ const FilterDropdown = ({
           {/* Individual Options */}
           {filter.map((item) => (
             <DropdownMenuCheckboxItem
-              key={item.id}
-              checked={selectedItems.includes(item.id)}
-              onCheckedChange={() => handleSelection(item.id)}
+              key={item.title}
+              checked={selectedItems.includes(item.title)}
+              onCheckedChange={() => handleSelection(item.title)}
             >
               {item.title}
             </DropdownMenuCheckboxItem>
