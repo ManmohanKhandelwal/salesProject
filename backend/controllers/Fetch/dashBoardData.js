@@ -8,59 +8,88 @@ const CACHE_DIR = path.join(process.cwd(), "cache");
 const CACHE_FILE = path.join(CACHE_DIR, "dashboardData.json");
 const CACHE_DURATION = TIME_TO_UPDATE_CACHE;
 
+/** Helper function to read and validate cache */
+const readCache = async () => {
+  try {
+    const fileData = await fs.readFile(CACHE_FILE, "utf-8");
+    const cachedData = JSON.parse(fileData);
+    if (Date.now() - cachedData.timestamp < CACHE_DURATION) {
+      console.log("Serving data from cache...");
+      return cachedData.data;
+    }
+  } catch {
+    console.log("Cache not found or expired, fetching new data...");
+  }
+  return null;
+};
+
+/** Helper function to write cache */
+const writeCache = async (data) => {
+  try {
+    await fs.mkdir(CACHE_DIR, { recursive: true });
+    await fs.writeFile(
+      CACHE_FILE,
+      JSON.stringify({ timestamp: Date.now(), data }),
+      "utf-8"
+    );
+  } catch (err) {
+    console.error("Error writing cache:", err);
+  }
+};
+
+/** Optimized function to fetch dashboard data */
 export const getDashBoardData = async (req, res) => {
   try {
-    // Ensure the cache directory exists
-    await fs
-      .mkdir(CACHE_DIR, { recursive: true })
-      .catch((err) => console.error("Error creating cache directory:", err));
+    // Check cache first
+    const cachedData = await readCache();
+    if (cachedData) return res.status(200).json(cachedData);
 
-    // Check if the cached file exists
-    try {
-      const fileData = await fs.readFile(CACHE_FILE, "utf-8");
-      const cachedData = JSON.parse(fileData);
+    // Get database connection
+    const connection = await mySqlPool.getConnection();
+    await connection.query("SET SESSION sql_mode = ''");
 
-      // If data is fresh, return it
-      if (Date.now() - cachedData.timestamp < CACHE_DURATION) {
-        console.log("Serving data from cache...");
-        return res.status(200).json(cachedData.data);
-      }
-    } catch {
-      console.log("Cache not found or expired, fetching new data...");
-    }
+    // Define queries
+    const query = `
+      WITH latest_month AS (
+          SELECT YEAR(MAX(document_date)) AS latest_year, 
+                 MONTH(MAX(document_date)) AS latest_month
+          FROM psr_data
+      )
+      SELECT 
+          lm.latest_year AS year, 
+          lm.latest_month AS month, 
+          SUM(CASE WHEN YEAR(pd.document_date) = lm.latest_year THEN pd.retailing ELSE 0 END) AS latest_total,
+          SUM(CASE WHEN YEAR(pd.document_date) = lm.latest_year - 1 THEN pd.retailing ELSE 0 END) AS prev_total
+      FROM psr_data pd
+      JOIN latest_month lm 
+      ON MONTH(pd.document_date) = lm.latest_month
+      GROUP BY lm.latest_year, lm.latest_month;
+    `;
 
-    // Fetch data from the database
-    await mySqlPool.query("SET SESSION sql_mode = ''");
-
-    //Using Promise.all to run all the queries in parallel
     const [
       [[dashboardData]],
+      [[retailingStats]],
       [retailingByChannel],
       [retailingByCategory],
       [retailTrend],
       [topTenBrandForm],
     ] = await Promise.all([
-      mySqlPool.query(
-        SQLSelect({
-          Queries: [
-            "*", // Select all columns
-          ],
-          TableName: "dashboard_summary",
-          Limit: 0,
-        })
+      connection.query(
+        SQLSelect({ Queries: ["*"], TableName: "dashboard_summary", Limit: 0 })
       ),
-      mySqlPool.query(
+      connection.query(query),
+      connection.query(
         SQLSelect({
           Queries: ["cm.broad_channel", "SUM(pd.retailing) as totalRetailing"],
           TableName: "psr_data pd",
           JoinBy: {
-            "channel_mapping cm ": "pd.customer_type = cm.customer_type",
+            "channel_mapping cm": "pd.customer_type = cm.customer_type",
           },
           GroupBy: ["cm.broad_channel"],
           Limit: 0,
         })
       ),
-      mySqlPool.query(
+      connection.query(
         SQLSelect({
           Queries: ["category", "SUM(retailing) as totalRetailing"],
           TableName: "psr_data",
@@ -68,7 +97,7 @@ export const getDashBoardData = async (req, res) => {
           Limit: 0,
         })
       ),
-      mySqlPool.query(
+      connection.query(
         SQLSelect({
           Queries: [
             "YEAR(document_date) AS year",
@@ -80,7 +109,7 @@ export const getDashBoardData = async (req, res) => {
           Limit: 0,
         })
       ),
-      mySqlPool.query(
+      connection.query(
         SQLSelect({
           Queries: ["brandform", "SUM(retailing) as totalRetailing"],
           TableName: "psr_data",
@@ -91,15 +120,14 @@ export const getDashBoardData = async (req, res) => {
       ),
     ]);
 
-    const formattedRetailingByChannel = retailingByChannel.map((row) => ({
-      name: row.broad_channel,
-      value: parseFloat(row.totalRetailing),
-    }));
+    connection.release(); // Release database connection
 
-    const formattedRetailingByCategory = retailingByCategory.map((row) => ({
-      name: row.category,
-      value: parseFloat(row.totalRetailing),
-    }));
+    // Format data functions
+    const formatData = (arr, nameKey) =>
+      arr.map((row) => ({
+        name: row[nameKey],
+        value: parseFloat(row.totalRetailing),
+      }));
 
     const formattedRetailTrend = retailTrend.map((row) => ({
       year: row.year.toString(),
@@ -107,11 +135,29 @@ export const getDashBoardData = async (req, res) => {
       value: parseFloat(row.totalRetailing),
     }));
 
+    const percentageChangeinRetailing =
+      retailingStats.prev_total > 0
+        ? ((retailingStats.latest_total - retailingStats.prev_total) /
+            retailingStats.prev_total) *
+          100
+        : null;
+
     // Final Response Data
     const responseData = {
       totalRetailingValue: dashboardData.retailing_sum,
-      retailChannelData: formattedRetailingByChannel,
-      retailCategoryData: formattedRetailingByCategory,
+      latestMonthTotalRetailing: {
+        year: retailingStats.year,
+        month: retailingStats.month,
+        total_retailing: retailingStats.latest_total,
+      },
+      previousYearSameMonthTotalRetailing: {
+        year: retailingStats.year - 1,
+        month: retailingStats.month,
+        total_retailing: retailingStats.prev_total,
+      },
+      percentageChangeinRetailing: percentageChangeinRetailing,
+      retailChannelData: formatData(retailingByChannel, "broad_channel"),
+      retailCategoryData: formatData(retailingByCategory, "category"),
       topRetailingBrand: {
         title: dashboardData.highest_retailing_brand,
         value: dashboardData.highest_retailing_brand_value,
@@ -124,12 +170,8 @@ export const getDashBoardData = async (req, res) => {
       topTenBrandForm: topTenBrandForm,
     };
 
-    // Save the new data to cache
-    await fs.writeFile(
-      CACHE_FILE,
-      JSON.stringify({ timestamp: Date.now(), data: responseData }),
-      "utf-8"
-    );
+    // Cache the response
+    await writeCache(responseData);
 
     return res.status(200).json(responseData);
   } catch (error) {

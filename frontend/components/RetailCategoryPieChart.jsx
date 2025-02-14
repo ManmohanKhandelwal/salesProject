@@ -48,7 +48,7 @@ const CustomTooltip = ({ active, payload }) => {
       <div className="bg-white p-2 border rounded shadow-md text-black">
         <p className="font-bold">{payload[0].name}</p>
         <p>
-          Value: {Math.round(payload[0].value * 10000000).toLocaleString()}{" "}
+          Value: {Math.round(payload[0].value * 10000000).toString()}{" "}
           {/* Exact Amount */}
         </p>
       </div>

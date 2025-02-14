@@ -23,14 +23,16 @@ const SalesCard = ({
         <h1 className="text-xl font-semibold dark:text-white">
           {title} {isHovered ? "" : " (in CR)"}
         </h1>
-        <div
-          className={`flex items-center gap-2 ${
-            trend === "up" ? "bg-green-400" : "bg-red-500"
-          } p-2 rounded-full text-sm`}
-        >
-          {trend === "up" ? <TrendingUp /> : <TrendingDown />}
-          <p>{percentChange}</p>
-        </div>
+        {trend && (
+          <div
+            className={`flex items-center gap-2 ${
+              trend === "up" ? "bg-green-400" : "bg-red-500"
+            } p-2 rounded-full text-sm`}
+          >
+            {trend === "up" ? <TrendingUp /> : <TrendingDown />}
+            {percentChange && <p>{percentChange}</p>}
+          </div>
+        )}
       </div>
 
       {/* Show in Cr by default, exact amount on hover */}
@@ -39,9 +41,7 @@ const SalesCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {isHovered
-          ? data.toLocaleString()
-          : `${(data / 10000000).toFixed(2)} Cr`}
+        {isHovered ? data.toString() : `${(data / 10000000).toFixed(2)} Cr`}
       </h1>
     </div>
   );

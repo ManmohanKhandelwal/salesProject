@@ -10,10 +10,13 @@ import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
 import CustomLoader from "@/components/ui/loader";
 import fetchDashBoardData from "@/lib/utils";
+import { months } from "@/constants";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
     totalRetailingValue: 0,
+    latestMonthTotalRetailing: { year: "", month: "", total_retailing: "" },
+    percentageChangeinRetailing: "",
     topRetailingBrand: { title: "", value: "" },
     topRetailingBranch: { title: "", value: "" },
     retailChannelData: [],
@@ -77,16 +80,22 @@ const Dashboard = () => {
               <SalesCard
                 title="Total Retailing"
                 data={dashboardData?.totalRetailingValue}
-                trend="up"
-                percentChange="+10%"
                 className="bg-sale-card-gradient text-white"
                 isShadow={false}
               />
               <SalesCard
-                title="Total Sales"
-                data="3456"
-                trend="down"
-                percentChange="-7.5%"
+                title={`Retailing in ${
+                  months[dashboardData?.latestMonthTotalRetailing.month].title
+                } ${dashboardData?.latestMonthTotalRetailing.year}`}
+                data={dashboardData?.latestMonthTotalRetailing.total_retailing}
+                trend={
+                  dashboardData?.percentageChangeinRetailing > 0 ? "up" : "down"
+                }
+                percentChange={
+                  Number(dashboardData?.percentageChangeinRetailing).toFixed(
+                    2
+                  ) + "%"
+                }
               />
             </div>
 
@@ -135,7 +144,9 @@ const Dashboard = () => {
               <p className="text-gray-600 dark:text-gray-300 mb-1 pb-2">
                 Track BrandForm-wise retailing
               </p>
-              <BrandFormStats TopTenBrandForm={dashboardData?.topTenBrandForm} />
+              <BrandFormStats
+                TopTenBrandForm={dashboardData?.topTenBrandForm}
+              />
             </div>
           </section>
         </>

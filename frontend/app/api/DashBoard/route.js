@@ -22,11 +22,14 @@ export async function POST(req) {
         body: hasFilters ? JSON.stringify(conditions) : null,
       });
 
-      if (!res.ok) throw new Error(`Failed to fetch dashboard data from ${url}`);
+      if (!res.ok)
+        throw new Error(`Failed to fetch dashboard data from ${url}`);
       data = await res.json();
 
       const dataToSend = {
         totalRetailingValue: data.totalRetailingValue,
+        latestMonthTotalRetailing: data.latestMonthTotalRetailing,
+        percentageChangeinRetailing: data.percentageChangeinRetailing,
         topRetailingBrand: data.topRetailingBrand,
         topRetailingBranch: data.topRetailingBranch,
         retailChannelData: data.retailChannelData,

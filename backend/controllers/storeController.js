@@ -19,7 +19,7 @@ export const getStoreById = async(req,res) => {
 
 export const getStores = async(req,res) => {
     try {
-        const [rows] = await mySqlPool.query('SELECT * FROM store_mapping LIMIT 100');
+        const [rows] = await mySqlPool.query('SELECT * FROM store_mapping LIMIT 10');
         console.log(rows)
         res.json(rows);
     } catch (error) {

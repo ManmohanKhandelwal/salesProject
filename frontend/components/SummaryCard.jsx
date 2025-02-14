@@ -25,7 +25,7 @@ const SummaryCard = ({ title, data }) => {
           </p>
           <p className="text-gray-900 text-xl font-bold dark:text-white">
             {isHovered
-              ? data.value.toLocaleString()
+              ? data.value.toString()
               : `${(data.value / 10000000).toFixed(2)} Cr`}
           </p>
         </div>

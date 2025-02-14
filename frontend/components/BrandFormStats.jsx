@@ -32,7 +32,7 @@ const BrandFormStats = ({ TopTenBrandForm }) => {
                   <p className="text-lg font-medium text-gray-800 dark:text-gray-300">
                     Retailing: ₹{" "}
                     {isHovered
-                      ? brandFormDetails.totalRetailing.toLocaleString()
+                      ? brandFormDetails.totalRetailing.toString()
                       : `${(brandFormDetails.totalRetailing / 10000000).toFixed(
                           2
                         )} Cr`}
