@@ -152,13 +152,13 @@ const Header = ({
   SetLoading,
 }) => {
   const submitForm = () => {
-    // console.clear();
+    console.clear();
     console.log("Selected Filters:", SelectedFilters);
-    SetLoading(true);
+    // SetLoading(true);
     // fetchDashBoardData(SelectedFilters)
     //   .then((data) => SetDashboarddata(data))
     //   .finally(() => 
-        SetLoading(false)
+    //     SetLoading(false)
     // );
   };
 

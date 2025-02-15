@@ -1,7 +1,7 @@
 import express from "express";
-import { getStoreById, getStores } from "../controllers/storeController.js";
+import { getStoreById, getStores } from "#controllers/Fetch/Store/storeController.js";
 
-const router = express.Router();
+export const router = express.Router();
 
 router.get("/getStoreByID",getStoreById);
 router.get("/getStores",getStores);

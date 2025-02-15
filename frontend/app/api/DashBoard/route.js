@@ -12,7 +12,7 @@ export async function POST(req) {
     if (process.env.NODE_ENV === "development") {
       const url = hasFilters
         ? "http://localhost:5000/Dashboard/FilterredDashBoardData"
-        : "http://localhost:5000/Dashboard/DashboardData";
+        : "http://localhost:5000/Dashboard";
 
       const res = await fetch(url, {
         method: hasFilters ? "POST" : "GET",

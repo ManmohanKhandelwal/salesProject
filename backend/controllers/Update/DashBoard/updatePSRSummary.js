@@ -1,4 +1,4 @@
-import mySqlPool from "../../config/db.js";
+import mySqlPool from "#config/db.js";
 
 export const updatePSRSummary = async (req, res) => {
   try {

@@ -7,7 +7,7 @@ export function cn(...inputs) {
 
 export default async function fetchDashBoardData(selectedFilters) {
   try {
-    const res = await fetch("/api/DashBoard", {
+    const res = await fetch("/api/dashboard", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

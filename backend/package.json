@@ -6,6 +6,12 @@
   "author": "Host",
   "type": "module",
   "main": "server.js",
+  "imports": {
+  "#utils/*": "./utils/*",
+  "#config/*": "./config/*",
+  "#controllers/*": "./controllers/*",
+  "#routes/*": "./routes/*"
+},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",

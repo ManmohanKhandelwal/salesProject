@@ -1,8 +1,8 @@
+import { TIME_TO_UPDATE_CACHE } from "#config/constant.js";
+import mySqlPool from "#config/db.js";
+import SQLSelect from "#utils/sqlSelect.js";
 import fs from "fs/promises";
 import path from "path";
-import mySqlPool from "../../config/db.js";
-import SQLSelect from "../../utils/sqlSelect.js";
-import { TIME_TO_UPDATE_CACHE } from "../../config/constant.js";
 
 const CACHE_DIR = path.join(process.cwd(), "cache");
 const CACHE_FILE = path.join(CACHE_DIR, "dashboardData.json");
@@ -34,6 +34,7 @@ const writeCache = async (data) => {
     );
   } catch (err) {
     console.error("Error writing cache:", err);
+    throw { message: "Error writing cache", status: 500 };
   }
 };
 
@@ -175,7 +176,7 @@ export const getDashBoardData = async (req, res) => {
 
     return res.status(200).json(responseData);
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error fetching dashboard data:", error?.message || error);
+    res.status(error?.status || 500).json({ error: error?.message || error });
   }
 };
