@@ -68,7 +68,7 @@ export default function ForecastPage() {
                     padding={{ left: 20, right: 20 }}
                   />
                   <YAxis
-                    domain={[35, "auto"]}
+                    domain={[45, "auto"]}
                     tick={{ fill: "var(--color-tick)", fontWeight: "bold" }}
                   />{" "}
                   {/* ✅ Start axis from 35 Cr */}
