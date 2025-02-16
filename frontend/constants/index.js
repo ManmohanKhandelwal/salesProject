@@ -17,6 +17,11 @@ export const pages = [
   },
   {
     id: 3,
+    path: "/forecast",
+    title: "Forecast",
+  },
+  {
+    id: 4,
     path: "/upload",
     title: "Upload",
   },
