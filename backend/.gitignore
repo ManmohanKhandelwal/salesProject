@@ -10,6 +10,8 @@
 !.yarn/releases
 !.yarn/versions
 
+#for password security
+db_config_file.py
 # testing
 /coverage
 

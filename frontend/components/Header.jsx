@@ -154,12 +154,12 @@ const Header = ({
   const submitForm = () => {
     console.clear();
     console.log("Selected Filters:", SelectedFilters);
-    // SetLoading(true);
-    // fetchDashBoardData(SelectedFilters)
-    //   .then((data) => SetDashboarddata(data))
-    //   .finally(() => 
-    //     SetLoading(false)
-    // );
+    SetLoading(true);
+    fetchDashBoardData(SelectedFilters)
+      .then((data) => SetDashboarddata(data))
+      .finally(() => 
+        SetLoading(false)
+    );
   };
 
   return (

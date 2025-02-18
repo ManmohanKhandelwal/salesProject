@@ -20,12 +20,11 @@ app.add_middleware(
 )
 
 # MySQL connection details
-db_config = {
-    "host": "localhost",
-    "user": "root",
-    "password": "Nilanjan@12345",
-    "database": "sales_db",
-}
+db_config = {}
+with open("db_config_file.py", "r") as file:
+    exec(file.read())  # This will load the db_config dictionary from the file
+
+print(db_config)
 
 encoded_password = quote(db_config["password"])
 engine = create_engine(

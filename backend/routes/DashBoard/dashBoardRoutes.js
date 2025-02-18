@@ -10,6 +10,6 @@ dashBoardRouter.get("/dashboard/update-psr-summary", updatePSRSummary);
 // Get DashBoard Initial Data
 dashBoardRouter.get("/dashboard", getDashBoardData);
 //Handle Custom Query
-dashBoardRouter.post("/dashboard/filterred-dashBoarddata", getFilteredDashBoardData);
+dashBoardRouter.post("/dashboard/filterred-dashboarddata", getFilteredDashBoardData);
 
 export default dashBoardRouter;
