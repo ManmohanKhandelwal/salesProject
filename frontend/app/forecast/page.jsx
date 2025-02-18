@@ -18,6 +18,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import { Loader2 } from "lucide-react";
 
@@ -44,16 +45,16 @@ export default function ForecastPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">📊 Sales Forecast</h1>
-
       {loading ? (
-        <div className="flex items-center justify-center py-10">
+        <div className="flex items-center justify-center gap-4">
+          <p className="text-lg font-semibold">Fetching Sales Forecast ...</p>
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       ) : error ? (
         <div className="text-red-500 font-semibold">❌ {error}</div>
       ) : (
         <>
+          <h1 className="text-2xl font-bold">📊 Sales Forecast</h1>
           {/* ✅ Forecast Chart */}
           <Card>
             <CardHeader>
@@ -73,6 +74,7 @@ export default function ForecastPage() {
                   />{" "}
                   {/* ✅ Start axis from 35 Cr */}
                   <Tooltip />
+                  <Legend />
                   <CartesianGrid strokeDasharray="3 3" />
                   <Line
                     type="monotone"
