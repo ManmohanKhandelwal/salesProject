@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,14 @@ import {
 
 const DataUpload = () => {
   const [psrFile, setPsrFile] = useState(null);
-  const [mappingFile, setMappingFile] = useState(null);
+  const [channelMappingFile, setChannelMappingFile] = useState(null);
+  const [storeMappingFile, setStoreMappingFile] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [error, setError] = useState(""); // Error state
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const API_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
   const formatDate = (date) => {
     return new Intl.DateTimeFormat("en-GB", {
@@ -37,18 +42,57 @@ const DataUpload = () => {
       setError("Only .csv files are allowed.");
       return;
     }
-    setError(""); // Clear error
+    setError("");
     setFile(file);
   };
 
-  const handleUpload = (file, type) => {
-    if (file) {
-      setUploadedFiles((prev) => [
-        ...prev,
-        { name: file.name, type, date: formatDate(new Date()) },
-      ]);
+  const fetchUploadedFiles = async () => {
+    try {
+      const response = await fetch(`${API_URL}/uploads`);
+      if (response.ok) {
+        const data = await response.json();
+        setUploadedFiles(data);
+      }
+    } catch (error) {
+      console.error("Error fetching uploaded files:", error);
     }
   };
+
+  const handleUpload = async (file, type) => {
+    if (!file) return;
+
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("csvFile", file);
+    formData.append("uploadType", type);
+    formData.append("uploadedBy", "Admin"); // You can replace this with the logged-in user's name
+
+    try {
+      const response = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Upload successful!");
+        fetchUploadedFiles(); // Refresh uploaded files
+      } else {
+        alert(`Upload failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUploadedFiles();
+  }, []);
 
   return (
     <div className="space-y-6 px-16 py-2">
@@ -62,42 +106,56 @@ const DataUpload = () => {
           <CardTitle>Upload PSR Data CSV</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex justify-center items-center">
-            <Input
-              type="file"
-              accept=".csv"
-              className="text-center"
-              onChange={(e) => handleFileChange(e, setPsrFile)}
-            />
-          </div>
+          <Input
+            type="file"
+            accept=".csv"
+            onChange={(e) => handleFileChange(e, setPsrFile)}
+          />
           <Button
-            onClick={() => handleUpload(psrFile, "PSR Data")}
-            disabled={!psrFile}
+            onClick={() => handleUpload(psrFile, "sales")}
+            disabled={!psrFile || loading}
           >
-            Upload
+            {loading ? "Uploading..." : "Upload"}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Mapping File Upload */}
+      {/* Channel Mapping File Upload */}
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Upload Mapping File</CardTitle>
+          <CardTitle>Upload Channel Mapping File CSV</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex justify-center items-center">
-            <Input
-              type="file"
-              accept=".csv"
-              className="text-center"
-              onChange={(e) => handleFileChange(e, setMappingFile)}
-            />
-          </div>
+          <Input
+            type="file"
+            accept=".csv"
+            onChange={(e) => handleFileChange(e, setChannelMappingFile)}
+          />
           <Button
-            onClick={() => handleUpload(mappingFile, "Mapping File")}
-            disabled={!mappingFile}
+            onClick={() => handleUpload(channelMappingFile, "channel_mapping")}
+            disabled={!channelMappingFile || loading}
           >
-            Upload
+            {loading ? "Uploading..." : "Upload"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Store Mapping File Upload */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Upload Store Mapping File CSV</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Input
+            type="file"
+            accept=".csv"
+            onChange={(e) => handleFileChange(e, setStoreMappingFile)}
+          />
+          <Button
+            onClick={() => handleUpload(storeMappingFile, "store_mapping")}
+            disabled={!storeMappingFile || loading}
+          >
+            {loading ? "Uploading..." : "Upload"}
           </Button>
         </CardContent>
       </Card>
@@ -123,9 +181,11 @@ const DataUpload = () => {
               <TableBody>
                 {uploadedFiles.map((file, index) => (
                   <TableRow key={index}>
-                    <TableCell>{file.name}</TableCell>
-                    <TableCell>{file.type}</TableCell>
-                    <TableCell>{file.date}</TableCell>
+                    <TableCell>{file.file_name}</TableCell>
+                    <TableCell>{file.upload_type}</TableCell>
+                    <TableCell>
+                      {formatDate(new Date(file.upload_date))}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
