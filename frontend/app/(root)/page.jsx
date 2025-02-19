@@ -21,8 +21,8 @@ const Dashboard = () => {
     topRetailingBranch: { title: "", value: "" },
     retailChannelData: [],
     retailCategoryChannelData: [],
-    branchData: [],
-    brandformData: [],
+    topRetailingBranch: [],
+    topRetailingBrand: [],
     retailMonthYearData: [],
     topTenBrandForm: [],
     trendRetailData: [],
@@ -119,11 +119,11 @@ const Dashboard = () => {
             <div className="col-span-1 flex flex-col gap-4">
               <SummaryCard
                 title="Highest Retailing Branch"
-                data={dashboardData?.branchData}
+                data={dashboardData?.topRetailingBranch}
               />
               <SummaryCard
                 title="Highest Retailing Brand"
-                data={dashboardData?.brandformData}
+                data={dashboardData?.topRetailingBrand}
               />
             </div>
           </section>

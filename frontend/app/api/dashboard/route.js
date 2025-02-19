@@ -11,8 +11,8 @@ export async function POST(req) {
     );
     if (process.env.NODE_ENV === "development") {
       const url = hasFilters
-        ? "http://localhost:5000/Dashboard/FilterredDashBoardData"
-        : "http://localhost:5000/Dashboard";
+        ? "http://localhost:5000/dashboard/filterred-dashboarddata"
+        : "http://localhost:5000/dashboard";
 
       const res = await fetch(url, {
         method: hasFilters ? "POST" : "GET",
@@ -25,7 +25,6 @@ export async function POST(req) {
       if (!res.ok)
         throw new Error(`Failed to fetch dashboard data from ${url}`);
       data = await res.json();
-
       const dataToSend = {
         totalRetailingValue: data.totalRetailingValue,
         latestMonthTotalRetailing: data.latestMonthTotalRetailing,
@@ -34,8 +33,6 @@ export async function POST(req) {
         topRetailingBranch: data.topRetailingBranch,
         retailChannelData: data.retailChannelData,
         retailCategoryChannelData: data.retailCategoryData,
-        branchData: data.topRetailingBranch,
-        brandformData: data.topRetailingBrand,
         retailMonthYearData: data.retailTrendByMonthAndYear,
         topTenBrandForm: data.topTenBrandForm,
       };
