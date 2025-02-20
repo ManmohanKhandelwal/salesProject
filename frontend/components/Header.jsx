@@ -157,14 +157,28 @@ const Header = ({
     SetLoading(true);
     fetchDashBoardData(SelectedFilters)
       .then((data) => SetDashboarddata(data))
-      .finally(() => 
-        SetLoading(false)
-    );
+      .finally(() => SetLoading(false));
   };
 
   return (
     <div className="flex flex-col items-center text-center space-y-4">
       {/* HEADING */}
+      <div className="w-full max-w-5xl px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm">
+        {Object.entries(SelectedFilters)
+          .filter(([, selectedValues]) => !selectedValues.includes("all"))
+          .map(([filterKey, selectedValues]) => {
+            const filter = filtersToShow.find((f) => f.filterKey === filterKey);
+            return (
+              <p key={filterKey} className="mb-1">
+                <span className="font-semibold text-gray-800">
+                  {filter?.filterLabel || filterKey}
+                </span>
+                : {selectedValues.join(", ")}
+              </p>
+            );
+          })}
+      </div>
+
       <div>
         <h1 className="text-3xl font-bold">Sales Overview</h1>
         <p className="text-gray-500 font-semibold">

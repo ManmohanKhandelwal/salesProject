@@ -159,7 +159,7 @@ export const getFilteredDashBoardData = async (req, res) => {
     ORDER BY totalRetailing DESC
     LIMIT 10
   `;
-  // console.log(sqlQueryRetailChannelData,queryParams);
+  // console.log(sqlQueryRetailTrendByMonthAndYear,queryParams);
 
     // Execute all queries in parallel
     const [

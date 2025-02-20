@@ -31,7 +31,7 @@ export const pages = [
 export const years = [
   {
     id: "all",
-    title: "All Years",
+    title: "all",
   },
   {
     id: 2024,
@@ -55,7 +55,7 @@ export const years = [
 export const months = [
   {
     id: "all",
-    title: "All Months",
+    title: "all",
   },
   {
     id: 1,
@@ -106,7 +106,7 @@ export const months = [
 
 // FILTER BRANCHES
 export const branches = [
-  { id: "all", title: "All Branches" },
+  { id: "all", title: "all" },
   { id: 1, title: "Akui" },
   { id: 2, title: "ARAMBAGH" },
   { id: 3, title: "ASANSOL" },
@@ -218,7 +218,7 @@ export const branches = [
 
 // FILTER ZM
 export const zm = [
-  { id: "all", title: "All ZM" },
+  { id: "all", title: "all" },
   { id: 1, title: "Debraj Roy" },
   { id: 2, title: "Pradip Debnath" },
   { id: 3, title: "Somnath Banerjee" },
@@ -228,7 +228,7 @@ export const zm = [
 
 // FILTER SM
 export const sm = [
-  { id: "all", title: "All SM" },
+  { id: "all", title: "all" },
   { id: 1, title: "Ashok Yadav" },
   { id: 2, title: "Biswajit Bardhan" },
   { id: 3, title: "Debraj Roy" },
@@ -242,7 +242,7 @@ export const sm = [
 
 // FILTER BE
 export const be = [
-  { id: "all", title: "All BE" },
+  { id: "all", title: "all" },
   { id: 1, title: "Apu Paul" },
   { id: 2, title: "Ashok Sadhukhan" },
   { id: 3, title: "Ashok Yadav" },
@@ -274,7 +274,7 @@ export const be = [
 
 // FILTER CHANNEL
 export const channel = [
-  { id: "all", title: "All Channels" },
+  { id: "all", title: "all" },
   { id: 1, title: "Cash&Carry" },
   { id: 2, title: "CONVENIENCE" },
   { id: 3, title: "eCommerce" },
@@ -319,7 +319,7 @@ export const channel = [
 
 // FILTER BROAD CHANNEL
 export const broadChannel = [
-  { id: "all", title: "All Broad Channels" },
+  { id: "all", title: "all" },
   { id: 1, title: "Ecom" },
   { id: 2, title: "Large+Medium" },
   { id: 3, title: "MR" },
@@ -329,7 +329,7 @@ export const broadChannel = [
 
 // FILTER SHORT CHANNEL
 export const shortChannel = [
-  { id: "all", title: "All Short Channels" },
+  { id: "all", title: "all" },
   { id: 1, title: "Ecom" },
   { id: 2, title: "Large A" },
   { id: 3, title: "Large B" },
@@ -348,7 +348,7 @@ export const shortChannel = [
 
 // FILTER CATEGORY
 export const category = [
-  { id: "all", title: "All Categories" },
+  { id: "all", title: "all" },
   { id: 1, title: "Aircare" },
   { id: 2, title: "Appliances" },
   { id: 3, title: "Baby Care" },
@@ -366,7 +366,7 @@ export const category = [
 
 // FILTER BRAND
 export const brand = [
-  { id: "all", title: "All Brands" },
+  { id: "all", title: "all" },
   { id: 1, title: "7 O Clock" },
   { id: 2, title: "7 O Clock PII" },
   { id: 3, title: "Action 500" },
@@ -418,7 +418,7 @@ export const brand = [
 
 // FILTER BRANDFORM
 export const brandform = [
-  { id: "all", title: "All Brandform" },
+  { id: "all", title: "all" },
   { id: 1, title: "7 DE Rzr" },
   { id: 2, title: "7 Other System Cart" },
   { id: 3, title: "Action 500" },
@@ -602,7 +602,7 @@ export const brandform = [
 
 // // FILTER SUB_BRANDFORM
 export const sub_brandform = [
-  { id: "all", title: "All Sub-Brandform" },
+  { id: "all", title: "all" },
   { id: 1, title: "7 o Clock PII Razor" },
   { id: 2, title: "A500 ADV N63" },
   { id: 3, title: "AB Pants LG 2s" },
