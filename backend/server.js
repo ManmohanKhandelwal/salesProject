@@ -1,22 +1,25 @@
+import fileUpload from "express-fileupload";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import mySqlPool from "#config/db.js";
 import dashBoardRouter from "#routes/DashBoard/dashBoardRoutes.js";
 import storeRouter from "#routes/Store/storeRoute.js";
+import tableRouter from "#routes/Table/tableRoute.js";
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload({ limits: { fileSize: 100 * 1024 * 1024 } })); // 100MB limit
 
 //Test Route
 app.get("/test", (req, res) => {
   res.status(200).send("Testing!");
 });
 //Routes Handling
-app.use("/",[dashBoardRouter,storeRouter]);
+app.use("/",[dashBoardRouter,storeRouter,tableRouter]);
 
 //PORT Declaration
 const PORT = process.env.PORT || 5000;
