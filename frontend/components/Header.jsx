@@ -97,6 +97,7 @@
 // export default Header;
 
 "use client";
+
 import {
   be,
   branches,
@@ -113,7 +114,7 @@ import {
   zm,
 } from "@/constants";
 import fetchDashBoardData from "@/lib/utils";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, X } from "lucide-react";
 import FilterDropdown from "./FilterDropdown";
 
 // Define all filters dynamically
@@ -151,6 +152,25 @@ const Header = ({
   SetDashboarddata,
   SetLoading,
 }) => {
+  // Check if any filter is selected (excluding "all")
+  const hasSelectedFilters = Object.values(SelectedFilters).some(
+    (values) => values.length && !values.includes("all")
+  );
+
+  // Remove a single filter
+  const removeFilter = (filterKey) => {
+    const updatedFilters = { ...SelectedFilters };
+    delete updatedFilters[filterKey]; // Remove filter from selected state
+    SetSelectedFilters(updatedFilters);
+  };
+
+  // Reset all filters & refresh page
+  const clearAllFilters = () => {
+    SetSelectedFilters({});
+    window.location.reload(); // Refresh the page to reflect changes immediately
+  };
+
+  // Submit selected filters
   const submitForm = () => {
     console.clear();
     console.log("Selected Filters:", SelectedFilters);
@@ -163,22 +183,6 @@ const Header = ({
   return (
     <div className="flex flex-col items-center text-center space-y-4">
       {/* HEADING */}
-      <div className="w-full max-w-5xl px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm">
-        {Object.entries(SelectedFilters)
-          .filter(([, selectedValues]) => !selectedValues.includes("all"))
-          .map(([filterKey, selectedValues]) => {
-            const filter = filtersToShow.find((f) => f.filterKey === filterKey);
-            return (
-              <p key={filterKey} className="mb-1">
-                <span className="font-semibold text-gray-800">
-                  {filter?.filterLabel || filterKey}
-                </span>
-                : {selectedValues.join(", ")}
-              </p>
-            );
-          })}
-      </div>
-
       <div>
         <h1 className="text-3xl font-bold">Sales Overview</h1>
         <p className="text-gray-500 font-semibold">
@@ -198,14 +202,58 @@ const Header = ({
             setSelectedFilters={SetSelectedFilters}
           />
         ))}
-        {/* SUBMIT BUTTON */}
-        <button
-          className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
-          onClick={submitForm}
-        >
-          <CircleCheck />
-        </button>
+
+        {/* SHOW SUBMIT & CLEAR BUTTONS ONLY IF FILTERS ARE SELECTED */}
+        {hasSelectedFilters && (
+          <>
+            {/* Submit Button */}
+            <button
+              className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
+              onClick={submitForm}
+            >
+              <CircleCheck />
+            </button>
+
+            {/* Clear All Filters Button */}
+            <button
+              className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition"
+              onClick={clearAllFilters}
+            >
+              Clear All
+            </button>
+          </>
+        )}
       </div>
+
+      {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
+      {hasSelectedFilters && (
+        <div className="w-full max-w-5xl px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2">
+          {Object.entries(SelectedFilters)
+            .filter(([, selectedValues]) => !selectedValues.includes("all"))
+            .map(([filterKey, selectedValues]) => {
+              const filter = filtersToShow.find(
+                (f) => f.filterKey === filterKey
+              );
+              return (
+                <div
+                  key={filterKey}
+                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
+                >
+                  <span className="font-semibold">
+                    {filter?.filterLabel || filterKey}
+                  </span>
+                  : {selectedValues.join(", ")}
+                  <button
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => removeFilter(filterKey)}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              );
+            })}
+        </div>
+      )}
     </div>
   );
 };
