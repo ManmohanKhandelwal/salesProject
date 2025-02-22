@@ -1,22 +1,27 @@
-import mySqlPool from "../../config/db.js"; // ✅ Ensure correct path for MySQL connection
+import mySqlPool from "../../config/db.js";
+
+const FASTAPI_URL = "http://localhost:8000";
 
 // Fetch forecasted sales data
 const getForecastData = async (req, res) => {
   try {
-    const forecastQuery = `
-      SELECT Month, 
-             \`Projected Sales (₹ Cr)\`, 
-             \`Lower Estimate (₹ Cr)\`, 
-             \`Upper Estimate (₹ Cr)\`
-      FROM forecast_table
-      ORDER BY STR_TO_DATE(Month, '%b %Y');
-    `;
+    // Fetch forecast data using built-in fetch
+    const response = await fetch(`${FASTAPI_URL}/forecast`);
 
-    const [forecastData] = await mySqlPool.query(forecastQuery);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch forecast data: ${response.statusText}`);
+    }
+
+    const forecastData = await response.json();
+
+    if (forecastData.error) {
+      throw new Error(forecastData.error);
+    }
+
     res.json(forecastData);
   } catch (error) {
-    console.error("Error fetching forecast data:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error fetching forecast data:", error.message);
+    res.status(500).json({ error: "Failed to fetch forecast data" });
   }
 };
 
@@ -25,13 +30,13 @@ const getActualSalesData = async (req, res) => {
   try {
     const actualSalesQuery = `
         SELECT 
-            DATE_FORMAT(document_date, '%b %Y') AS Month, 
+            DATE_FORMAT(document_date, '%b') AS Month, 
             SUM(CASE WHEN YEAR(document_date) = YEAR(CURDATE()) - 1 THEN retailing ELSE 0 END) / 10000000 AS \`Actual Sales 2024 (₹ Cr)\`,
             SUM(CASE WHEN YEAR(document_date) = YEAR(CURDATE()) - 2 THEN retailing ELSE 0 END) / 10000000 AS \`Actual Sales 2023 (₹ Cr)\`
         FROM psr_data
         WHERE YEAR(document_date) IN (YEAR(CURDATE()) - 1, YEAR(CURDATE()) - 2)
-        GROUP BY DATE_FORMAT(document_date, '%b %Y')
-        ORDER BY STR_TO_DATE(Month, '%b %Y');
+        GROUP BY DATE_FORMAT(document_date, '%b'), MONTH(document_date)
+        ORDER BY MONTH(document_date);
       `;
 
     const [actualSalesData] = await mySqlPool.query(actualSalesQuery);

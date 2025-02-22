@@ -1,6 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -10,90 +22,98 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  Legend,
-} from "recharts";
 import { Loader2 } from "lucide-react";
 
 export default function ForecastPage() {
   const [forecastData, setForecastData] = useState([]);
+  const [actualSalesData, setActualSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchForecast() {
+    const fetchSalesData = async () => {
       try {
-        // Fetch Forecasted Sales Data
-        const forecastResponse = await fetch("http://localhost:8000/forecast");
-        if (!forecastResponse.ok)
-          throw new Error("Failed to fetch forecast data");
-        const forecast = await forecastResponse.json();
+        setLoading(true);
+        setError(null);
 
-        // Fetch Actual Sales Data for Previous Years (2023 & 2024)
+        // Fetch Actual Sales
         const actualSalesResponse = await fetch(
           "http://localhost:5000/forecast/actual-sales"
         );
-        if (!actualSalesResponse.ok)
-          throw new Error("Failed to fetch actual sales data");
         const actualSales = await actualSalesResponse.json();
+        console.log("🔵 Actual Sales API Response:", actualSales);
 
-        // Map Actual Sales Data for Quick Lookup
+        // Fetch Forecast Data
+        const forecastResponse = await fetch("http://localhost:5000/forecast");
+        const forecast = await forecastResponse.json();
+        console.log("🟢 Forecast API Response:", forecast);
+
+        if (!Array.isArray(actualSales) || !Array.isArray(forecast)) {
+          throw new Error("Invalid data format from backend");
+        }
+
+        setActualSalesData(actualSales); // Store actual sales separately
+
+        // Map actual sales for lookup
         const actualSalesMap = actualSales.reduce((acc, row) => {
-          acc[row.Month] = {
-            2023: row["Actual Sales 2023 (₹ Cr)"]
-              ? parseFloat(row["Actual Sales 2023 (₹ Cr)"])
-              : null,
-            2024: row["Actual Sales 2024 (₹ Cr)"]
-              ? parseFloat(row["Actual Sales 2024 (₹ Cr)"])
-              : null,
+          const monthOnly = row.Month.trim(); // Ensure correct mapping
+          acc[monthOnly] = {
+            2023: parseFloat(row["Actual Sales 2023 (₹ Cr)"]) || 0,
+            2024: parseFloat(row["Actual Sales 2024 (₹ Cr)"]) || 0,
           };
           return acc;
         }, {});
 
-        // Compute Correct Growth Rates
-        const computedData = forecast.map((row) => {
-          const prevYearSales = actualSalesMap[row.Month]?.[2024] || null;
-          const twoYearOldSales = actualSalesMap[row.Month]?.[2023] || null;
+        console.log("🗺️ Mapped Actual Sales Data:", actualSalesMap);
 
-          let projectionGrowthRate = 0;
-          let actualGrowthRate = 0;
+        // Combine actual and forecasted data
+        const combinedData = forecast.map((row) => {
+          // Extract only the month name from "Jul 2025" → "Jul"
+          const monthOnly = row.Month.split(" ")[0];
 
-          if (prevYearSales) {
-            projectionGrowthRate =
-              ((row["Projected Sales (₹ Cr)"] - prevYearSales) /
-                prevYearSales) *
-              100;
-          }
+          const actual2023 = actualSalesMap[monthOnly]?.[2023] || 0;
+          const actual2024 = actualSalesMap[monthOnly]?.[2024] || 0;
+          const projected2025 = parseFloat(row["Projected Sales (₹ Cr)"]) || 0;
 
-          if (twoYearOldSales && prevYearSales) {
-            actualGrowthRate =
-              ((prevYearSales - twoYearOldSales) / twoYearOldSales) * 100;
-          }
+          console.log(
+            `🔍 Month: ${row.Month}, Extracted Month: ${monthOnly}, Actual 2023: ${actual2023}, Actual 2024: ${actual2024}, Projected 2025: ${projected2025}`
+          );
+
+          // Fix Growth Rate Calculation
+          const actualGrowthRate =
+            actual2023 > 0 ? ((actual2024 - actual2023) / actual2023) * 100 : 0;
+          const projectionGrowthRate =
+            actual2024 > 0
+              ? ((projected2025 - actual2024) / actual2024) * 100
+              : 0;
 
           return {
-            ...row,
-            ProjectionGrowthRate: projectionGrowthRate,
-            ActualGrowthRate: actualGrowthRate,
+            Month: row.Month,
+            "Actual Sales 2023 (₹ Cr)": actual2023.toFixed(2),
+            "Actual Sales 2024 (₹ Cr)": actual2024.toFixed(2),
+            "Projected Sales (₹ Cr)": projected2025.toFixed(2),
+            "Lower Estimate (₹ Cr)": parseFloat(
+              row["Lower Estimate (₹ Cr)"]
+            ).toFixed(2),
+            "Upper Estimate (₹ Cr)": parseFloat(
+              row["Upper Estimate (₹ Cr)"]
+            ).toFixed(2),
+            "Actual Growth Rate (%)": actualGrowthRate.toFixed(2),
+            "Projection Growth Rate (%)": projectionGrowthRate.toFixed(2),
           };
         });
 
-        setForecastData(computedData);
+        console.log("✅ Final Combined Data:", combinedData);
+        setForecastData(combinedData);
       } catch (err) {
+        console.error("❌ Error fetching sales data:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
-    }
-    fetchForecast();
+    };
+
+    fetchSalesData();
   }, []);
 
   return (
@@ -118,7 +138,7 @@ export default function ForecastPage() {
               <ResponsiveContainer width="100%" height={350}>
                 <LineChart data={forecastData}>
                   <XAxis dataKey="Month" />
-                  <YAxis yAxisId="left" domain={[35, "auto"]} />
+                  <YAxis yAxisId="left" domain={["auto", "auto"]} />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
@@ -128,22 +148,22 @@ export default function ForecastPage() {
                   <Legend />
                   <CartesianGrid strokeDasharray="3 3" />
 
-                  {/* 🔵 Projected Sales */}
+                  {/* 🔵 Actual Sales 2024 */}
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="Actual Sales 2024 (₹ Cr)"
+                    stroke="#8884d8"
+                    strokeWidth={2}
+                  />
+
+                  {/* 🟢 Projected Sales 2025 */}
                   <Line
                     yAxisId="left"
                     type="monotone"
                     dataKey="Projected Sales (₹ Cr)"
-                    stroke="#4F46E5"
+                    stroke="#82ca9d"
                     strokeWidth={2}
-                  />
-
-                  {/* 🟢 Lower Estimate */}
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="Lower Estimate (₹ Cr)"
-                    stroke="#10B981"
-                    strokeDasharray="5 5"
                   />
 
                   {/* 🔴 Upper Estimate */}
@@ -155,11 +175,20 @@ export default function ForecastPage() {
                     strokeDasharray="5 5"
                   />
 
+                  {/* 🟢 Lower Estimate */}
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="Lower Estimate (₹ Cr)"
+                    stroke="#10B981"
+                    strokeDasharray="5 5"
+                  />
+
                   {/* 📊 Growth Rate as Bar Chart */}
                   <BarChart data={forecastData}>
                     <Bar
                       yAxisId="right"
-                      dataKey="ProjectionGrowthRate"
+                      dataKey="Projection Growth Rate (%)"
                       fill="#F59E0B"
                     />
                   </BarChart>
@@ -179,13 +208,13 @@ export default function ForecastPage() {
                   <TableRow>
                     <TableHead className="text-center">Month</TableHead>
                     <TableHead className="text-center">
-                      Projected Sales (₹ Cr)
+                      Actual Sales 2023 (₹ Cr)
                     </TableHead>
                     <TableHead className="text-center">
-                      Lower Estimate (₹ Cr)
+                      Actual Sales 2024 (₹ Cr)
                     </TableHead>
                     <TableHead className="text-center">
-                      Upper Estimate (₹ Cr)
+                      Projected Sales 2025 (₹ Cr)
                     </TableHead>
                     <TableHead className="text-center">
                       Actual Growth Rate (%)
@@ -200,31 +229,19 @@ export default function ForecastPage() {
                     <TableRow key={index}>
                       <TableCell className="text-center">{row.Month}</TableCell>
                       <TableCell className="text-center">
-                        {row["Projected Sales (₹ Cr)"].toFixed(2)}
+                        {row["Actual Sales 2023 (₹ Cr)"]}
                       </TableCell>
-                      <TableCell className="text-center text-green-600">
-                        {row["Lower Estimate (₹ Cr)"].toFixed(2)}
+                      <TableCell className="text-center">
+                        {row["Actual Sales 2024 (₹ Cr)"]}
                       </TableCell>
-                      <TableCell className="text-center text-red-600">
-                        {row["Upper Estimate (₹ Cr)"].toFixed(2)}
+                      <TableCell className="text-center">
+                        {row["Projected Sales (₹ Cr)"]}
                       </TableCell>
-                      <TableCell
-                        className={`text-center ${
-                          row.ActualGrowthRate > 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {row.ActualGrowthRate.toFixed(2)}%
+                      <TableCell className="text-center">
+                        {row["Actual Growth Rate (%)"]}%
                       </TableCell>
-                      <TableCell
-                        className={`text-center ${
-                          row.ProjectionGrowthRate > 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {row.ProjectionGrowthRate.toFixed(2)}%
+                      <TableCell className="text-center">
+                        {row["Projection Growth Rate (%)"]}%
                       </TableCell>
                     </TableRow>
                   ))}
