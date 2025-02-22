@@ -14,6 +14,7 @@
 db_config_file.py
 # testing
 /coverage
+tracking.json
 
 # next.js
 /.next/
@@ -25,6 +26,8 @@ db_config_file.py
 # misc
 .DS_Store
 *.pem
+/cache
+/__pycache__
 
 # debug
 npm-debug.log*

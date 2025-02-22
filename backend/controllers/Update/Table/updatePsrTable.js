@@ -1,6 +1,6 @@
 import db from "#config/db.js";
 import { updateTracking } from "#utils/trackingStatus.js";
-import { deleteFileByUUID } from "./uuildFileMng.js";
+import { deleteFileByUUID } from "#utils/uuildFileMng.js";
 export const updatePSRTable = async (req, res) => {
   const { filePath } = req.body;
   const jobId = filePath.split("_")[0];

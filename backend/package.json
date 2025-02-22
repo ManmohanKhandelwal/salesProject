@@ -12,6 +12,12 @@
     "#controllers/*": "./controllers/*",
     "#routes/*": "./routes/*"
   },
+  "nodemonConfig": {
+    "ignore": ["*.json", "*.csv","*.pyc"],
+    "events": {
+      "restart": "cls"
+    }
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
