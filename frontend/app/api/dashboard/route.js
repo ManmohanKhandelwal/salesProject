@@ -25,8 +25,17 @@ export async function POST(req) {
       if (!res.ok)
         throw new Error(`Failed to fetch dashboard data from ${url}`);
       data = await res.json();
-      const dataToSend = {
+      let dataToSend;
+      if( !hasFilters)
+       dataToSend = {
         ...data,
+        retailCategoryChannelData: data.retailCategoryData,
+        retailMonthYearData: data.retailTrendByMonthAndYear,
+      };
+      else
+       dataToSend = {
+        ...data,
+        totalRetailingValue:data.totalRetailingValue,
         retailCategoryChannelData: data.retailCategoryData,
         retailMonthYearData: data.retailTrendByMonthAndYear,
       };

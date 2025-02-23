@@ -2,7 +2,7 @@ import db from "#config/db.js";
 import { updateTracking } from "#utils/trackingStatus.js";
 import { deleteFileByUUID } from "#utils/uuildFileMng.js";
 export const updatePSRTable = async (req, res) => {
-  const { filePath } = req.body;
+  const { filePath, tableType } = req.body;
   const jobId = filePath.split("_")[0];
   try {
     await db
@@ -39,12 +39,15 @@ export const updatePSRTable = async (req, res) => {
       )
       .then(() => {
         // Drop the temp_psr_data table
-        db.query("DROP TABLE temp_psr_data");
-      }).then(()=>{
-        updateTracking(jobId, { status: "Data Inserted into PSR Table!" });
+        db.query(`DROP TABLE temp_${tableType}`);
+      })
+      .then(() => {
+        updateTracking(jobId, { status: `Data Inserted into ${tableType}!` });
         deleteFileByUUID(jobId);
       });
-    return res.status(200).json({ message: "PSR updated successfully & File Removed !" });
+    return res
+      .status(200)
+      .json({ message: `${tableType} updated successfully & File Removed !` });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

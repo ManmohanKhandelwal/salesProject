@@ -49,7 +49,7 @@ export const insertNewData = async (req, res) => {
         const tempTableName = `temp_${fileType}`;
         const [tableExists] = await mySqlPool.query(`SELECT * FROM ${tempTableName}`);
         console.log("📊 Table exists:", tableExists);
-        if (tableExists.length) await mySqlPool.query(`DROP TABLE ${tempTableName}`);
+        // if (tableExists.length) await mySqlPool.query(`DROP TABLE ${tempTableName}`);
         await mySqlPool.query(createTableSQL);
 
         const connection = await mySqlPool.getConnection();

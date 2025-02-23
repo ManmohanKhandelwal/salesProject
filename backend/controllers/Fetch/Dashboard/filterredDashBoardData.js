@@ -1,5 +1,6 @@
 import { TIME_TO_UPDATE_CACHE } from "#config/constant.js";
 import mySqlPool from "#config/db.js";
+import SQLSelect from "#utils/sqlSelect.js";
 import fs from "fs/promises";
 import path from "path";
 const CACHE_DIR = path.join(process.cwd(), "cache");
@@ -123,7 +124,6 @@ export const getFilteredDashBoardData = async (req, res) => {
 
     const sqlQueryTotalRetailing = `
     SELECT SUM(pd.retailing) AS totalRetailingValue
-    ${requiresStoreMapping ? ", store_mapping.New_Branch" : ""}
     ${requiresChannelMapping ? ", channel_mapping.broad_channel" : ""}
     ${fromClause}
     ${whereClause}
@@ -143,7 +143,9 @@ export const getFilteredDashBoardData = async (req, res) => {
     ${whereClause}
     GROUP BY pd.category
   `;
-
+    const sqlQueryRetailCategoryData = `SELECT category as name, SUM(retailing) as value
+    ${fromClause}
+    ${whereClause} GROUP BY category`;
     const sqlQueryRetailTrendByMonthAndYear = `
     SELECT YEAR(pd.document_date) AS year, MONTH(pd.document_date) AS month, SUM(pd.retailing) AS value
     ${fromClause}
@@ -159,18 +161,20 @@ export const getFilteredDashBoardData = async (req, res) => {
     ORDER BY totalRetailing DESC
     LIMIT 10
   `;
-  // console.log(sqlQueryRetailTrendByMonthAndYear,queryParams);
+    console.log(sqlQueryRetailCategoryData, queryParams);
 
     // Execute all queries in parallel
     const [
       [[retailingStats]],
       [retailChannelData],
+      [[retailCategoryData]],
       [retailCategoryChannelData],
       [retailTrendByMonthAndYear],
       [topTenBrandForm],
     ] = await Promise.all([
       connection.query(sqlQueryTotalRetailing, queryParams),
       connection.query(sqlQueryRetailChannelData, queryParams),
+      connection.query(sqlQueryRetailCategoryData, queryParams),
       connection.query(sqlQueryRetailCategoryChannelData, queryParams),
       connection.query(sqlQueryRetailTrendByMonthAndYear, queryParams),
       connection.query(sqlQueryTopBrandForm, queryParams),
@@ -179,17 +183,18 @@ export const getFilteredDashBoardData = async (req, res) => {
     // Release connection
     connection.release();
     const cachedData = await readCache();
+    console.log(retailingStats);
 
     // Return the response with all the filtered data
     return res.status(200).json({
-      totalRetailingValue: cachedData.totalRetailingValue || 0,
+      totalRetailingValue: retailingStats?.totalRetailingValue || 0,
       latestMonthTotalRetailing: cachedData.latestMonthTotalRetailing || {
         year: 0,
         month: 0,
         total_retailing: 0,
       },
       percentageChangeinRetailing: cachedData.percentageChangeinRetailing || 0,
-      retailCategoryData: cachedData.retailCategoryData || [],
+      retailCategoryData: retailCategoryData || [],
       previousYearSameMonthTotalRetailing:
         cachedData.previousYearSameMonthTotalRetailing || {
           year: 0,
