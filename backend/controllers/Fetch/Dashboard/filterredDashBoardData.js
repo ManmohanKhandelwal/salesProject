@@ -167,7 +167,7 @@ export const getFilteredDashBoardData = async (req, res) => {
     const [
       [[retailingStats]],
       [retailChannelData],
-      [[retailCategoryData]],
+      [retailCategoryData],
       [retailCategoryChannelData],
       [retailTrendByMonthAndYear],
       [topTenBrandForm],

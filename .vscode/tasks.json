@@ -44,7 +44,7 @@
     },
     {
       "label": "Run Everything",
-      "dependsOn": ["Detect Remote & Git Pull", "Start Frontend & Backend"],
+      "dependsOn": ["Start Frontend & Backend"],
       "problemMatcher": [],
       "group": "build",
       "dependsOrder": "sequence"
