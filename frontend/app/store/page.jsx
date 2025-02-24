@@ -5,6 +5,27 @@ import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback } from "react";
 import { HashLoader } from "react-spinners";
 import CustomLoader from "@/components/ui/loader";
+import StoreCard from "@/components/ui/StoreCard";
+import SummaryCard from "@/components/SummaryCard";
+import { CircleCheck } from "lucide-react";
+import SalesBarChart from "@/components/ui/SalesBarChart";
+import {
+  be,
+  branches,
+  months,
+  sm,
+  years,
+  zm,
+} from "@/constants";
+
+const filtersToShow = [
+  { filterModule: years, filterLabel: "Year", filterKey: "years" },
+  { filterModule: months, filterLabel: "Month", filterKey: "months" },
+  { filterModule: branches, filterLabel: "Branch", filterKey: "branches" },
+  { filterModule: zm, filterLabel: "ZM", filterKey: "zm" },
+  { filterModule: sm, filterLabel: "SM", filterKey: "sm" },
+  { filterModule: be, filterLabel: "BE", filterKey: "be" }];
+
 
 const Store = () => {
   const [storeList, setStoreList] = useState(null);
@@ -19,7 +40,17 @@ const Store = () => {
   const [loadingForRetailStats, setLoadingForRetailStats] = useState(true);
   const [storeDetails, setStoreDetails] = useState(null);
 
-  const toggleRow = async (store) => {
+  const [selectedFilters, setSelectedFilters] = useState({
+    years: ["all"],
+    months: ["all"],
+    branches: ["all"],
+    zm: ["all"],
+    sm: ["all"],
+    be: ["all"],
+    category: ["all"],
+  });
+
+  /*const toggleRow = async (store) => {
     const storeId = store["Id"]; // Ensure correct case
 
     if (expandedRowId === storeId) {
@@ -43,7 +74,7 @@ const Store = () => {
       setLoadingForRetailStats(false);
       setExpandedRowId(storeId);
     }
-  };
+  };*/
   const debouncedSearch = useCallback(
     debounce(async (q) => {
       if (!q) return;
@@ -53,6 +84,7 @@ const Store = () => {
           "http://localhost:5000/store/metaData?oldStoreCode=" + q
         );
         /*if(!response.ok) throw new Error("Couldn't find searched store")*/
+        console.log(response.data);
         setSearchedStores(response.data);
       } catch (error) {
         console.error("Error fetching data:", error.message);
@@ -64,6 +96,7 @@ const Store = () => {
   );
 
   const handleSearchInputChange = (e) => {
+    setHideSearch(false);
     const value = e.target.value;
     setSearchQuery(value);
     console.log(value);
@@ -77,10 +110,10 @@ const Store = () => {
   }, [debouncedSearch]);
 
   useEffect(() => {
-    const fetchStoreList = async () => {
+    /*const fetchStoreList = async () => {
       try {
         const response = await axios.get("/api/store");
-        /*if(!response.ok) throw new Error("Couldn't find stores");*/
+        if(!response.ok) throw new Error("Couldn't find stores");
         setStoreList(response.data);
       } catch (error) {
         console.error("Error fetching data:", error.message);
@@ -88,31 +121,45 @@ const Store = () => {
         setLoading(false);
       }
     };
-    fetchStoreList();
+    fetchStoreList();*/
   }, []);
 
   const [selectedItem, setSelectedItem] = useState(null);
+
+  useEffect(() => {
+    if(!selectedItem) return;
+    const fetchStoreData = async() => {
+      try {
+        console.log(selectedItem);
+        const response = await axios.get(`http://localhost:5000/store/output?oldStoreCode=${selectedItem}`);
+        console.log(response);
+        setStoreDetails(response.data);
+      } catch (error) {
+        console.error(error?.message);
+      }
+    }
+    fetchStoreData();
+  },[selectedItem])
+
+  
   const [hideSearch, setHideSearch] = useState(false);
 
-  const handleSeachResultClick = (id, index) => {
-    if (index === -1) setSelectedItem(null);
-    else setSelectedItem([id, index]);
-    setHideSearch(!hideSearch);
-  };
+  const showStoreDetails = (id) => {
+    setHideSearch(true);
+    setSelectedItem(id);
+  }
   return (
     <div className={`pt-3 mx-5`}>
       <div
-        className={`grid grid-cols-5 ${
-          selectedItem !== null ? "blur-[10px]" : ""
-        }`}
-      >
-        <div className="flex-col col-span-1">
-          <div className="text-3xl font-bold">Store List</div>
+        className={``}
+        >
+        <div className="flex-col col-span-1 text-center">
+          <div className="text-3xl font-bold">Store Overview</div>
           <div className="text-md font-semibold text-gray-500 tracking-wide">
-            Tabular view of Stores
+            Your current stores summary & activity
           </div>
         </div>
-        <div className="col-span-3 flex justify-center items-center relative">
+        {/*<div className="col-span-3 flex justify-center items-center relative">
           <div className="w-5/6 -mb-2">
             <input
               className="px-2 py-1.5 border-green-400 dark:border-orange-500 border-2 outline-none rounded-full w-full dark:text-black"
@@ -143,18 +190,90 @@ const Store = () => {
                 </li>
               ))}
           </ul>
-        </div>
-        <div className="col-span-1 flex justify-center items-center">
+        </div>*/}
+        {/*<div className="col-span-1 flex justify-center items-center">
           <div className="px-1 py-2 rounded-md cursor-pointer">
-            {/*storeList!==null && storeList.length > 0 && <FilterDropdown filter={storeList} name={"Filter"}/>*/}
+            storeList!==null && storeList.length > 0 && <FilterDropdown filter={storeList} name={"Filter"}/>
+          </div>
+        </div>*/}
+      </div>
+      <div className="grid grid-cols-4 my-3 gap-3">
+        <div className="flex flex-col gap-3">
+          <StoreCard title={"Total Stores"} data={247891} className={"bg-sale-card-gradient text-white"} isShadow={false} trend={null}/>
+          <StoreCard title={"YoY Growth in Number of Stores"} trend={"up"} percentChange={2.4} className='h-full'/>
+        </div>
+        <div className="col-span-2">
+        </div>
+        <div className="flex flex-col gap-3">
+          <SummaryCard title={"Highest retailing store"} data={{title:"Kestopur", value:150000000}}/> 
+          <SummaryCard title={"Lowest retailing store"} data={{title:"Sector II", value:3000000}}/>
+        </div>
+      </div>
+      <div className="p-3">
+        <div className="">
+          <p className="text-center text-xl font-semibold">Retailing of store by Month and Year</p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3 p-4 border border-gray-300 rounded-lg w-full">
+          {filtersToShow.map((filter) => (
+            <FilterDropdown
+              key={filter.filterKey}
+              filter={filter.filterModule}
+              name={filter.filterLabel}
+              filterKey={filter.filterKey} // Unique key to store selection
+              selectedFilters={selectedFilters}
+              setSelectedFilters={setSelectedFilters}
+            />
+          ))}
+          {/* SUBMIT BUTTON */}
+          <button
+            className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
+          >
+          <CircleCheck />
+          </button>
+        </div>
+        <div className="flex justify-center items-center relative">
+          <div className="w-2/6 mt-3 mb-2">
+            <input
+              className="px-2 py-1.5 border-green-400 dark:border-orange-500 border-2 outline-none rounded-full w-full dark:text-black"
+              placeholder="Search store here"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+            ></input>
+          </div>
+          <ul
+            className={`${
+              hideSearch ? "hidden" : ""
+            } z-30 absolute top-24 max-h-48 overflow-y-auto scrollbar-hide md:top-16 lg:top-14 left-50 rounded-b-lg bg-slate-100 shadow-md shadow-gray-700 w-2/6 rounded-t-sm dark:text-black`}
+          >
+            {searchQuery &&
+              searchedStores &&
+              searchedStores?.length > 0 &&
+              searchedStores.map((result, index) => (
+                <li
+                  key={result["Id"]}
+                  className={`${
+                    index !== searchedStores.length - 1
+                      ? "border-b-slate-300 border-b"
+                      : ""
+                  } py-2 px-4 whitespace-pre cursor-pointer truncate text-sm`}
+                  onClick={() => showStoreDetails(result["Old_Store_Code"])}
+                >
+                  <strong>↖ {result["Old_Store_Code"]}</strong>
+                </li>
+              ))}
+          </ul>
+        </div>
+        <div className="grid grid-cols-3">
+          <div className="col-span-2">
+            {storeDetails ? <SalesBarChart storeDetails={storeDetails}/> : <div className="h-[400px] text-white tracking-wide text-lg flex justify-center items-center bg-gradient-to-br rounded-lg from-slate-200 to-slate-600">Enter store code to see data</div>}
           </div>
         </div>
       </div>
-      <div
+      {/*<div
         className={`mt-8 flex justify-center ${
           selectedItem !== null ? "blur-[10px]" : ""
         }`}
-      >
+        >
         {loading ? (
           <HashLoader
             loading={loading}
@@ -335,8 +454,8 @@ const Store = () => {
             </tbody>
           </table>
         )}
-      </div>
-      {selectedItem !== null && (
+      </div>*/}
+      {/*selectedItem !== null && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="w-3/4 h-80 bg-gradient-to-br from-green-50 to-green-200 dark:from-green-100 dark:to-green-300 text-black p-5 rounded-3xl border-green-200 border-2 shadow-sm shadow-green-500 transition-all duration-300 ease-in-out opacity-0 scale-95 animate-fade-in">
             <div className="grid grid-cols-4 grid-rows-5">
@@ -408,7 +527,7 @@ const Store = () => {
             </div>
           </div>
         </div>
-      )}
+      )*/}
     </div>
   );
 };
