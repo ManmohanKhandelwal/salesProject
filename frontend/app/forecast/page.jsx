@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -26,9 +24,14 @@ import { Loader2 } from "lucide-react";
 
 export default function ForecastPage() {
   const [forecastData, setForecastData] = useState([]);
-  const [actualSalesData, setActualSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Get current year dynamically
+  const currentYear = new Date().getFullYear();
+  const salesYearMinus1 = currentYear - 1; // Previous Year
+  const salesYearMinus2 = currentYear - 2; // Two Years Ago
+  const forecastYear = currentYear; // Forecast Year
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -36,74 +39,69 @@ export default function ForecastPage() {
         setLoading(true);
         setError(null);
 
-        // Fetch Actual Sales
+        // Fetch Actual Sales Data
         const actualSalesResponse = await fetch(
           "http://localhost:5000/forecast/actual-sales"
         );
         const actualSales = await actualSalesResponse.json();
-        console.log("🔵 Actual Sales API Response:", actualSales);
 
         // Fetch Forecast Data
         const forecastResponse = await fetch("http://localhost:5000/forecast");
         const forecast = await forecastResponse.json();
-        console.log("🟢 Forecast API Response:", forecast);
 
         if (!Array.isArray(actualSales) || !Array.isArray(forecast)) {
           throw new Error("Invalid data format from backend");
         }
 
-        setActualSalesData(actualSales); // Store actual sales separately
-
-        // Map actual sales for lookup
+        // Map actual sales for quick lookup
         const actualSalesMap = actualSales.reduce((acc, row) => {
-          const monthOnly = row.Month.trim(); // Ensure correct mapping
+          const monthOnly = row.Month.trim();
           acc[monthOnly] = {
-            2023: parseFloat(row["Actual Sales 2023 (₹ Cr)"]) || 0,
-            2024: parseFloat(row["Actual Sales 2024 (₹ Cr)"]) || 0,
+            [salesYearMinus2]:
+              parseFloat(row[`Actual Sales ${salesYearMinus2} (₹ Cr)`]) || 0,
+            [salesYearMinus1]:
+              parseFloat(row[`Actual Sales ${salesYearMinus1} (₹ Cr)`]) || 0,
           };
           return acc;
         }, {});
 
-        console.log("🗺️ Mapped Actual Sales Data:", actualSalesMap);
-
         // Combine actual and forecasted data
         const combinedData = forecast.map((row) => {
-          // Extract only the month name from "Jul 2025" → "Jul"
-          const monthOnly = row.Month.split(" ")[0];
+          const monthOnly = row.Month.split(" ")[0]; // e.g., "Jul"
+          const actualSalesMinus2 =
+            actualSalesMap[monthOnly]?.[salesYearMinus2] || 0;
+          const actualSalesMinus1 =
+            actualSalesMap[monthOnly]?.[salesYearMinus1] || 0;
+          const projectedSales = parseFloat(row[`Projected Sales (₹ Cr)`]) || 0;
+          const lowerEstimate = parseFloat(row["Lower Estimate (₹ Cr)"]) || 0;
+          const upperEstimate = parseFloat(row["Upper Estimate (₹ Cr)"]) || 0;
 
-          const actual2023 = actualSalesMap[monthOnly]?.[2023] || 0;
-          const actual2024 = actualSalesMap[monthOnly]?.[2024] || 0;
-          const projected2025 = parseFloat(row["Projected Sales (₹ Cr)"]) || 0;
-
-          console.log(
-            `🔍 Month: ${row.Month}, Extracted Month: ${monthOnly}, Actual 2023: ${actual2023}, Actual 2024: ${actual2024}, Projected 2025: ${projected2025}`
-          );
-
-          // Fix Growth Rate Calculation
+          // Calculate growth rates
           const actualGrowthRate =
-            actual2023 > 0 ? ((actual2024 - actual2023) / actual2023) * 100 : 0;
+            actualSalesMinus2 > 0
+              ? ((actualSalesMinus1 - actualSalesMinus2) / actualSalesMinus2) *
+                100
+              : 0;
           const projectionGrowthRate =
-            actual2024 > 0
-              ? ((projected2025 - actual2024) / actual2024) * 100
+            actualSalesMinus1 > 0
+              ? ((projectedSales - actualSalesMinus1) / actualSalesMinus1) * 100
               : 0;
 
           return {
             Month: row.Month,
-            "Actual Sales 2023 (₹ Cr)": actual2023.toFixed(2),
-            "Actual Sales 2024 (₹ Cr)": actual2024.toFixed(2),
-            "Projected Sales (₹ Cr)": projected2025.toFixed(2),
-            "Lower Estimate (₹ Cr)": parseFloat(
-              row["Lower Estimate (₹ Cr)"]
-            ).toFixed(2),
-            "Upper Estimate (₹ Cr)": parseFloat(
-              row["Upper Estimate (₹ Cr)"]
-            ).toFixed(2),
+            [`Actual Sales (${salesYearMinus2} - ₹ Cr)`]:
+              actualSalesMinus2.toFixed(2),
+            [`Actual Sales (${salesYearMinus1} - ₹ Cr)`]:
+              actualSalesMinus1.toFixed(2),
             "Actual Growth Rate (%)": actualGrowthRate.toFixed(2),
+            [`Projected Sales (${forecastYear} - ₹ Cr)`]:
+              projectedSales.toFixed(2),
+            "Lower Estimate (₹ Cr)": lowerEstimate.toFixed(2),
+            "Upper Estimate (₹ Cr)": upperEstimate.toFixed(2),
             "Projection Growth Rate (%)": projectionGrowthRate.toFixed(2),
           };
         });
 
-        console.log("✅ Final Combined Data:", combinedData);
         setForecastData(combinedData);
       } catch (err) {
         console.error("❌ Error fetching sales data:", err);
@@ -129,75 +127,46 @@ export default function ForecastPage() {
         <>
           <h1 className="text-2xl font-bold">📊 Sales Forecast</h1>
 
-          {/* ✅ Sales Projection Chart */}
+          {/* Line Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>📈 Sales Projection & Growth Rate</CardTitle>
+              <CardTitle>📈 Sales Forecast Over Months</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={350}>
+              <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={forecastData}>
-                  <XAxis dataKey="Month" />
-                  <YAxis yAxisId="left" domain={["auto", "auto"]} />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    tickFormatter={(value) => `${value.toFixed(2)}%`}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="Month" padding={{ left: 20, right: 20 }} />
+                  <YAxis domain={["auto", "auto"]} />
+
                   <Tooltip />
                   <Legend />
-                  <CartesianGrid strokeDasharray="3 3" />
-
-                  {/* 🔵 Actual Sales 2024 */}
                   <Line
-                    yAxisId="left"
                     type="monotone"
-                    dataKey="Actual Sales 2024 (₹ Cr)"
-                    stroke="#8884d8"
+                    dataKey={`Projected Sales (${forecastYear} - ₹ Cr)`}
+                    stroke="#ff7300"
                     strokeWidth={2}
                   />
-
-                  {/* 🟢 Projected Sales 2025 */}
                   <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="Projected Sales (₹ Cr)"
-                    stroke="#82ca9d"
-                    strokeWidth={2}
-                  />
-
-                  {/* 🔴 Upper Estimate */}
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="Upper Estimate (₹ Cr)"
-                    stroke="#EF4444"
-                    strokeDasharray="5 5"
-                  />
-
-                  {/* 🟢 Lower Estimate */}
-                  <Line
-                    yAxisId="left"
                     type="monotone"
                     dataKey="Lower Estimate (₹ Cr)"
-                    stroke="#10B981"
+                    stroke="#8884d8"
+                    strokeWidth={2}
                     strokeDasharray="5 5"
                   />
-
-                  {/* 📊 Growth Rate as Bar Chart */}
-                  <BarChart data={forecastData}>
-                    <Bar
-                      yAxisId="right"
-                      dataKey="Projection Growth Rate (%)"
-                      fill="#F59E0B"
-                    />
-                  </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="Upper Estimate (₹ Cr)"
+                    stroke="#82ca9d"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* ✅ Forecast Table */}
+          {/* Forecast Table */}
           <Card>
             <CardHeader>
               <CardTitle>📋 Detailed Forecast Data</CardTitle>
@@ -207,17 +176,17 @@ export default function ForecastPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-center">Month</TableHead>
-                    <TableHead className="text-center">
-                      Actual Sales 2023 (₹ Cr)
-                    </TableHead>
-                    <TableHead className="text-center">
-                      Actual Sales 2024 (₹ Cr)
-                    </TableHead>
-                    <TableHead className="text-center">
-                      Projected Sales 2025 (₹ Cr)
-                    </TableHead>
+                    <TableHead className="text-center">{`Actual Sales (${salesYearMinus2} - ₹ Cr)`}</TableHead>
+                    <TableHead className="text-center">{`Actual Sales (${salesYearMinus1} - ₹ Cr)`}</TableHead>
                     <TableHead className="text-center">
                       Actual Growth Rate (%)
+                    </TableHead>
+                    <TableHead className="text-center">{`Projected Sales (${forecastYear} - ₹ Cr)`}</TableHead>
+                    <TableHead className="text-center">
+                      Lower Estimate (₹ Cr)
+                    </TableHead>
+                    <TableHead className="text-center">
+                      Upper Estimate (₹ Cr)
                     </TableHead>
                     <TableHead className="text-center">
                       Projection Growth Rate (%)
@@ -229,18 +198,30 @@ export default function ForecastPage() {
                     <TableRow key={index}>
                       <TableCell className="text-center">{row.Month}</TableCell>
                       <TableCell className="text-center">
-                        {row["Actual Sales 2023 (₹ Cr)"]}
+                        {row[`Actual Sales (${salesYearMinus2} - ₹ Cr)`]}
                       </TableCell>
                       <TableCell className="text-center">
-                        {row["Actual Sales 2024 (₹ Cr)"]}
+                        {row[`Actual Sales (${salesYearMinus1} - ₹ Cr)`]}
                       </TableCell>
-                      <TableCell className="text-center">
-                        {row["Projected Sales (₹ Cr)"]}
-                      </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell
+                        className={`text-center font-semibold ${
+                          parseFloat(row["Actual Growth Rate (%)"]) >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
                         {row["Actual Growth Rate (%)"]}%
                       </TableCell>
                       <TableCell className="text-center">
+                        {row[`Projected Sales (${forecastYear} - ₹ Cr)`]}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {row["Lower Estimate (₹ Cr)"]}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {row["Upper Estimate (₹ Cr)"]}
+                      </TableCell>
+                      <TableCell className="text-center text-blue-600">
                         {row["Projection Growth Rate (%)"]}%
                       </TableCell>
                     </TableRow>

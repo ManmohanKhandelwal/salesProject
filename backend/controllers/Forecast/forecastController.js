@@ -1,5 +1,3 @@
-import mySqlPool from "../../config/db.js";
-
 const FASTAPI_URL = "http://localhost:8000";
 
 // Fetch forecasted sales data
@@ -28,22 +26,25 @@ const getForecastData = async (req, res) => {
 // Fetch actual sales for 2023 & 2024
 const getActualSalesData = async (req, res) => {
   try {
-    const actualSalesQuery = `
-        SELECT 
-            DATE_FORMAT(document_date, '%b') AS Month, 
-            SUM(CASE WHEN YEAR(document_date) = YEAR(CURDATE()) - 1 THEN retailing ELSE 0 END) / 10000000 AS \`Actual Sales 2024 (₹ Cr)\`,
-            SUM(CASE WHEN YEAR(document_date) = YEAR(CURDATE()) - 2 THEN retailing ELSE 0 END) / 10000000 AS \`Actual Sales 2023 (₹ Cr)\`
-        FROM psr_data
-        WHERE YEAR(document_date) IN (YEAR(CURDATE()) - 1, YEAR(CURDATE()) - 2)
-        GROUP BY DATE_FORMAT(document_date, '%b'), MONTH(document_date)
-        ORDER BY MONTH(document_date);
-      `;
+    // Fetch from FastAPI cached endpoint
+    const response = await fetch(`${FASTAPI_URL}/actual-sales`);
 
-    const [actualSalesData] = await mySqlPool.query(actualSalesQuery);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch actual sales data: ${response.statusText}`
+      );
+    }
+
+    const actualSalesData = await response.json();
+
+    if (actualSalesData.error) {
+      throw new Error(actualSalesData.error);
+    }
+
     res.json(actualSalesData);
   } catch (error) {
-    console.error("Error fetching actual sales data:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error fetching actual sales data:", error.message);
+    res.status(500).json({ error: "Failed to fetch actual sales data" });
   }
 };
 

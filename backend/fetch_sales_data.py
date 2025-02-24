@@ -32,7 +32,7 @@ engine = create_engine(
     pool_pre_ping=True,
 )
 
-# ✅ Cache Forecast Data to Speed Up Subsequent Requests
+# ✅ Cache Forecast Data 
 @lru_cache(maxsize=1)
 def fetch_forecast():
     try:
@@ -99,7 +99,36 @@ def fetch_forecast():
     except Exception as e:
         return {"error": str(e)}
 
+   
+# ✅ Cache Actual Sales Data
+@lru_cache(maxsize=1)
+def fetch_actual_sales():
+    try:
+        query = """
+        SELECT 
+            DATE_FORMAT(document_date, '%b') AS Month, 
+            SUM(CASE WHEN YEAR(document_date) = YEAR(CURDATE()) - 1 THEN retailing ELSE 0 END) / 10000000 AS `Actual Sales 2024 (₹ Cr)`,
+            SUM(CASE WHEN YEAR(document_date) = YEAR(CURDATE()) - 2 THEN retailing ELSE 0 END) / 10000000 AS `Actual Sales 2023 (₹ Cr)`
+        FROM psr_data
+        WHERE YEAR(document_date) IN (YEAR(CURDATE()) - 1, YEAR(CURDATE()) - 2)
+        GROUP BY DATE_FORMAT(document_date, '%b'), MONTH(document_date)
+        ORDER BY MONTH(document_date);
+        """
+
+        connection = engine.raw_connection()
+        df = pd.read_sql(query, con=connection)
+        connection.close()
+
+        return df.to_dict(orient="records")
+
+    except Exception as e:
+        return {"error": str(e)}
+
 
 @app.get("/forecast")
 def get_forecast():
     return fetch_forecast()
+
+@app.get("/actual-sales")
+def get_actual_sales():
+    return fetch_actual_sales()
