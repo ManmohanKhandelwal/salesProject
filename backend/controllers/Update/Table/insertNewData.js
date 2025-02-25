@@ -11,7 +11,7 @@ const CACHE_DIR = path.join(process.cwd(), "cache");
 
 export const insertNewData = async (req, res) => {
   try {
-    console.log(req.body)
+    console.log(req.body);
     const file = req.files?.file; // ✅ Correct way to access uploaded file
     const { fileType } = req.body;
 
@@ -19,12 +19,18 @@ export const insertNewData = async (req, res) => {
     console.log("📂 File type:", fileType);
 
     if (!["channel_mapping", "psr_data", "store_mapping"].includes(fileType)) {
-      throw { message: "Invalid fileType. Allowed: channel_mapping, psr_data, store_mapping", code: 400 };
+      throw {
+        message:
+          "Invalid fileType. Allowed: channel_mapping, psr_data, store_mapping",
+        code: 400,
+      };
     }
 
     if (!file) throw { message: "No file uploaded.", code: 400 };
-    if (file.mimetype !== "text/csv") throw { message: "Only CSV files are allowed.", code: 400 };
-    if (!TABLE_SCHEMAS[fileType]) throw { message: "Invalid fileType schema.", code: 400 };
+    if (file.mimetype !== "text/csv")
+      throw { message: "Only CSV files are allowed.", code: 400 };
+    if (!TABLE_SCHEMAS[fileType])
+      throw { message: "Invalid fileType schema.", code: 400 };
 
     const { code: createTableSQL, rows: columnList } = TABLE_SCHEMAS[fileType];
     const jobId = uuidv4();
@@ -33,7 +39,11 @@ export const insertNewData = async (req, res) => {
 
     // ✅ Save file to cache
     fs.writeFileSync(filePath, file.data);
-    updateTracking(jobId, { fileName, status: "pending", uploadTime: new Date() });
+    updateTracking(jobId, {
+      fileName,
+      status: "pending",
+      uploadTime: new Date(),
+    });
 
     // ✅ Process file asynchronously
     (async () => {
@@ -42,29 +52,43 @@ export const insertNewData = async (req, res) => {
 
         const workbook = xlsx.readFile(filePath);
         const sheetName = workbook.SheetNames[0];
-        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {
+          defval: "",
+        });
 
         if (!jsonData.length) throw { message: "CSV has no data.", code: 400 };
 
         const tempTableName = `temp_${fileType}`;
-        const [tableExists] = await mySqlPool.query(`SELECT * FROM ${tempTableName}`);
+        const [tableExists] = await mySqlPool.query(
+          `SELECT * FROM ${tempTableName}`
+        );
         console.log("📊 Table exists:", tableExists);
         // if (tableExists.length) await mySqlPool.query(`DROP TABLE ${tempTableName}`);
-        await mySqlPool.query(createTableSQL);
-
-        const connection = await mySqlPool.getConnection();
-        try {
-          await connection.query("SET GLOBAL local_infile = 1;");
-
-          await connection.query({
-            sql: `
+        if (!tableExists) await mySqlPool.query(createTableSQL);
+        const loadDataQuery =
+          tempTableName === "temp_psr_data"
+            ? `
               LOAD DATA LOCAL INFILE ?
               INTO TABLE ${tempTableName}
               FIELDS TERMINATED BY ','
               LINES TERMINATED BY '\n'
               IGNORE 1 ROWS
-              (${columnList.join(", ")});
-            `,
+              (document_no, @raw_date, subbrandform_name, customer_name, customer_code, channel_description, customer_type, category, brand, brandform, retailing)
+              SET document_date = STR_TO_DATE(@raw_date, '%d-%m-%Y');
+            `
+            : `
+              LOAD DATA LOCAL INFILE ?
+              INTO TABLE ${tempTableName}
+              FIELDS TERMINATED BY ','
+              LINES TERMINATED BY '\n'
+              IGNORE 1 ROWS
+              (${columnList.join(", ")});`;
+        const connection = await mySqlPool.getConnection();
+        try {
+          // Enable local_infile
+          await connection.query("SET GLOBAL local_infile = 1;");
+          await connection.query({
+            sql: loadDataQuery,
             values: [filePath],
             infileStreamFactory: () => fs.createReadStream(filePath),
           });

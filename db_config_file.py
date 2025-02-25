@@ -1,1 +1,0 @@
-db_config = {'host': 'localhost', 'user': 'root', 'password': 'Nilanjan@12345', 'database': 'sales_db'}

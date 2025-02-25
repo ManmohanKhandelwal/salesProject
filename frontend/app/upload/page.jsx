@@ -64,18 +64,18 @@ const DataUpload = () => {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append("csvFile", file);
-    formData.append("uploadType", type);
+    formData.append("file", file);
+    formData.append("fileType", type);
     formData.append("uploadedBy", "Admin"); // You can replace this with the logged-in user's name
 
     try {
-      const response = await fetch(`${API_URL}/upload`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload/psr_data`, {
         method: "POST",
         body: formData,
       });
 
       const result = await response.json();
-
+      console.log(result)
       if (response.ok) {
         alert("Upload successful!");
         fetchUploadedFiles(); // Refresh uploaded files
@@ -112,7 +112,7 @@ const DataUpload = () => {
             onChange={(e) => handleFileChange(e, setPsrFile)}
           />
           <Button
-            onClick={() => handleUpload(psrFile, "sales")}
+            onClick={() => handleUpload(psrFile, "psr_data")}
             disabled={!psrFile || loading}
           >
             {loading ? "Uploading..." : "Upload"}
