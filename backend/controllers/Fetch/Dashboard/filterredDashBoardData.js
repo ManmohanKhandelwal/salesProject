@@ -52,11 +52,11 @@ export const getFilteredDashBoardData = async (req, res) => {
       brandform: "pd.brandform",
       subBrandform: "pd.subbrandform_name",
       customer_type: "pd.customer_type",
-      channel: "pd.channel_description",
       branches: "store_mapping.New_Branch",
       zm: "store_mapping.ZM",
       sm: "store_mapping.SM",
       be: "store_mapping.BE",
+      channel: "channel_mapping.channel",
       broadChannel: "channel_mapping.broad_channel",
       shortChannel: "channel_mapping.short_channel",
     };
@@ -82,7 +82,7 @@ export const getFilteredDashBoardData = async (req, res) => {
       ["branches", "zm", "sm", "be"].includes(key)
     );
     const requiresChannelMapping = Object.keys(filteredQueries).some((key) =>
-      ["broadChannel", "shortChannel"].includes(key)
+      ["channel", "broadChannel", "shortChannel"].includes(key)
     );
 
     // Build WHERE conditions dynamically
@@ -111,11 +111,11 @@ export const getFilteredDashBoardData = async (req, res) => {
     let fromClause = "FROM psr_data AS pd"; // Alias pd for pd
     if (requiresStoreMapping) {
       fromClause +=
-        " LEFT JOIN store_mapping ON pd.customer_code = store_mapping.Old_Store_Code";
+        " JOIN store_mapping ON pd.customer_code = store_mapping.Old_Store_Code";
     }
     if (requiresChannelMapping) {
       fromClause +=
-        " LEFT JOIN channel_mapping ON pd.channel_description = channel_mapping.channel";
+        " JOIN channel_mapping ON pd.customer_type = channel_mapping.customer_type";
     }
 
     // Get database connection
@@ -132,7 +132,7 @@ export const getFilteredDashBoardData = async (req, res) => {
     const sqlQueryRetailChannelData = `
     SELECT cm.broad_channel as name, SUM(pd.retailing) AS value
     ${fromClause}
-    LEFT JOIN channel_mapping cm ON pd.customer_type = cm.customer_type
+    JOIN channel_mapping cm ON pd.customer_type = cm.customer_type
     ${whereClause}
     GROUP BY cm.broad_channel
   `;
