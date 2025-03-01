@@ -1,48 +1,20 @@
-import { TIME_TO_UPDATE_CACHE } from "#config/constant.js";
 import mySqlPool from "#config/db.js";
+import { readCache, writeCache } from "#utils/cacheManager.js";
 import SQLSelect from "#utils/sqlSelect.js";
-import fs from "fs/promises";
 import path from "path";
+import { TIME_TO_UPDATE_CACHE_DASHBOARD } from "#config/constant.js";
 
-const CACHE_DIR = path.join(process.cwd(), "cache");
+const CACHE_DIR = path.join(process.cwd(), "cache", "dashboard");
 const CACHE_FILE = path.join(CACHE_DIR, "dashboardData.json");
-const CACHE_DURATION = TIME_TO_UPDATE_CACHE;
-
-/** Helper function to read and validate cache */
-const readCache = async () => {
-  try {
-    const fileData = await fs.readFile(CACHE_FILE, "utf-8");
-    const cachedData = JSON.parse(fileData);
-    if (Date.now() - cachedData.timestamp < CACHE_DURATION) {
-      console.log("Serving data from cache...");
-      return cachedData.data;
-    }
-  } catch {
-    console.log("Cache not found or expired, fetching new data...");
-  }
-  return null;
-};
-
-/** Helper function to write cache */
-const writeCache = async (data) => {
-  try {
-    await fs.mkdir(CACHE_DIR, { recursive: true });
-    await fs.writeFile(
-      CACHE_FILE,
-      JSON.stringify({ timestamp: Date.now(), data }),
-      "utf-8"
-    );
-  } catch (err) {
-    console.error("Error writing cache:", err);
-    throw { message: "Error writing cache", status: 500 };
-  }
-};
 
 /** Optimized function to fetch dashboard data */
 export const getDashBoardData = async (req, res) => {
   try {
     // Check cache first
-    const cachedData = await readCache();
+    const cachedData = await readCache(
+      CACHE_FILE,
+      TIME_TO_UPDATE_CACHE_DASHBOARD
+    );
     if (cachedData) return res.status(200).json(cachedData);
 
     // Get database connection
@@ -172,7 +144,7 @@ export const getDashBoardData = async (req, res) => {
     };
 
     // Cache the response
-    await writeCache(responseData);
+    await writeCache(CACHE_DIR, CACHE_FILE, responseData);
 
     return res.status(200).json(responseData);
   } catch (error) {

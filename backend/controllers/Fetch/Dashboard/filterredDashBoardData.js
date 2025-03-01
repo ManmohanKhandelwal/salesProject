@@ -1,26 +1,10 @@
-import { TIME_TO_UPDATE_CACHE } from "#config/constant.js";
+import { TIME_TO_UPDATE_CACHE_DASHBOARD } from "#config/constant.js";
 import mySqlPool from "#config/db.js";
-import SQLSelect from "#utils/sqlSelect.js";
-import fs from "fs/promises";
+import { readCache } from "#utils/cacheManager.js";
 import path from "path";
-const CACHE_DIR = path.join(process.cwd(), "cache");
 
+const CACHE_DIR = path.join(process.cwd(), "cache", "dashboard");
 const CACHE_FILE = path.join(CACHE_DIR, "dashboardData.json");
-const CACHE_DURATION = TIME_TO_UPDATE_CACHE;
-
-const readCache = async () => {
-  try {
-    const fileData = await fs.readFile(CACHE_FILE, "utf-8");
-    const cachedData = JSON.parse(fileData);
-    if (Date.now() - cachedData.timestamp < CACHE_DURATION) {
-      console.log("Serving data from cache...");
-      return cachedData.data;
-    }
-  } catch {
-    console.log("Cache not found or expired, fetching new data...");
-  }
-  return null;
-};
 
 export const getFilteredDashBoardData = async (req, res) => {
   try {
@@ -182,7 +166,10 @@ export const getFilteredDashBoardData = async (req, res) => {
 
     // Release connection
     connection.release();
-    const cachedData = await readCache();
+    const cachedData = await readCache(
+      CACHE_FILE,
+      TIME_TO_UPDATE_CACHE_DASHBOARD
+    );
     console.log(retailingStats);
 
     // Return the response with all the filtered data

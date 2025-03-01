@@ -26,8 +26,9 @@ tracking.json
 # misc
 .DS_Store
 *.pem
-/cache
+# /cache
 /__pycache__
+tracking.json
 
 # debug
 npm-debug.log*

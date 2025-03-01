@@ -8,16 +8,17 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cart
 
 const SalesBarChart = ({ storeDetails }) => {
   console.log(storeDetails)
-  const data = Array.from({ length: 6 }, (_, i) => {
-    const month = new Date();
-    month.setMonth(month.getMonth() - i);
-    return {
-      month: month.toLocaleString('default', { month: 'short', year: '2-digit' }),
-      totalSales: Number(storeDetails?.total_retailing).toFixed(2),
-      onlineSales: Number(storeDetails?.highest_retailing_amount).toFixed(2),
-      inStoreSales: Number(storeDetails?.lowest_retailing_amount).toFixed(2),
-    };
-  }).reverse();
+  // const data = Array.from({ length: 6 }, (_, i) => {
+  //   const month = new Date();
+  //   month.setMonth(month.getMonth() - i);
+  //   return {
+  //     month: month.toLocaleString('default', { month: 'short', year: '2-digit' }),
+  //     totalSales: Number(storeDetails?.total_retailing).toFixed(2),
+  //     onlineSales: Number(storeDetails?.highest_retailing_amount).toFixed(2),
+  //     inStoreSales: Number(storeDetails?.lowest_retailing_amount).toFixed(2),
+  //   };
+  // }).reverse();
+  const data = storeDetails?.salesData;
   return (
     <div className="w-full p-4 bg-white rounded-2xl shadow-lg">
       <h2 className="text-xl font-bold mb-4">Sales Report (Last 24 Months)</h2>

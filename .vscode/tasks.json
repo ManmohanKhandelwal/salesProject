@@ -1,19 +1,19 @@
 {
   "version": "2.0.0",
   "tasks": [
-    {
-      "label": "Detect Remote & Git Pull",
-      "type": "shell",
-      "command": "git pull $(git remote | ForEach-Object {$_}) main",
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "presentation": {
-        "reveal": "always",
-        "close": true
-      }
-    },
+    // {
+    //   "label": "Detect Remote & Git Pull",
+    //   "type": "shell",
+    //   "command": "git pull $(git remote | ForEach-Object {$_}) main",
+    //   "problemMatcher": [],
+    //   "options": {
+    //     "cwd": "${workspaceFolder}"
+    //   },
+    //   "presentation": {
+    //     "reveal": "always",
+    //     "close": true
+    //   }
+    // },
     {
       "label": "Run Backend",
       "type": "shell",
@@ -31,7 +31,7 @@
     {
       "label": "Run Frontend",
       "type": "shell",
-      "command": "npm i ;  npm run dev",
+      "command": "start chrome http://localhost:3000; npm i ;  npm run dev",
       "problemMatcher": [],
       "options": {
         "cwd": "${workspaceFolder}/frontend"
@@ -57,6 +57,9 @@
       "presentation": {
         "reveal": "always",
         "panel": "shared"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
       }
     }
   ]

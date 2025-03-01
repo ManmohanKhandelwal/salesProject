@@ -9,14 +9,7 @@ import StoreCard from "@/components/ui/StoreCard";
 import SummaryCard from "@/components/SummaryCard";
 import { CircleCheck } from "lucide-react";
 import SalesBarChart from "@/components/ui/SalesBarChart";
-import {
-  be,
-  branches,
-  months,
-  sm,
-  years,
-  zm,
-} from "@/constants";
+import { be, branches, months, sm, years, zm } from "@/constants";
 
 const filtersToShow = [
   { filterModule: years, filterLabel: "Year", filterKey: "years" },
@@ -24,8 +17,8 @@ const filtersToShow = [
   { filterModule: branches, filterLabel: "Branch", filterKey: "branches" },
   { filterModule: zm, filterLabel: "ZM", filterKey: "zm" },
   { filterModule: sm, filterLabel: "SM", filterKey: "sm" },
-  { filterModule: be, filterLabel: "BE", filterKey: "be" }];
-
+  { filterModule: be, filterLabel: "BE", filterKey: "be" },
+];
 
 const Store = () => {
   const [storeList, setStoreList] = useState(null);
@@ -39,7 +32,8 @@ const Store = () => {
   const [loading, setLoading] = useState(true);
   const [loadingForRetailStats, setLoadingForRetailStats] = useState(true);
   const [storeDetails, setStoreDetails] = useState(null);
-
+  //DashBoard Data
+  const [dashBoardData, setDashBoardData] = useState({});
   const [selectedFilters, setSelectedFilters] = useState({
     years: ["all"],
     months: ["all"],
@@ -127,32 +121,47 @@ const Store = () => {
   const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
-    if(!selectedItem) return;
-    const fetchStoreData = async() => {
+    if (!selectedItem) return;
+    const fetchStoreData = async () => {
       try {
         console.log(selectedItem);
-        const response = await axios.get(`http://localhost:5000/store/output?oldStoreCode=${selectedItem}`);
+        const response = await axios.get(
+          `http://localhost:5000/store/output?oldStoreCode=${selectedItem}`
+        );
         console.log(response);
         setStoreDetails(response.data);
       } catch (error) {
         console.error(error?.message);
       }
-    }
+    };
     fetchStoreData();
-  },[selectedItem])
+  }, [selectedItem]);
 
-  
+  //Fetch Dashboard Data
+  useEffect(() => {
+    const fetchStoreDashBoardData = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/store/dashboard`
+        );
+        console.log(response.data);
+        setDashBoardData(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error.message);
+      }
+    };
+    fetchStoreDashBoardData();
+  }, []);
+
   const [hideSearch, setHideSearch] = useState(false);
 
   const showStoreDetails = (id) => {
     setHideSearch(true);
     setSelectedItem(id);
-  }
+  };
   return (
     <div className={`pt-3 mx-5`}>
-      <div
-        className={``}
-        >
+      <div className={``}>
         <div className="flex-col col-span-1 text-center">
           <div className="text-3xl font-bold">Store Overview</div>
           <div className="text-md font-semibold text-gray-500 tracking-wide">
@@ -199,19 +208,43 @@ const Store = () => {
       </div>
       <div className="grid grid-cols-4 my-3 gap-3">
         <div className="flex flex-col gap-3">
-          <StoreCard title={"Total Stores"} data={247891} className={"bg-sale-card-gradient text-white"} isShadow={false} trend={null}/>
-          <StoreCard title={"YoY Growth in Number of Stores"} trend={"up"} percentChange={2.4} className='h-full'/>
+          <StoreCard
+            title={"Total Stores"}
+            data={dashBoardData?.storeCount}
+            className={"bg-sale-card-gradient text-white"}
+            isShadow={false}
+            trend={null}
+          />
+          <StoreCard
+            title={"YoY Growth in Number of Stores"}
+            trend={"up"}
+            percentChange={2.4}
+            className="h-full"
+          />
         </div>
-        <div className="col-span-2">
-        </div>
+        <div className="col-span-2"></div>
         <div className="flex flex-col gap-3">
-          <SummaryCard title={"Highest retailing store"} data={{title:"Kestopur", value:150000000}}/> 
-          <SummaryCard title={"Lowest retailing store"} data={{title:"Sector II", value:3000000}}/>
+          <SummaryCard
+            title={"Highest retailing store"}
+            data={{
+              title: dashBoardData?.storeRevenueStats?.highest_earning_customer,
+              value: dashBoardData?.storeRevenueStats?.highest_retailing_amount,
+            }}
+          />
+          <SummaryCard
+            title={"Lowest retailing store"}
+            data={{
+              title: dashBoardData?.storeRevenueStats?.lowest_earning_customer,
+              value: dashBoardData?.storeRevenueStats?.lowest_retailing_amount,
+            }}
+          />
         </div>
       </div>
       <div className="p-3">
         <div className="">
-          <p className="text-center text-xl font-semibold">Retailing of store by Month and Year</p>
+          <p className="text-center text-xl font-semibold">
+            Retailing of store by Month and Year
+          </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3 p-4 border border-gray-300 rounded-lg w-full">
           {filtersToShow.map((filter) => (
@@ -225,10 +258,8 @@ const Store = () => {
             />
           ))}
           {/* SUBMIT BUTTON */}
-          <button
-            className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
-          >
-          <CircleCheck />
+          <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition">
+            <CircleCheck />
           </button>
         </div>
         <div className="flex justify-center items-center relative">
@@ -265,7 +296,13 @@ const Store = () => {
         </div>
         <div className="grid grid-cols-3">
           <div className="col-span-2">
-            {storeDetails ? <SalesBarChart storeDetails={storeDetails}/> : <div className="h-[400px] text-white tracking-wide text-lg flex justify-center items-center bg-gradient-to-br rounded-lg from-slate-200 to-slate-600">Enter store code to see data</div>}
+            {storeDetails ? (
+              <SalesBarChart storeDetails={storeDetails} />
+            ) : (
+              <div className="h-[400px] text-white tracking-wide text-lg flex justify-center items-center bg-gradient-to-br rounded-lg from-slate-200 to-slate-600">
+                Enter store code to see data
+              </div>
+            )}
           </div>
         </div>
       </div>
