@@ -170,7 +170,6 @@ export const getFilteredDashBoardData = async (req, res) => {
       CACHE_FILE,
       TIME_TO_UPDATE_CACHE_DASHBOARD
     );
-    console.log(retailingStats);
 
     // Return the response with all the filtered data
     return res.status(200).json({

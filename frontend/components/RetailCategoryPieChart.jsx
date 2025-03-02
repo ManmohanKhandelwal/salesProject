@@ -1,6 +1,7 @@
 "use client";
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import EmptyState from "./ui/EmptyState";
 
 const COLORS = [
   "#0088FE",
@@ -64,7 +65,7 @@ const RetailCategoryPieChart = ({ ChannelData }) => {
     value: item.value / 10000000, // Convert to Cr
   }));
 
-  return (
+  return formattedChannelData.length > 0 ? (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart width={600} height={400}>
         <Pie
@@ -82,6 +83,13 @@ const RetailCategoryPieChart = ({ ChannelData }) => {
         <Tooltip content={<CustomTooltip />} />
       </PieChart>
     </ResponsiveContainer>
+  ) : (
+    <EmptyState
+      title="No Data Found"
+      message="Try adjusting your search filters to find results."
+      onClear={() => console.log("Clear filter clicked")}
+      onChange={() => console.log("Change filter clicked")}
+    />
   );
 };
 
