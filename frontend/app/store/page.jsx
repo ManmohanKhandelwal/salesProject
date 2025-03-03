@@ -11,6 +11,8 @@ import { CircleCheck } from "lucide-react";
 import { be, branches, months, sm, years, zm } from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
 import StoreAdditionalDetails from "@/components/ui/storeAdditionalDetails";
+import StorePagePieChart from "@/components/ui/StorePagePieChart";
+import BranchWiseStores from "@/components/ui/BranchWiseStores";
 
 const filtersToShow = [
   { filterModule: years, filterLabel: "Year", filterKey: "years" },
@@ -134,14 +136,12 @@ const Store = () => {
             isShadow={false}
             trend={null}
           />
-          <StoreCard
-            title={"YoY Growth in Number of Stores"}
-            trend={"up"}
-            percentChange={2.4}
-            className="h-full"
-          />
+          {dashBoardData && dashBoardData?.storeCountByBranch?.length>0 && <BranchWiseStores branchList={dashBoardData?.storeCountByBranch}/>}
         </div>
-        <div className="col-span-2"></div>
+        <div className="col-span-2 mx-2 border p-1 grid grid-cols-2 rounded-lg text-center dark:border-white">
+          {dashBoardData && <div><h2 className="text-lg font-semibold mb-4">Retail Analysis by Zone Manager</h2><StorePagePieChart data={dashBoardData?.zoneManagerRetailing} nameKey="zone_manager"/></div>}
+          {dashBoardData && <div><h2 className="text-lg font-semibold mb-4">Retail Analysis by Business Executive</h2><StorePagePieChart data={dashBoardData?.businessExecutiveRetailing} nameKey="business_executive"/></div>}
+        </div>
         <div className="flex flex-col gap-3">
           <SummaryCard
             title={"Highest retailing store"}
@@ -263,9 +263,9 @@ const Store = () => {
           <div className="p-3">
             <p className="text-center text-xl font-semibold -mt-14">Additional Details</p>
             {storeDetails? (
-              <div className="my-5">
+              <div className="my-5 ">
                 <StoreAdditionalDetails data = {storeDetails?.metadata}/>
-              </div>): <div className="mt-4 text-center p-3 rounded-md bg-gradient-to-t from-gray-700 to-gray-600 text-lg ">No data available !</div>}
+              </div>): <div className="mt-4 text-white/80 text-center p-3 rounded-md bg-gradient-to-t from-gray-700 to-gray-600  ">No data available !</div>}
           </div>
         </div> 
       </div>
