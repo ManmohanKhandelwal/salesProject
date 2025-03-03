@@ -17,7 +17,7 @@
     {
       "label": "Run Backend",
       "type": "shell",
-      "command": "npm i ;  npm run dev",
+      "command": "git pull https://github.com/ManmohanKhandelwal/salesProject; npm i ;  npm run dev",
       "problemMatcher": [],
       "options": {
         "cwd": "${workspaceFolder}/backend"

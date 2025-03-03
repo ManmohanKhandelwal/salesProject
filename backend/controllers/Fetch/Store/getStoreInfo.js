@@ -25,11 +25,12 @@ export const getStoreInfoByCode = async (req, res) => {
       ),
       ProductRetailing AS (
           SELECT 
+              DATE_FORMAT(p.document_date, '%Y-%m') AS yearMonth,
               p.brand,
               SUM(p.retailing) AS total_retailing
           FROM psr_data p
           JOIN StoreMapped s ON p.customer_code = s.New_Store_Code
-          GROUP BY p.brand
+          GROUP BY yearMonth, p.brand
       ),
       StoreTotal AS (
           SELECT SUM(p.retailing) AS total_retailing
@@ -66,7 +67,45 @@ export const getStoreInfoByCode = async (req, res) => {
       [oldStoreCode]
     );
 
-    res.status(200).json({ metadata: storeMetaData, monthly_sales: monthlySales });
+    // Fetch metadata per month
+    const [monthlyMetadata] = await mySqlPool.query(
+      `WITH MonthlyProductData AS (
+          SELECT 
+              DATE_FORMAT(p.document_date, '%Y-%m') AS monthYear,
+              p.brand,
+              SUM(p.retailing) AS totalRetailing
+          FROM psr_data p
+          JOIN store_mapping s ON p.customer_code = s.New_Store_Code
+          WHERE s.Old_Store_Code = ?
+          GROUP BY monthYear, p.brand
+      )
+      SELECT 
+          monthYear,
+          (SELECT brand FROM MonthlyProductData m WHERE m.monthYear = mpd.monthYear ORDER BY totalRetailing DESC LIMIT 1) AS highest_retailing_product,
+          (SELECT totalRetailing FROM MonthlyProductData m WHERE m.monthYear = mpd.monthYear ORDER BY totalRetailing DESC LIMIT 1) AS highest_retailing_product_amount,
+          (SELECT brand FROM MonthlyProductData m WHERE m.monthYear = mpd.monthYear ORDER BY totalRetailing ASC LIMIT 1) AS lowest_retailing_product,
+          (SELECT totalRetailing FROM MonthlyProductData m WHERE m.monthYear = mpd.monthYear ORDER BY totalRetailing ASC LIMIT 1) AS lowest_retailing_product_amount
+      FROM MonthlyProductData mpd
+      GROUP BY monthYear;`,
+      [oldStoreCode]
+    );
+
+    // Transform `monthlyMetadata` into an object for quick lookup
+    const monthlyMetadataMap = {};
+    monthlyMetadata.forEach((row) => {
+      monthlyMetadataMap[row.monthYear] = {
+        highest_retailing_product: row.highest_retailing_product,
+        highest_retailing_product_amount: row.highest_retailing_product_amount,
+        lowest_retailing_product: row.lowest_retailing_product,
+        lowest_retailing_product_amount: row.lowest_retailing_product_amount,
+      };
+    });
+
+    res.status(200).json({
+      metadata: storeMetaData,
+      monthly_sales: monthlySales,
+      monthly_metadata: monthlyMetadataMap, // Added new object
+    });
   } catch (error) {
     console.error("Error fetching Store data:", error?.message || error);
     res.status(error?.status || 500).json({ error: error?.message || error });
