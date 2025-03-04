@@ -8,7 +8,7 @@ import CustomLoader from "@/components/ui/loader";
 import StoreCard from "@/components/ui/StoreCard";
 import SummaryCard from "@/components/SummaryCard";
 import { CircleCheck } from "lucide-react";
-import { be, branches, months, sm, years, zm } from "@/constants";
+import { months, years } from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
 import StoreAdditionalDetails from "@/components/ui/storeAdditionalDetails";
 import StorePagePieChart from "@/components/ui/StorePagePieChart";
@@ -17,10 +17,6 @@ import BranchWiseStores from "@/components/ui/BranchWiseStores";
 const filtersToShow = [
   { filterModule: years, filterLabel: "Year", filterKey: "years" },
   { filterModule: months, filterLabel: "Month", filterKey: "months" },
-  { filterModule: branches, filterLabel: "Branch", filterKey: "branches" },
-  { filterModule: zm, filterLabel: "ZM", filterKey: "zm" },
-  { filterModule: sm, filterLabel: "SM", filterKey: "sm" },
-  { filterModule: be, filterLabel: "BE", filterKey: "be" },
 ];
 
 const Store = () => {
@@ -33,12 +29,7 @@ const Store = () => {
   const [dashBoardData, setDashBoardData] = useState({});
   const [selectedFilters, setSelectedFilters] = useState({
     years: ["all"],
-    months: ["all"],
-    branches: ["all"],
-    zm: ["all"],
-    sm: ["all"],
-    be: ["all"],
-    category: ["all"],
+    months: ["all"]
   });
 
   const debouncedSearch = useCallback(
@@ -193,25 +184,8 @@ const Store = () => {
         </p>
 
         {/* FILTERS */}
-        <div className="flex flex-wrap items-center justify-center gap-3 p-4 border border-gray-300 rounded-lg w-full">
-          {filtersToShow.map((filter) => (
-            <FilterDropdown
-              key={filter.filterKey}
-              filter={filter.filterModule}
-              name={filter.filterLabel}
-              filterKey={filter.filterKey} // Unique key to store selection
-              selectedFilters={selectedFilters}
-              setSelectedFilters={setSelectedFilters}
-            />
-          ))}
 
-          {/* SUBMIT BUTTON */}
-          <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition">
-            <CircleCheck />
-          </button>
-        </div>
-
-        <div className="flex justify-center items-center relative">
+        <div className="flex justify-center items-center relative gap-3 mb-3">
           <div className="w-2/6 mt-3 mb-2">
             <input
               className="px-2 py-1.5 border-green-400 dark:border-orange-500 border-2 outline-none rounded-full w-full dark:text-black"
@@ -242,6 +216,23 @@ const Store = () => {
                 ))}
             </ul>
           </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 py-1 px-3 border border-gray-300 rounded-lg">
+          {filtersToShow.map((filter) => (
+            <FilterDropdown
+              key={filter.filterKey}
+              filter={filter.filterModule}
+              name={filter.filterLabel}
+              filterKey={filter.filterKey} // Unique key to store selection
+              selectedFilters={selectedFilters}
+              setSelectedFilters={setSelectedFilters}
+            />
+          ))}
+
+          {/* SUBMIT BUTTON */}
+          <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition">
+            <CircleCheck />
+          </button>
+        </div>
         </div>
         <div className="grid grid-cols-3">
           <div className="col-span-2">
@@ -293,7 +284,7 @@ const Store = () => {
             )}
           </div>
           <div className="p-3">
-            <p className="text-center text-xl font-semibold -mt-14">
+            <p className="text-center text-xl font-semibold">
               Additional Details
             </p>
             {storeDetails ? (
