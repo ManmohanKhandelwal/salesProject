@@ -24,11 +24,11 @@ const filtersToShow = [
 ];
 
 const Store = () => {
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedStores, setSearchedStores] = useState(null);
   const [loading, setLoading] = useState(true);
   const [storeDetails, setStoreDetails] = useState(null);
+
   //DashBoard Data
   const [dashBoardData, setDashBoardData] = useState({});
   const [selectedFilters, setSelectedFilters] = useState({
@@ -115,10 +115,12 @@ const Store = () => {
   const showStoreDetails = (id) => {
     setHideSearch(true);
     setSelectedItem(id);
-    setSearchQuery(id)
+    setSearchQuery(id);
   };
+
   return (
     <div className={`pt-3 mx-5`}>
+      {/* HEADING */}
       <div className={``}>
         <div className="flex-col col-span-1 text-center">
           <div className="text-3xl font-bold">Store Overview</div>
@@ -127,6 +129,8 @@ const Store = () => {
           </div>
         </div>
       </div>
+
+      {/* TOP SECTION */}
       <div className="grid grid-cols-4 my-3 gap-3">
         <div className="flex flex-col gap-3">
           <StoreCard
@@ -136,11 +140,33 @@ const Store = () => {
             isShadow={false}
             trend={null}
           />
-          {dashBoardData && dashBoardData?.storeCountByBranch?.length>0 && <BranchWiseStores branchList={dashBoardData?.storeCountByBranch}/>}
+          {dashBoardData && dashBoardData?.storeCountByBranch?.length > 0 && (
+            <BranchWiseStores branchList={dashBoardData?.storeCountByBranch} />
+          )}
         </div>
         <div className="col-span-2 mx-2 border p-1 grid grid-cols-2 rounded-lg text-center dark:border-white">
-          {dashBoardData && <div><h2 className="text-lg font-semibold mb-4">Retail Analysis by Zone Manager</h2><StorePagePieChart data={dashBoardData?.zoneManagerRetailing} nameKey="zone_manager"/></div>}
-          {dashBoardData && <div><h2 className="text-lg font-semibold mb-4">Retail Analysis by Business Executive</h2><StorePagePieChart data={dashBoardData?.businessExecutiveRetailing} nameKey="business_executive"/></div>}
+          {dashBoardData && (
+            <div className="flex flex-col justify-center items-center gap-3">
+              <h2 className="text-lg font-semibold">
+                Retail Analysis by Zone Manager
+              </h2>
+              <StorePagePieChart
+                data={dashBoardData?.zoneManagerRetailing}
+                nameKey="zone_manager"
+              />
+            </div>
+          )}
+          {dashBoardData && (
+            <div className="flex flex-col justify-center items-center gap-3">
+              <h2 className="text-lg font-semibold">
+                Retail Analysis by Business Executive
+              </h2>
+              <StorePagePieChart
+                data={dashBoardData?.businessExecutiveRetailing}
+                nameKey="business_executive"
+              />
+            </div>
+          )}
         </div>
         <div className="flex flex-col gap-3">
           <SummaryCard
@@ -159,12 +185,14 @@ const Store = () => {
           />
         </div>
       </div>
+
+      {/* BOTTOM SECTION */}
       <div className="p-3">
-        <div className="">
-          <p className="text-center text-xl font-semibold">
-            Retailing of store by Month and Year
-          </p>
-        </div>
+        <p className="text-center text-xl font-semibold pb-2">
+          Retailing of Store by Month and Year
+        </p>
+
+        {/* FILTERS */}
         <div className="flex flex-wrap items-center justify-center gap-3 p-4 border border-gray-300 rounded-lg w-full">
           {filtersToShow.map((filter) => (
             <FilterDropdown
@@ -176,11 +204,13 @@ const Store = () => {
               setSelectedFilters={setSelectedFilters}
             />
           ))}
+
           {/* SUBMIT BUTTON */}
           <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition">
             <CircleCheck />
           </button>
         </div>
+
         <div className="flex justify-center items-center relative">
           <div className="w-2/6 mt-3 mb-2">
             <input
@@ -190,40 +220,42 @@ const Store = () => {
               onChange={handleSearchInputChange}
             ></input>
             <ul
-            className={`${
-              hideSearch ? "hidden" : ""
-            } z-30 absolute top-24 max-h-48 overflow-y-auto scrollbar-hide md:top-16 lg:top-14 left-50 rounded-b-lg bg-slate-100 shadow-md shadow-gray-700 w-2/6 rounded-t-sm dark:text-black`}
-          >
-            {searchQuery &&
-              searchedStores &&
-              searchedStores?.length > 0 &&
-              searchedStores.map((result, index) => (
-                <li
-                  key={result["Id"]}
-                  className={`${
-                    index !== searchedStores.length - 1
-                      ? "border-b-slate-300 border-b"
-                      : ""
-                  } py-2 px-4 whitespace-pre cursor-pointer truncate text-sm`}
-                  onClick={() => showStoreDetails(result["Old_Store_Code"])}
-                >
-                  <strong>↖ {result["Old_Store_Code"]}</strong>
-                </li>
-              ))}
-          </ul>
+              className={`${
+                hideSearch ? "hidden" : ""
+              } z-30 absolute top-24 max-h-48 overflow-y-auto scrollbar-hide md:top-16 lg:top-14 left-50 rounded-b-lg bg-slate-100 shadow-md shadow-gray-700 w-2/6 rounded-t-sm dark:text-black`}
+            >
+              {searchQuery &&
+                searchedStores &&
+                searchedStores?.length > 0 &&
+                searchedStores.map((result, index) => (
+                  <li
+                    key={result["Id"]}
+                    className={`${
+                      index !== searchedStores.length - 1
+                        ? "border-b-slate-300 border-b"
+                        : ""
+                    } py-2 px-4 whitespace-pre cursor-pointer truncate text-sm`}
+                    onClick={() => showStoreDetails(result["Old_Store_Code"])}
+                  >
+                    <strong>↖ {result["Old_Store_Code"]}</strong>
+                  </li>
+                ))}
+            </ul>
           </div>
         </div>
         <div className="grid grid-cols-3">
           <div className="col-span-2">
             {storeDetails ? (
               // Render the actual LineChart when storeDetails is available
-              <StoreRetailMonthYear storeRetailMonthYear={storeDetails.monthly_sales} />
+              <StoreRetailMonthYear
+                storeRetailMonthYear={storeDetails.monthly_sales}
+              />
             ) : (
               // Skeleton Loader for Line Chart
               <div className="h-[400px] bg-gradient-to-br rounded-lg from-slate-200 to-slate-600 relative overflow-hidden">
                 {/* Shimmer Effect */}
                 <div className="absolute inset-0 bg-white/10 animate-shimmer"></div>
-            
+
                 {/* Placeholder Axes and Gridlines */}
                 <div className="flex flex-col justify-between h-full p-4">
                   {/* Y-Axis Labels */}
@@ -235,7 +267,7 @@ const Store = () => {
                     <div className="w-8 h-4 bg-white/30 rounded"></div>
                     <div className="w-8 h-4 bg-white/30 rounded"></div>
                   </div>
-            
+
                   {/* X-Axis Labels */}
                   <div className="flex justify-between mt-4">
                     <div className="w-12 h-4 bg-white/30 rounded"></div>
@@ -244,7 +276,7 @@ const Store = () => {
                     <div className="w-12 h-4 bg-white/30 rounded"></div>
                   </div>
                 </div>
-            
+
                 {/* Placeholder Line */}
                 <svg className="absolute inset-0 w-full h-full">
                   <path
@@ -261,13 +293,20 @@ const Store = () => {
             )}
           </div>
           <div className="p-3">
-            <p className="text-center text-xl font-semibold -mt-14">Additional Details</p>
-            {storeDetails? (
+            <p className="text-center text-xl font-semibold -mt-14">
+              Additional Details
+            </p>
+            {storeDetails ? (
               <div className="my-5 ">
-                <StoreAdditionalDetails data = {storeDetails?.metadata}/>
-              </div>): <div className="mt-4 text-white/80 text-center p-3 rounded-md bg-gradient-to-t from-gray-700 to-gray-600  ">No data available !</div>}
+                <StoreAdditionalDetails data={storeDetails?.metadata} />
+              </div>
+            ) : (
+              <div className="mt-4 text-white/80 text-center p-3 rounded-md bg-gradient-to-t from-gray-700 to-gray-600  ">
+                No data available !
+              </div>
+            )}
           </div>
-        </div> 
+        </div>
       </div>
     </div>
   );
