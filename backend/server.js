@@ -1,4 +1,5 @@
 import mySqlPool from "#config/db.js";
+import { swaggerDocs } from "#config/swaggerConfig.js";
 import dashBoardRouter from "#routes/DashBoard/dashBoardRoutes.js";
 import forecastRouter from "#routes/Forecast/forecastRoutes.js";
 import storeRouter from "#routes/Store/storeRoute.js";
@@ -7,6 +8,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import fileUpload from "express-fileupload";
+import swaggerUi from "swagger-ui-express";
 
 dotenv.config();
 
@@ -23,8 +25,8 @@ app.get("/test", (req, res) => {
 });
 
 // Routes Handling
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use("/", [dashBoardRouter, storeRouter, tableRouter, forecastRouter]);
-
 // PORT Declaration
 const PORT = process.env.PORT || 5000;
 
