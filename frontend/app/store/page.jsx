@@ -7,7 +7,7 @@ import { HashLoader } from "react-spinners";
 import CustomLoader from "@/components/ui/loader";
 import StoreCard from "@/components/ui/StoreCard";
 import SummaryCard from "@/components/SummaryCard";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, X } from "lucide-react";
 import { months, years } from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
 import StoreAdditionalDetails from "@/components/ui/storeAdditionalDetails";
@@ -29,8 +29,24 @@ const Store = () => {
   const [dashBoardData, setDashBoardData] = useState({});
   const [selectedFilters, setSelectedFilters] = useState({
     years: ["all"],
-    months: ["all"]
+    months: ["all"],
   });
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedFilters({
+      years: ["all"],
+      months: ["all"],
+    });
+    window.location.reload(); // Refresh the page to reflect changes immediately
+  };
+
+  // Remove a single filter
+  const removeFilter = (filterKey) => {
+    const updatedFilters = { ...selectedFilters };
+    delete updatedFilters[filterKey]; // Remove filter from selected state
+    setSelectedFilters(updatedFilters);
+  };
 
   const debouncedSearch = useCallback(
     debounce(async (q) => {
@@ -179,11 +195,9 @@ const Store = () => {
 
       {/* BOTTOM SECTION */}
       <div className="p-3">
-        <p className="text-center text-xl font-semibold pb-2">
+        <p className="text-center text-xl font-semibold pb-1">
           Retailing of Store by Month and Year
         </p>
-
-        {/* FILTERS */}
 
         <div className="flex justify-center items-center relative gap-3 mb-3">
           <div className="w-2/6 mt-3 mb-2">
@@ -216,24 +230,71 @@ const Store = () => {
                 ))}
             </ul>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-3 py-1 px-3 border border-gray-300 rounded-lg">
-          {filtersToShow.map((filter) => (
-            <FilterDropdown
-              key={filter.filterKey}
-              filter={filter.filterModule}
-              name={filter.filterLabel}
-              filterKey={filter.filterKey} // Unique key to store selection
-              selectedFilters={selectedFilters}
-              setSelectedFilters={setSelectedFilters}
-            />
-          ))}
 
-          {/* SUBMIT BUTTON */}
-          <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition">
-            <CircleCheck />
-          </button>
+          {/* FILTERS */}
+          <div className="flex flex-wrap items-center justify-center gap-3 py-1 px-3 ">
+            {filtersToShow.map((filter) => (
+              <FilterDropdown
+                key={filter.filterKey}
+                filter={filter.filterModule}
+                name={filter.filterLabel}
+                filterKey={filter.filterKey} // Unique key to store selection
+                selectedFilters={selectedFilters}
+                setSelectedFilters={setSelectedFilters}
+              />
+            ))}
+
+            {/* SUBMIT BUTTON */}
+            {Object.values(selectedFilters).some(
+              (filter) => filter.length > 0 && !filter.includes("all")
+            ) && (
+              <>
+                <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition">
+                  <CircleCheck />
+                </button>
+                <button
+                  className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition"
+                  onClick={clearAllFilters}
+                >
+                  Clear All
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        </div>
+
+        {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
+        {Object.values(selectedFilters).some(
+          (filter) => filter.length > 0 && !filter.includes("all")
+        ) && (
+          <div className="w-full max-w-5xl px-3 py-2 mb-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
+            {Object.entries(selectedFilters)
+              .filter(([, selectedValues]) => !selectedValues.includes("all"))
+              .map(([filterKey, selectedValues]) => {
+                const filter = filtersToShow.find(
+                  (f) => f.filterKey === filterKey
+                );
+                return (
+                  <div
+                    key={filterKey}
+                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
+                  >
+                    <span className="font-semibold">
+                      {filter?.filterLabel || filterKey}
+                    </span>
+                    : {selectedValues.join(", ")}
+                    <button
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => removeFilter(filterKey)}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
         <div className="grid grid-cols-3">
           <div className="col-span-2">
             {storeDetails ? (

@@ -1,21 +1,90 @@
-import React from 'react'
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"];
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sept",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
-const StoreAdditionalDetails = ({data}) => {
-    console.log(data)
+const formatAmount = (amount) =>
+  Number(amount) > 100000 ? `${(Number(amount) / 1000).toFixed(2)}K` : amount;
+
+const DetailCard = ({ title, value, color }) => (
+  <Card className="shadow-lg border-0 rounded-xl transition-transform transform hover:scale-[1.02]">
+    <CardContent
+      className={`p-4 flex justify-between items-center rounded-xl ${color}`}
+    >
+      <p className="text-lg font-semibold text-white">{title}</p>
+      <Badge
+        variant="outline"
+        className="text-md px-3 py-1 bg-white/20 text-white rounded-lg"
+      >
+        {value}
+      </Badge>
+    </CardContent>
+  </Card>
+);
+
+const StoreAdditionalDetails = ({ data }) => {
   return (
-    <div className='grid grid-rows-8 gap-3 text-white'>
-      <div className='p-3 flex justify-between bg-gradient-to-t from-cyan-500 to-cyan-300 rounded-lg text-lg tracking-wide shadow-md'><p>Highest Retailing Month</p><p>{months[data.highest_retailing_month.split("-")[1]-1]+" "+data.highest_retailing_month.split("-")[0]}</p></div>
-      <div className='p-3 flex justify-between bg-gradient-to-t from-amber-500 to-amber-300 rounded-lg text-lg tracking-wide shadow-md'><p>Highest Retailing Amount</p><p>₹ {Number(data.highest_retailing_amount) > 100000 ? String((Number(data.highest_retailing_amount)/1000).toFixed(2))+"K":data.highest_retailing_amount}</p></div>
-      <div className='p-3 flex justify-between bg-gradient-to-t from-lime-500 to-lime-300 rounded-lg text-lg tracking-wide shadow-md'><p>Lowest Retailing Month</p><p>{months[data.lowest_retailing_month.split("-")[1]-1]+" "+data.lowest_retailing_month.split("-")[0]}</p></div>
-      <div className='p-3 flex justify-between bg-gradient-to-t from-green-500 to-green-300 rounded-lg text-lg tracking-wide shadow-md'><p>Lowest Retailing Amount</p><p>₹ {Number(data.lowest_retailing_amount) > 100000 ? String((Number(data.lowest_retailing_amount)/1000).toFixed(2))+"K":data.lowest_retailing_amount}</p></div>
-      <div className='p-3 flex justify-between bg-gradient-to-t from-fuchsia-500 to-fuchsia-300 rounded-lg text-lg tracking-wide shadow-md'><p>Highest Retailing Product</p><p>{data.highest_retailing_product}</p></div>
-      <div className='p-3 flex justify-between bg-gradient-to-t from-orange-500 to-orange-300 rounded-lg text-lg tracking-wide shadow-md'><p>Highest Retailing Product Amount</p><p>₹ {Number(data.highest_retailing_product_amount) > 100000 ? String((Number(data.highest_retailing_product_amount)/1000).toFixed(2))+"K":data.highest_retailing_product_amount}</p></div>
-      <div className='p-3 flex justify-between bg-gradient-to-t from-red-500 to-red-300 rounded-lg text-lg tracking-wide shadow-md'><p>Lowest Retailing Product</p><p>{data.lowest_retailing_product}</p></div>
-      <div className='p-3 flex justify-between bg-gradient-to-t from-blue-500 to-blue-300 rounded-lg text-lg tracking-wide shadow-md'><p>Highest Retailing Product Amount</p><p>₹ {Number(data.lowest_retailing_product_amount) > 100000 ? String((Number(data.lowest_retailing_product_amount)/1000).toFixed(2))+"K":data.lowest_retailing_product_amount}</p></div>
+    <div className="grid grid-cols-2 gap-4">
+      <DetailCard
+        title="Highest Retailing Month"
+        value={`${months[data.highest_retailing_month.split("-")[1] - 1]} ${
+          data.highest_retailing_month.split("-")[0]
+        }`}
+        color="bg-gradient-to-r from-cyan-500 to-cyan-700"
+      />
+      <DetailCard
+        title="Highest Retailing Amount"
+        value={`₹ ${formatAmount(data.highest_retailing_amount)}`}
+        color="bg-gradient-to-r from-amber-500 to-amber-700"
+      />
+      <DetailCard
+        title="Lowest Retailing Month"
+        value={`${months[data.lowest_retailing_month.split("-")[1] - 1]} ${
+          data.lowest_retailing_month.split("-")[0]
+        }`}
+        color="bg-gradient-to-r from-lime-500 to-lime-700"
+      />
+      <DetailCard
+        title="Lowest Retailing Amount"
+        value={`₹ ${formatAmount(data.lowest_retailing_amount)}`}
+        color="bg-gradient-to-r from-green-500 to-green-700"
+      />
+      <DetailCard
+        title="Highest Retailing Product"
+        value={data.highest_retailing_product}
+        color="bg-gradient-to-r from-fuchsia-500 to-fuchsia-700"
+      />
+      <DetailCard
+        title="Highest Retailing Product Amount"
+        value={`₹ ${formatAmount(data.highest_retailing_product_amount)}`}
+        color="bg-gradient-to-r from-orange-500 to-orange-700"
+      />
+      <DetailCard
+        title="Lowest Retailing Product"
+        value={data.lowest_retailing_product}
+        color="bg-gradient-to-r from-red-500 to-red-700"
+      />
+      <DetailCard
+        title="Lowest Retailing Product Amount"
+        value={`₹ ${formatAmount(data.lowest_retailing_product_amount)}`}
+        color="bg-gradient-to-r from-blue-500 to-blue-700"
+      />
     </div>
-  )
-}
+  );
+};
 
-export default StoreAdditionalDetails
+export default StoreAdditionalDetails;
