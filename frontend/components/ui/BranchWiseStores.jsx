@@ -67,7 +67,6 @@ const BranchWiseStores = ({ branchList }) => {
 
     return (
         <div className="p-5 shadow-lg shadow-green-500 rounded-lg flex flex-col gap-3 relative">
-            <p className="text-xl font-bold tracking-wide">Branch Wise Stores</p>
             <input 
                 type="text" 
                 placeholder="Search branch..." 

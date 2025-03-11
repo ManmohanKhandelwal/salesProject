@@ -24,7 +24,10 @@ const Store = () => {
   const [searchedStores, setSearchedStores] = useState(null);
   const [loading, setLoading] = useState(true);
   const [storeDetails, setStoreDetails] = useState(null);
-
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([
+    "Sonarpur","Sonadanga","Pyradanga","Gobardanga","Akui","Kandi","Jemo"
+  ]);
   //DashBoard Data
   const [dashBoardData, setDashBoardData] = useState({});
   const [selectedFilters, setSelectedFilters] = useState({
@@ -138,63 +141,27 @@ const Store = () => {
       </div>
 
       {/* TOP SECTION */}
-      <div className="grid grid-cols-4 my-3 gap-3">
-        <div className="flex flex-col gap-3">
-          <StoreCard
-            title={"Total Stores"}
-            data={dashBoardData?.storeCount}
-            className={"bg-sale-card-gradient text-white"}
-            isShadow={false}
-            trend={null}
-          />
+      <div className="grid grid-cols-2 gap-6 mt-3">
+        <div className="grid grid-cols-2 items-center">
+          <div className="col-start-2">
+            <StoreCard
+              title={"Total Stores"}
+              data={dashBoardData?.storeCount}
+              className={"bg-sale-card-gradient text-white"}
+              isShadow={false}
+              trend={null}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 items-center">
           {dashBoardData && dashBoardData?.storeCountByBranch?.length > 0 && (
             <BranchWiseStores branchList={dashBoardData?.storeCountByBranch} />
           )}
         </div>
-        <div className="col-span-2 mx-2 border p-1 grid grid-cols-2 rounded-lg text-center dark:border-white">
-          {dashBoardData && (
-            <div className="flex flex-col justify-center items-center gap-3">
-              <h2 className="text-lg font-semibold">
-                Retail Analysis by Zone Manager
-              </h2>
-              <StorePagePieChart
-                data={dashBoardData?.zoneManagerRetailing}
-                nameKey="zone_manager"
-              />
-            </div>
-          )}
-          {dashBoardData && (
-            <div className="flex flex-col justify-center items-center gap-3">
-              <h2 className="text-lg font-semibold">
-                Retail Analysis by Business Executive
-              </h2>
-              <StorePagePieChart
-                data={dashBoardData?.businessExecutiveRetailing}
-                nameKey="business_executive"
-              />
-            </div>
-          )}
-        </div>
-        <div className="flex flex-col gap-3">
-          <SummaryCard
-            title={"Highest retailing store"}
-            data={{
-              title: dashBoardData?.storeRevenueStats?.highest_earning_customer,
-              value: dashBoardData?.storeRevenueStats?.highest_retailing_amount,
-            }}
-          />
-          <SummaryCard
-            title={"Lowest retailing store"}
-            data={{
-              title: dashBoardData?.storeRevenueStats?.lowest_earning_customer,
-              value: dashBoardData?.storeRevenueStats?.lowest_retailing_amount,
-            }}
-          />
-        </div>
       </div>
 
       {/* BOTTOM SECTION */}
-      <div className="p-3">
+      <div className="p-3 mt-6">
         <p className="text-center text-xl font-semibold pb-1">
           Retailing of Store by Month and Year
         </p>
@@ -357,6 +324,38 @@ const Store = () => {
                 No data available !
               </div>
             )}
+          </div>
+        </div>
+      </div>
+      <div className="p-3 mt-6 relative">
+        <p className="text-center font-semibold text-xl">Store Information by Branch</p>
+        <div className="flex flex-col items-center justify-center mt-3 relative">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="text-black w-1/3 p-2 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          {results.length > 0 && (
+            <div className="absolute top-12 w-1/3 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide border border-gray-300">
+              {results.map((item, index) => (
+                <div key={index} className="p-2 border-b last:border-none cursor-pointer hover:bg-gray-200">
+                  {item}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        <div className="p-6 mt-3 grid grid-cols-4">
+          <div className="col-start-2 col-end-4 grid grid-cols-2 gap-3">
+            <div className="rounded-md border border-gray-200 p-3">Store Details 1</div>
+            <div className="rounded-md border border-gray-200 p-3">Store Details 2</div>
+            <div className="rounded-md border border-gray-200 p-3">Store Details 3</div>
+            <div className="rounded-md border border-gray-200 p-3">Store Details 4</div>
+            <div className="rounded-md border border-gray-200 p-3">Store Details 5</div>
+            <div className="rounded-md border border-gray-200 p-3">Store Details 6</div>
           </div>
         </div>
       </div>
