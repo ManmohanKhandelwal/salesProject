@@ -67,27 +67,29 @@ export default {
       },
       backgroundImage: {
         "sale-card-gradient":
-          "linear-gradient(153deg, rgba(121,9,70,1) 15%, rgba(255,111,97,1) 83%);",
+          "linear-gradient(135deg, #D4145A 0%, #FBB03B 100%);",
+        "month-sale-card-gradient":
+          "linear-gradient(135deg, #7EC8E3 0%, #D4A5FF 100%);",
       },
       animation: {
-        'fade-in': 'fadeIn 0.3s ease-in-out forwards',
-        shimmer: 'shimmer 1.5s infinite',
+        "fade-in": "fadeIn 0.3s ease-in-out forwards",
+        shimmer: "shimmer 1.5s infinite",
       },
       keyframes: {
         fadeIn: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
         shimmer: {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' },
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
         },
       },
       fontFamily: {
-        'roboto': ['Roboto', 'sans-serif'],
-        'open-sans': ['Open Sans', 'sans-serif'],
+        roboto: ["Roboto", "sans-serif"],
+        "open-sans": ["Open Sans", "sans-serif"],
       },
     },
   },
-  plugins: [require("tailwindcss-animate"),require("tailwind-scrollbar-hide")],
+  plugins: [require("tailwindcss-animate"), require("tailwind-scrollbar-hide")],
 };

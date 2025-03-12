@@ -96,6 +96,8 @@ const Dashboard = () => {
                     2
                   ) + "%"
                 }
+                className="bg-month-sale-card-gradient dark:text-gray-100"
+                isShadow={false}
               />
             </div>
 
