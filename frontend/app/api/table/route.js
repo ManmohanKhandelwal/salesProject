@@ -7,7 +7,7 @@ export async function GET(req, res) {
   try {
     // const { tableName } = req?.query;
     if (process.env.NODE_ENV === "development") {
-      const response = await fetch("http://localhost:5000/tableMetaData", {
+      const response = await fetch("http://localhost:5000/table-meta-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

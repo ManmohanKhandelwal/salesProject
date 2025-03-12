@@ -2,6 +2,7 @@ import mySqlPool from "#config/db.js";
 import { swaggerDocs } from "#config/swaggerConfig.js";
 import dashBoardRouter from "#routes/DashBoard/dashBoardRoutes.js";
 import forecastRouter from "#routes/Forecast/forecastRoutes.js";
+import productRouter from "#routes/Product/productRoute.js";
 import storeRouter from "#routes/Store/storeRoute.js";
 import tableRouter from "#routes/Table/tableRoute.js";
 import cors from "cors";
@@ -26,7 +27,13 @@ app.get("/test", (req, res) => {
 
 // Routes Handling
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-app.use("/", [dashBoardRouter, storeRouter, tableRouter, forecastRouter]);
+app.use("/", [
+  dashBoardRouter,
+  storeRouter,
+  tableRouter,
+  forecastRouter,
+  productRouter,
+]);
 // PORT Declaration
 const PORT = process.env.PORT || 5000;
 

@@ -13,6 +13,7 @@ import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
 import StoreAdditionalDetails from "@/components/ui/storeAdditionalDetails";
 import StorePagePieChart from "@/components/ui/StorePagePieChart";
 import BranchWiseStores from "@/components/ui/BranchWiseStores";
+import { backEndURL } from "@/lib/utils";
 
 const filtersToShow = [
   { filterModule: years, filterLabel: "Year", filterKey: "years" },
@@ -26,7 +27,13 @@ const Store = () => {
   const [storeDetails, setStoreDetails] = useState(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([
-    "Sonarpur","Sonadanga","Pyradanga","Gobardanga","Akui","Kandi","Jemo"
+    "Sonarpur",
+    "Sonadanga",
+    "Pyradanga",
+    "Gobardanga",
+    "Akui",
+    "Kandi",
+    "Jemo",
   ]);
   //DashBoard Data
   const [dashBoardData, setDashBoardData] = useState({});
@@ -54,10 +61,10 @@ const Store = () => {
   const debouncedSearch = useCallback(
     debounce(async (q) => {
       if (!q) return;
-
+      console.log("Searching for:", q);
       try {
         const response = await axios.get(
-          "http://localhost:5000/store/metaData?oldStoreCode=" + q
+          backEndURL(`/store/meta-data?oldStoreCode=${q}`)
         );
         /*if(!response.ok) throw new Error("Couldn't find searched store")*/
         console.log(response.data);
@@ -93,7 +100,7 @@ const Store = () => {
       try {
         console.log(selectedItem);
         const response = await axios.get(
-          `http://localhost:5000/store/output?oldStoreCode=${selectedItem}`
+          backEndURL(`/store/output?oldStoreCode=${selectedItem}`)
         );
         console.log(response);
         setStoreDetails(response.data);
@@ -108,9 +115,7 @@ const Store = () => {
   useEffect(() => {
     const fetchStoreDashBoardData = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/store/dashboard`
-        );
+        const response = await axios.get(backEndURL("/store/dashboard"));
         console.log(response.data);
         setDashBoardData(response.data);
       } catch (error) {
@@ -328,7 +333,9 @@ const Store = () => {
         </div>
       </div>
       <div className="p-3 mt-6 relative">
-        <p className="text-center font-semibold text-xl">Store Information by Branch</p>
+        <p className="text-center font-semibold text-xl">
+          Store Information by Branch
+        </p>
         <div className="flex flex-col items-center justify-center mt-3 relative">
           <input
             type="text"
@@ -340,22 +347,37 @@ const Store = () => {
           {results.length > 0 && (
             <div className="absolute top-12 w-1/3 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide border border-gray-300">
               {results.map((item, index) => (
-                <div key={index} className="p-2 border-b last:border-none cursor-pointer hover:bg-gray-200">
+                <div
+                  key={index}
+                  className="p-2 border-b last:border-none cursor-pointer hover:bg-gray-200"
+                >
                   {item}
                 </div>
               ))}
             </div>
           )}
         </div>
-        
+
         <div className="p-6 mt-3 grid grid-cols-4">
           <div className="col-start-2 col-end-4 grid grid-cols-2 gap-3">
-            <div className="rounded-md border border-gray-200 p-3">Store Details 1</div>
-            <div className="rounded-md border border-gray-200 p-3">Store Details 2</div>
-            <div className="rounded-md border border-gray-200 p-3">Store Details 3</div>
-            <div className="rounded-md border border-gray-200 p-3">Store Details 4</div>
-            <div className="rounded-md border border-gray-200 p-3">Store Details 5</div>
-            <div className="rounded-md border border-gray-200 p-3">Store Details 6</div>
+            <div className="rounded-md border border-gray-200 p-3">
+              Store Details 1
+            </div>
+            <div className="rounded-md border border-gray-200 p-3">
+              Store Details 2
+            </div>
+            <div className="rounded-md border border-gray-200 p-3">
+              Store Details 3
+            </div>
+            <div className="rounded-md border border-gray-200 p-3">
+              Store Details 4
+            </div>
+            <div className="rounded-md border border-gray-200 p-3">
+              Store Details 5
+            </div>
+            <div className="rounded-md border border-gray-200 p-3">
+              Store Details 6
+            </div>
           </div>
         </div>
       </div>

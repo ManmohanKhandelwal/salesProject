@@ -1,7 +1,11 @@
-import { getStoreDashBoardData } from "#controllers/Fetch/Store/dashboardData.js";
+import { getStoreDashBoardData } from "#controllers/Fetch/Store/storeDashboardData.js";
 import { getStoreInfoByCode } from "#controllers/Fetch/Store/getStoreInfo.js";
-import { getStoreById, getStores } from "#controllers/Fetch/Store/storeController.js";
+import {
+  getStoreById,
+  getStores,
+} from "#controllers/Fetch/Store/storeController.js";
 import express from "express";
+import { getTopStores } from "#controllers/Fetch/Store/getTopStores.js";
 
 const storeRouter = express.Router();
 
@@ -88,7 +92,7 @@ storeRouter.get("/store/output", getStoreInfoByCode);
 
 /**
  * @swagger
- * /store/metaData:
+ * /store/meta-data:
  *   get:
  *     summary: Get store metadata by store code
  *     description: Fetches metadata for a store using an old store code.
@@ -122,7 +126,7 @@ storeRouter.get("/store/output", getStoreInfoByCode);
  *       500:
  *         description: Internal server error
  */
-storeRouter.get("/store/metaData", getStoreById);
+storeRouter.get("/store/meta-data", getStoreById);
 
 /**
  * @swagger
@@ -167,5 +171,79 @@ storeRouter.get("/store/metaData", getStoreById);
  *         description: Internal server error
  */
 storeRouter.get("/store", getStores);
+
+/**
+ * @swagger
+ * /store/get-top-stores:
+ *   get:
+ *     summary: Get top stores based on average retailing
+ *     description: Fetches the top stores by average retailing for a given branch within a date range.
+ *     tags:
+ *       - Store
+ *     parameters:
+ *       - in: query
+ *         name: branchName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Name of the branch to filter stores.
+ *       - in: query
+ *         name: startDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for filtering records (YYYY-MM-DD). Defaults to 6 months ago.
+ *       - in: query
+ *         name: endDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for filtering records (YYYY-MM-DD). Defaults to today.
+ *       - in: query
+ *         name: topStoresCount
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Number of top stores to return (default is 20).
+ *     responses:
+ *       200:
+ *         description: Successfully fetched top stores.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 branchName:
+ *                   type: string
+ *                   example: "Branch A"
+ *                 startDate:
+ *                   type: string
+ *                   format: date
+ *                   example: "2024-01-01"
+ *                 endDate:
+ *                   type: string
+ *                   format: date
+ *                   example: "2024-06-30"
+ *                 topStoresCount:
+ *                   type: integer
+ *                   example: 10
+ *                 topStoresDetails:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       store_code:
+ *                         type: string
+ *                       avg_retailing:
+ *                         type: number
+ *                         format: float
+ *       400:
+ *         description: Missing required branch name.
+ *       500:
+ *         description: Server error.
+ */
+storeRouter.get("/store/get-top-stores", getTopStores);
 
 export default storeRouter;

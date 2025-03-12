@@ -8,7 +8,7 @@ const tableRouter = express.Router();
 
 /**
  * @swagger
- * /upload/psr_data:
+ * /upload/psr-data:
  *   post:
  *     summary: Upload PSR data
  *     description: Uploads and processes a CSV file containing PSR data.
@@ -35,11 +35,11 @@ const tableRouter = express.Router();
  *       500:
  *         description: Internal server error.
  */
-tableRouter.post("/upload/psr_data", insertNewData);
+tableRouter.post("/upload/psr-data", insertNewData);
 
 /**
  * @swagger
- * /update/psr_data:
+ * /update/psr-data:
  *   post:
  *     summary: Update PSR data table
  *     description: Moves data from the temporary table to the main PSR data table.
@@ -62,11 +62,11 @@ tableRouter.post("/upload/psr_data", insertNewData);
  *       500:
  *         description: Internal server error.
  */
-tableRouter.post("/update/psr_data", updatePSRTable);
+tableRouter.post("/update/psr-data", updatePSRTable);
 
 /**
  * @swagger
- * /tableMetaData:
+ * /table-meta-data:
  *   post:
  *     summary: Fetch table metadata
  *     description: Retrieves metadata for a specified table or all tables in the database.\
@@ -84,6 +84,6 @@ tableRouter.post("/update/psr_data", updatePSRTable);
  *       500:
  *         description: Internal server error.
  */
-tableRouter.post("/tableMetaData", getTablesMetaData);
+tableRouter.post("/table-meta-data", getTablesMetaData);
 
 export default tableRouter;

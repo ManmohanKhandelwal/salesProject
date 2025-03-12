@@ -20,3 +20,10 @@ export default async function fetchDashBoardData(selectedFilters) {
     console.error("Error fetching dashboard data:", error);
   }
 }
+
+//Fetch Relative URL in Development and Absolute URL in Production
+export function backEndURL(path='') {
+  return process.env.NODE_ENV === "development"
+    ? `http://localhost:5000${path}`
+    : NEXT_PUBLIC_API_BASE_URL + path;
+}

@@ -81,7 +81,7 @@ dashBoardRouter.get("/dashboard", getDashBoardData);
 
 /**
  * @swagger
- * /dashboard/filterred-dashboarddata:
+ * /dashboard/filterred-dashboard-data:
  *   post:
  *     summary: Fetch filtered dashboard data
  *     description: Fetch dashboard data based on provided filters such as year, month, category, brand, branches, and more.
@@ -157,6 +157,6 @@ dashBoardRouter.get("/dashboard", getDashBoardData);
  *       500:
  *         description: Internal server error
  */
-dashBoardRouter.post("/dashboard/filterred-dashboarddata", getFilteredDashBoardData);
+dashBoardRouter.post("/dashboard/filterred-dashboard-data", getFilteredDashBoardData);
 
 export default dashBoardRouter;

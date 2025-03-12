@@ -15,7 +15,7 @@ export async function OPTIONS() {
 
 export async function POST(req) {
   try {
-    const response = await fetch("http://localhost:5000/upload/psr_data", {
+    const response = await fetch("http://localhost:5000/upload/psr-data", {
       method: "POST",
       body: req.body, // Stream body directly
       headers: {

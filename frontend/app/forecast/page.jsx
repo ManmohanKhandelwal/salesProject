@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
+import { backEndURL } from "@/lib/utils";
 
 export default function ForecastPage() {
   const [forecastData, setForecastData] = useState([]);
@@ -41,12 +42,12 @@ export default function ForecastPage() {
 
         // Fetch Actual Sales Data
         const actualSalesResponse = await fetch(
-          "http://localhost:5000/forecast/actual-sales"
+          backEndURL("/forecast/actual-sales")
         );
         const actualSales = await actualSalesResponse.json();
 
         // Fetch Forecast Data
-        const forecastResponse = await fetch("http://localhost:5000/forecast");
+        const forecastResponse = await fetch(backEndURL("/forecast"));
         const forecast = await forecastResponse.json();
 
         if (!Array.isArray(actualSales) || !Array.isArray(forecast)) {

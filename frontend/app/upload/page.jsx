@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { backEndURL } from "@/lib/utils";
 
 const DataUpload = () => {
   const [psrFile, setPsrFile] = useState(null);
@@ -20,9 +21,6 @@ const DataUpload = () => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const API_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
   const formatDate = (date) => {
     return new Intl.DateTimeFormat("en-GB", {
@@ -48,7 +46,7 @@ const DataUpload = () => {
 
   const fetchUploadedFiles = async () => {
     try {
-      const response = await fetch(`${API_URL}/uploads`);
+      const response = await fetch(backEndURL("/uploads"));
       if (response.ok) {
         const data = await response.json();
         setUploadedFiles(data);
@@ -69,13 +67,13 @@ const DataUpload = () => {
     formData.append("uploadedBy", "Admin"); // You can replace this with the logged-in user's name
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload/psr_data`, {
+      const response = await fetch(backEndURL("/upload/psr-data"), {
         method: "POST",
         body: formData,
       });
 
       const result = await response.json();
-      console.log(result)
+      console.log(result);
       if (response.ok) {
         alert("Upload successful!");
         fetchUploadedFiles(); // Refresh uploaded files
