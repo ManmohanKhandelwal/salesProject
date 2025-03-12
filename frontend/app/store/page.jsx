@@ -23,18 +23,11 @@ const filtersToShow = [
 const Store = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedStores, setSearchedStores] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [storeDetails, setStoreDetails] = useState(null);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState([
-    "Sonarpur",
-    "Sonadanga",
-    "Pyradanga",
-    "Gobardanga",
-    "Akui",
-    "Kandi",
-    "Jemo",
-  ]);
+  const [results, setResults] = useState([]);
+
   //DashBoard Data
   const [dashBoardData, setDashBoardData] = useState({});
   const [selectedFilters, setSelectedFilters] = useState({
@@ -133,6 +126,20 @@ const Store = () => {
     setSearchQuery(id);
   };
 
+  const getTopStores = async(e) => {
+    e.preventDefault();
+    if(query.trim()==='') return;
+    setLoading(true);
+    try {
+      const response = await axios.get(backEndURL(`/store/get-top-stores?branchName=${query}`));
+      console.log(response?.data);
+      setResults(response.data?.topStoresDetails);
+    } catch (error) {
+      console.error("Couldn't fetch top stores, Error: ",error);
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <div className={`pt-3 mx-5`}>
       {/* HEADING */}
@@ -336,7 +343,7 @@ const Store = () => {
         <p className="text-center font-semibold text-xl">
           Store Information by Branch
         </p>
-        <div className="flex flex-col items-center justify-center mt-3 relative">
+        <div className="flex gap-6 items-center justify-center mt-3 relative">
           <input
             type="text"
             placeholder="Search..."
@@ -344,42 +351,20 @@ const Store = () => {
             onChange={(e) => setQuery(e.target.value)}
             className="text-black w-1/3 p-2 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
-          {results.length > 0 && (
-            <div className="absolute top-12 w-1/3 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide border border-gray-300">
-              {results.map((item, index) => (
-                <div
-                  key={index}
-                  className="p-2 border-b last:border-none cursor-pointer hover:bg-gray-200"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          )}
+          <button onClick={getTopStores} className="py-2 px-3 shadow-md text-white rounded-lg bg-gradient-to-br from-orange-500 to-orange-300 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 perspective">Search</button>
         </div>
 
-        <div className="p-6 mt-3 grid grid-cols-4">
+        {(results && results?.length>0 && !loading) ? (<div className="p-6 grid grid-cols-4">
           <div className="col-start-2 col-end-4 grid grid-cols-2 gap-3">
-            <div className="rounded-md border border-gray-200 p-3">
-              Store Details 1
-            </div>
-            <div className="rounded-md border border-gray-200 p-3">
-              Store Details 2
-            </div>
-            <div className="rounded-md border border-gray-200 p-3">
-              Store Details 3
-            </div>
-            <div className="rounded-md border border-gray-200 p-3">
-              Store Details 4
-            </div>
-            <div className="rounded-md border border-gray-200 p-3">
-              Store Details 5
-            </div>
-            <div className="rounded-md border border-gray-200 p-3">
-              Store Details 6
-            </div>
+            {results.map((storeDetails,index) =>(<div key={index} className="flex justify-between items-center rounded-md border border-gray-200 p-3">
+              <div className="flex gap-2 items-center">
+                <span className="text-sm inline-flex justify-center items-center bg-orange-500 h-7 w-7 rounded-full">{index+1}</span>
+                <p className="font-semibold">{storeDetails["store_code"]}</p>
+              </div>
+              <p className="text-2xl">₹ {Number(storeDetails["avg_retailing"]).toFixed(2)}</p>
+            </div>))}
           </div>
-        </div>
+        </div>): <div className="text-center mt-3">{loading?"Searching for stores...":"No data available !"}</div>}
       </div>
     </div>
   );
