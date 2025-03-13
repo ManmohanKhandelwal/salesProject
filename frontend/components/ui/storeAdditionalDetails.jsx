@@ -23,7 +23,7 @@ const formatAmount = (amount) =>
 const DetailCard = ({ title, value, color }) => (
   <Card className="shadow-lg border-0 rounded-xl transition-transform transform hover:scale-[1.02]">
     <CardContent
-      className={`p-4 flex justify-between items-center rounded-xl ${color}`}
+      className={`p-4 flex h-full justify-between items-center rounded-xl ${color}`}
     >
       <p className="text-lg font-semibold text-white">{title}</p>
       <Badge

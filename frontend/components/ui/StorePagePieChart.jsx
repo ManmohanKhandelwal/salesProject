@@ -6,25 +6,27 @@ import { useEffect, useState } from "react";
 const generateColors = (size) => {
   return Array.from(
     { length: size },
-    (_, i) => `hsl(${(i * 360) / size}, 70%, 50%)`
+    (_, i) => `hsl(${(i * 360) / size}, 80%, 50%)`
   );
 };
 
 const RADIAN = Math.PI / 180;
 
 // Labels like RetailChannelPieChart (Shows in Cr)
-const renderCustomLabel = ({
+const renderCustomLabel = (formattedData) => ({
   cx,
   cy,
   midAngle,
   innerRadius,
   outerRadius,
   value,
+  index
 }) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 1.25; // Match label positioning
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+  const originalValue = formattedData[index]?.originalValue;
   return (
     <text
       x={x}
@@ -35,7 +37,7 @@ const renderCustomLabel = ({
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
     >
-      {value.toFixed(1)} Cr {/* Display in Cr */}
+      {originalValue?.toFixed(2)} 
     </text>
   );
 };
@@ -51,20 +53,21 @@ const StorePagePieChart = ({ data, nameKey }) => {
 
   const formattedData = data?.map((item) => ({
     name: item[nameKey],
-    value: Number(item.total_retailing) / 10000000, // Convert to Cr
+    originalValue: Number(item.total_retailing), // Store original value
+    value: Math.abs(Number(item.total_retailing)),
   }));
 
   const COLORS = generateColors(formattedData?.length);
 
   return (
-    <PieChart width={350} height={250}>
+    <PieChart width={500} height={350}>
       <Pie
         data={formattedData}
         cx="50%"
         cy="50%"
         labelLine
-        label={renderCustomLabel}
-        outerRadius={85}
+        label={renderCustomLabel(formattedData)}
+        outerRadius={120}
         dataKey="value"
         nameKey="name"
       >
@@ -72,7 +75,12 @@ const StorePagePieChart = ({ data, nameKey }) => {
           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
         ))}
       </Pie>
-      <Tooltip />
+      <Tooltip 
+        formatter={(value, name, props) => {
+          const originalValue = formattedData.find(item => item.value === value)?.originalValue;
+          return [`${originalValue}`, name]; // Show actual negative/positive value
+        }}
+      />
     </PieChart>
   );
 };

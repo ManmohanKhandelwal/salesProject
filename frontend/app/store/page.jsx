@@ -323,12 +323,12 @@ const Store = () => {
               </div>
             )}
           </div>
-          <div className="p-3">
-            <p className="text-center text-xl font-semibold">
+          <div className="px-3">
+            <p className="text-center -mt-4 text-xl font-semibold">
               Additional Details
             </p>
             {storeDetails ? (
-              <div className="my-5 ">
+              <div className="mt-3">
                 <StoreAdditionalDetails data={storeDetails?.metadata} />
               </div>
             ) : (
@@ -338,8 +338,14 @@ const Store = () => {
             )}
           </div>
         </div>
+        {storeDetails && storeDetails?.category_retailing && <div className="mt-3 grid grid-cols-3">
+          <div className="text-4xl text-gray-600 font-bold inline-flex items-center justify-center">
+            <p className="leading-relaxed tracking-wide">Categorywise <br />Retailing</p>
+          </div>
+          <StorePagePieChart data={storeDetails?.category_retailing} nameKey="category"/>
+        </div>}
       </div>
-      <div className="p-3 mt-6 relative">
+      <div className="p-3 mt-6">
         <p className="text-center font-semibold text-xl">
           Store Information by Branch
         </p>
@@ -349,16 +355,16 @@ const Store = () => {
             placeholder="Search..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="text-black w-1/3 p-2 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="text-black w-1/3 p-2 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
           />
-          <button onClick={getTopStores} className="py-2 px-3 shadow-md text-white rounded-lg bg-gradient-to-br from-orange-500 to-orange-300 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 perspective">Search</button>
+          <button onClick={getTopStores} className="py-2 px-3 shadow-md text-white rounded-lg bg-gradient-to-br from-green-500 to-green-400 dark:from-orange-500 dark:to-orange-400 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 perspective">Search</button>
         </div>
 
         {(results && results?.length>0 && !loading) ? (<div className="p-6 grid grid-cols-4">
           <div className="col-start-2 col-end-4 grid grid-cols-2 gap-3">
-            {results.map((storeDetails,index) =>(<div key={index} className="flex justify-between items-center rounded-md border border-gray-200 p-3">
+            {results.map((storeDetails,index) =>(<div key={index} className="flex justify-between items-center rounded-md border border-gray-200 p-3 shadow-md">
               <div className="flex gap-2 items-center">
-                <span className="text-sm inline-flex justify-center items-center bg-orange-500 h-7 w-7 rounded-full">{index+1}</span>
+                <span className="text-sm inline-flex justify-center items-center bg-green-500 dark:bg-orange-500 h-7 w-7 rounded-full text-white">{index+1}</span>
                 <p className="font-semibold">{storeDetails["store_code"]}</p>
               </div>
               <p className="text-2xl">₹ {Number(storeDetails["avg_retailing"]).toFixed(2)}</p>
