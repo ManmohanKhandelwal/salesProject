@@ -12,13 +12,22 @@ import {
 } from "recharts";
 
 const RetailMonthYear = ({ RetailMonthYearData }) => {
-
   const vibrantColors = ["#FF6F61", "#6B5B95"]; // Light mode vibrant colors
-  
+
   // Mapping Month number to Month Name
   const monthNames = {
-    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
-    7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec",
+    1: "Jan",
+    2: "Feb",
+    3: "Mar",
+    4: "Apr",
+    5: "May",
+    6: "Jun",
+    7: "Jul",
+    8: "Aug",
+    9: "Sep",
+    10: "Oct",
+    11: "Nov",
+    12: "Dec",
   };
 
   // Get current year dynamically
@@ -27,24 +36,31 @@ const RetailMonthYear = ({ RetailMonthYearData }) => {
   const previousYear2 = currentYear - 2;
 
   // Format the data for the LineChart
-  const formattedRetailMonthYearData = RetailMonthYearData.reduce((acc, data) => {
-    const month = monthNames[data.month] || data.month;
-    const existingEntry = acc.find((entry) => entry.month === month);
+  const formattedRetailMonthYearData = RetailMonthYearData.reduce(
+    (acc, data) => {
+      const month = monthNames[data.month] || data.month;
+      const existingEntry = acc.find((entry) => entry.month === month);
 
-    if (existingEntry) {
-      existingEntry[data.year] = data.value / 10000000; // Convert value to millions
-    } else {
-      acc.push({
-        month,
-        [data.year]: data.value / 10000000,
-      });
-    }
+      if (existingEntry) {
+        existingEntry[data.year] = data.value / 10000000; // Convert value to millions
+      } else {
+        acc.push({
+          month,
+          [data.year]: data.value / 10000000,
+        });
+      }
 
-    return acc;
-  }, []);
+      return acc;
+    },
+    []
+  );
 
   // Find the minimum value in the dataset for a better Y-axis start
-  const minValue = Math.min(...formattedRetailMonthYearData.flatMap(entry => Object.values(entry).filter(value => typeof value === "number")));
+  const minValue = Math.min(
+    ...formattedRetailMonthYearData.flatMap((entry) =>
+      Object.values(entry).filter((value) => typeof value === "number")
+    )
+  );
 
   return (
     <ResponsiveContainer width={"100%"} height={600}>

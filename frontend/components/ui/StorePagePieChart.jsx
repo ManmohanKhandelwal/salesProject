@@ -13,34 +13,28 @@ const generateColors = (size) => {
 const RADIAN = Math.PI / 180;
 
 // Labels like RetailChannelPieChart (Shows in Cr)
-const renderCustomLabel = (formattedData) => ({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  value,
-  index
-}) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 1.25; // Match label positioning
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+const renderCustomLabel =
+  (formattedData) =>
+  ({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.25; // Match label positioning
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-  const originalValue = formattedData[index]?.originalValue;
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="currentColor"
-      fontSize={12}
-      fontWeight="600"
-      textAnchor={x > cx ? "start" : "end"}
-      dominantBaseline="central"
-    >
-      {originalValue?.toFixed(2)} 
-    </text>
-  );
-};
+    const originalValue = formattedData[index]?.originalValue;
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="currentColor"
+        fontSize={12}
+        fontWeight="600"
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+      >
+        {originalValue?.toFixed(2)}
+      </text>
+    );
+  };
 
 const StorePagePieChart = ({ data, nameKey }) => {
   const [isClient, setIsClient] = useState(false);
@@ -75,9 +69,11 @@ const StorePagePieChart = ({ data, nameKey }) => {
           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
         ))}
       </Pie>
-      <Tooltip 
+      <Tooltip
         formatter={(value, name, props) => {
-          const originalValue = formattedData.find(item => item.value === value)?.originalValue;
+          const originalValue = formattedData.find(
+            (item) => item.value === value
+          )?.originalValue;
           return [`${originalValue}`, name]; // Show actual negative/positive value
         }}
       />

@@ -1,4 +1,5 @@
 "use client";
+
 import debounce from "lodash.debounce";
 import axios from "axios";
 import FilterDropdown from "@/components/FilterDropdown";
@@ -6,7 +7,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { HashLoader } from "react-spinners";
 import CustomLoader from "@/components/ui/loader";
 import StoreCard from "@/components/ui/StoreCard";
-import SummaryCard from "@/components/SummaryCard";
 import { CircleCheck, X } from "lucide-react";
 import { months, years } from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
@@ -126,20 +126,23 @@ const Store = () => {
     setSearchQuery(id);
   };
 
-  const getTopStores = async(e) => {
+  const getTopStores = async (e) => {
     e.preventDefault();
-    if(query.trim()==='') return;
+    if (query.trim() === "") return;
     setLoading(true);
     try {
-      const response = await axios.get(backEndURL(`/store/get-top-stores?branchName=${query}`));
+      const response = await axios.get(
+        backEndURL(`/store/get-top-stores?branchName=${query}`)
+      );
       console.log(response?.data);
       setResults(response.data?.topStoresDetails);
     } catch (error) {
-      console.error("Couldn't fetch top stores, Error: ",error);
+      console.error("Couldn't fetch top stores, Error: ", error);
     } finally {
       setLoading(false);
     }
-  }
+  };
+
   return (
     <div className={`pt-3 mx-5`}>
       {/* HEADING */}
@@ -147,32 +150,30 @@ const Store = () => {
         <div className="flex-col col-span-1 text-center">
           <div className="text-3xl font-bold">Store Overview</div>
           <div className="text-md font-semibold text-gray-500 tracking-wide">
-            Your current stores summary & activity
+            Your current stores' summary & activity
           </div>
         </div>
       </div>
 
       {/* TOP SECTION */}
-      <div className="grid grid-cols-2 gap-6 mt-3">
-        <div className="grid grid-cols-2 items-center">
-          <div className="col-start-2">
-            <StoreCard
-              title={"Total Stores"}
-              data={dashBoardData?.storeCount}
-              className={"bg-sale-card-gradient text-white"}
-              isShadow={false}
-              trend={null}
-            />
-          </div>
+      <div className="flex items-center justify-center gap-6 mt-3">
+        <div className="w-[400px] h-[125px]">
+          <StoreCard
+            title={"Total Stores"}
+            data={dashBoardData?.storeCount}
+            className={"bg-sale-card-gradient text-white"}
+            isShadow={false}
+            trend={null}
+          />
         </div>
-        <div className="grid grid-cols-2 items-center">
+        <div className="w-[400px] h-[125px]">
           {dashBoardData && dashBoardData?.storeCountByBranch?.length > 0 && (
             <BranchWiseStores branchList={dashBoardData?.storeCountByBranch} />
           )}
         </div>
       </div>
 
-      {/* BOTTOM SECTION */}
+      {/* MIDDLE SECTION */}
       <div className="p-3 mt-6">
         <p className="text-center text-xl font-semibold pb-1">
           Retailing of Store by Month and Year
@@ -181,7 +182,7 @@ const Store = () => {
         <div className="flex justify-center items-center relative gap-3 mb-3">
           <div className="w-2/6 mt-3 mb-2">
             <input
-              className="px-2 py-1.5 border-green-400 dark:border-orange-500 border-2 outline-none rounded-full w-full dark:text-black"
+              className="text-black w-full p-2 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
               placeholder="Search store here"
               value={searchQuery}
               onChange={handleSearchInputChange}
@@ -338,13 +339,23 @@ const Store = () => {
             )}
           </div>
         </div>
-        {storeDetails && storeDetails?.category_retailing && <div className="mt-3 grid grid-cols-3">
-          <div className="text-4xl text-gray-600 font-bold inline-flex items-center justify-center">
-            <p className="leading-relaxed tracking-wide">Categorywise <br />Retailing</p>
+
+        {storeDetails && storeDetails?.category_retailing && (
+          <div className="flex flex-col items-center mt-3">
+            <div className="text-center text-2xl font-bold text-gray-700 dark:text-white">
+              Categorywise Retailing
+            </div>
+            <div className="">
+              <StorePagePieChart
+                data={storeDetails?.category_retailing}
+                nameKey="category"
+              />
+            </div>
           </div>
-          <StorePagePieChart data={storeDetails?.category_retailing} nameKey="category"/>
-        </div>}
+        )}
       </div>
+
+      {/* BOTTOM SECTION */}
       <div className="p-3 mt-6">
         <p className="text-center font-semibold text-xl">
           Store Information by Branch
@@ -357,20 +368,42 @@ const Store = () => {
             onChange={(e) => setQuery(e.target.value)}
             className="text-black w-1/3 p-2 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
           />
-          <button onClick={getTopStores} className="py-2 px-3 shadow-md text-white rounded-lg bg-gradient-to-br from-green-500 to-green-400 dark:from-orange-500 dark:to-orange-400 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 perspective">Search</button>
+          <button
+            onClick={getTopStores}
+            className="py-2 px-3 shadow-md text-white rounded-lg bg-gradient-to-br from-green-500 to-green-400 dark:from-orange-500 dark:to-orange-400 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 perspective"
+          >
+            Search
+          </button>
         </div>
 
-        {(results && results?.length>0 && !loading) ? (<div className="p-6 grid grid-cols-4">
-          <div className="col-start-2 col-end-4 grid grid-cols-2 gap-3">
-            {results.map((storeDetails,index) =>(<div key={index} className="flex justify-between items-center rounded-md border border-gray-200 p-3 shadow-md">
-              <div className="flex gap-2 items-center">
-                <span className="text-sm inline-flex justify-center items-center bg-green-500 dark:bg-orange-500 h-7 w-7 rounded-full text-white">{index+1}</span>
-                <p className="font-semibold">{storeDetails["store_code"]}</p>
-              </div>
-              <p className="text-2xl">₹ {Number(storeDetails["avg_retailing"]).toFixed(2)}</p>
-            </div>))}
+        {results && results?.length > 0 && !loading ? (
+          <div className="p-6 grid grid-cols-4">
+            <div className="col-start-2 col-end-4 grid grid-cols-2 gap-3">
+              {results.map((storeDetails, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center rounded-md border border-gray-200 p-3 shadow-md"
+                >
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm inline-flex justify-center items-center bg-green-500 dark:bg-orange-500 h-7 w-7 rounded-full text-white">
+                      {index + 1}
+                    </span>
+                    <p className="font-semibold">
+                      {storeDetails["store_code"]}
+                    </p>
+                  </div>
+                  <p className="text-2xl">
+                    ₹ {Number(storeDetails["avg_retailing"]).toFixed(2)}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>): <div className="text-center mt-3">{loading?"Searching for stores...":"No data available !"}</div>}
+        ) : (
+          <div className="text-center mt-3">
+            {loading ? "Searching for stores..." : "No data available !"}
+          </div>
+        )}
       </div>
     </div>
   );
