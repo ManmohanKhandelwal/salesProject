@@ -1,6 +1,6 @@
 import mySqlPool from "#config/db.js";
 
-export const getStoreInfoByCode = async (req, res) => {
+export const getStoreMetaData = async (req, res) => {
   try {
     const { oldStoreCode } = req.query;
     if (!oldStoreCode) throw { message: "Store code is required", status: 400 };
@@ -54,7 +54,23 @@ export const getStoreInfoByCode = async (req, res) => {
     `;
 
     const [[storeMetaData]] = await mySqlPool.query(sqlQuery, [oldStoreCode]);
-    if (!storeMetaData) throw { message: "No data found for this store", status: 404 };
+    if (!storeMetaData) res.status(200).json({
+      metadata: {
+        yearly_total: 0,
+        total_retailing: 0,
+        highest_retailing_month: "-",
+        highest_retailing_amount: 0,
+        lowest_retailing_month: "-",
+        lowest_retailing_amount: 0,
+        highest_retailing_product: "-",
+        highest_retailing_product_amount: 0,
+        lowest_retailing_product: "-",
+        lowest_retailing_product_amount: 0,
+      },
+      monthly_sales: [],
+      monthly_metadata: {}, // Keeps original structure
+      category_retailing: [], // ✅ New feature added here
+    });
 
     // Fetch monthly sales trend separately
     const [monthlySales] = await mySqlPool.query(
@@ -101,10 +117,22 @@ export const getStoreInfoByCode = async (req, res) => {
       };
     });
 
+    // **New Feature: Retailing Grouped by Category**
+    const [categoryRetailing] = await mySqlPool.query(
+      `SELECT category, SUM(retailing) AS total_retailing
+       FROM psr_data p
+       JOIN store_mapping s ON p.customer_code = s.New_Store_Code
+       WHERE s.Old_Store_Code = ?
+       GROUP BY category
+       ORDER BY total_retailing DESC;`,
+      [oldStoreCode]
+    );
+
     res.status(200).json({
       metadata: storeMetaData,
       monthly_sales: monthlySales,
-      monthly_metadata: monthlyMetadataMap, // Added new object
+      monthly_metadata: monthlyMetadataMap, // Keeps original structure
+      category_retailing: categoryRetailing, // ✅ New feature added here
     });
   } catch (error) {
     console.error("Error fetching Store data:", error?.message || error);

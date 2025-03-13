@@ -57,7 +57,7 @@ const Store = () => {
       console.log("Searching for:", q);
       try {
         const response = await axios.get(
-          backEndURL(`/store/meta-data?oldStoreCode=${q}`)
+          backEndURL(`/store/suggestions?oldStoreCode=${q}`)
         );
         /*if(!response.ok) throw new Error("Couldn't find searched store")*/
         console.log(response.data);
@@ -93,7 +93,7 @@ const Store = () => {
       try {
         console.log(selectedItem);
         const response = await axios.get(
-          backEndURL(`/store/output?oldStoreCode=${selectedItem}`)
+          backEndURL(`/store/meta-data?oldStoreCode=${selectedItem}`)
         );
         console.log(response);
         setStoreDetails(response.data);

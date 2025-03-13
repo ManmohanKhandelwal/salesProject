@@ -1,6 +1,6 @@
 import mySqlPool from "#config/db.js";
 
-export const getStoreById = async (req, res) => {
+export const getStoreSuggestions = async (req, res) => {
   const { oldStoreCode } = req.query;
   console.log("oldStoreCode:", oldStoreCode);
   try {
@@ -16,7 +16,7 @@ export const getStoreById = async (req, res) => {
   }
 };
 
-export const getStores = async (req, res) => {
+export const getStoresList = async (req, res) => {
   try {
     let { offset = 0, size = 10 } = req.query;
     offset = parseInt(offset, 10);

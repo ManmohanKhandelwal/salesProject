@@ -1,11 +1,11 @@
-import { getStoreDashBoardData } from "#controllers/Fetch/Store/storeDashboardData.js";
-import { getStoreInfoByCode } from "#controllers/Fetch/Store/getStoreInfo.js";
-import {
-  getStoreById,
-  getStores,
-} from "#controllers/Fetch/Store/storeController.js";
-import express from "express";
+import { getStoreMetaData } from "#controllers/Fetch/Store/getStoreMetaData.js";
 import { getTopStores } from "#controllers/Fetch/Store/getTopStores.js";
+import {
+  getStoreSuggestions,
+  getStoresList,
+} from "#controllers/Fetch/Store/storeFeatures.js";
+import { getStoreDashBoardData } from "#controllers/Fetch/Store/storeDashboardData.js";
+import express from "express";
 
 const storeRouter = express.Router();
 
@@ -55,7 +55,7 @@ storeRouter.get("/store/dashboard", getStoreDashBoardData);
 
 /**
  * @swagger
- * /store/output:
+ * /store/meta-data:
  *   get:
  *     summary: Fetch store output data
  *     description: Fetches store-related information based on the old store code.
@@ -88,14 +88,14 @@ storeRouter.get("/store/dashboard", getStoreDashBoardData);
  *       500:
  *         description: Internal server error
  */
-storeRouter.get("/store/output", getStoreInfoByCode);
+storeRouter.get("/store/meta-data", getStoreMetaData);
 
 /**
  * @swagger
- * /store/meta-data:
+ * /store/suggestions:
  *   get:
- *     summary: Get store metadata by store code
- *     description: Fetches metadata for a store using an old store code.
+ *     summary: Get store suggestions by store code
+ *     description: Fetches suggestions for a store using an old store code.
  *     tags:
  *       - Store
  *     parameters:
@@ -126,7 +126,7 @@ storeRouter.get("/store/output", getStoreInfoByCode);
  *       500:
  *         description: Internal server error
  */
-storeRouter.get("/store/meta-data", getStoreById);
+storeRouter.get("/store/suggestions", getStoreSuggestions);
 
 /**
  * @swagger
@@ -170,7 +170,7 @@ storeRouter.get("/store/meta-data", getStoreById);
  *       500:
  *         description: Internal server error
  */
-storeRouter.get("/store", getStores);
+storeRouter.get("/store", getStoresList);
 
 /**
  * @swagger
