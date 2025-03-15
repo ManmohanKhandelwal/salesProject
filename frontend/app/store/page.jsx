@@ -1,10 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import debounce from "lodash.debounce";
 import axios from "axios";
 import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback } from "react";
-import { HashLoader } from "react-spinners";
 import CustomLoader from "@/components/ui/loader";
 import StoreCard from "@/components/ui/StoreCard";
 import { CircleCheck, X } from "lucide-react";
@@ -15,6 +15,8 @@ import StorePagePieChart from "@/components/ui/StorePagePieChart";
 import BranchWiseStores from "@/components/ui/BranchWiseStores";
 import { backEndURL } from "@/lib/utils";
 
+const HashLoader = dynamic(() => import("react-spinners/HashLoader"), { ssr: false });
+
 const filtersToShow = [
   { filterModule: years, filterLabel: "Year", filterKey: "years" },
   { filterModule: months, filterLabel: "Month", filterKey: "months" },
@@ -24,9 +26,14 @@ const Store = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedStores, setSearchedStores] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const [storeDetails, setStoreDetails] = useState(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
+  const [branch, setBranch] = useState("");
+  const [hideBranchSearch,setHideBranchSearch] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [branchResult, setBranchResult] = useState(["Uluberia","Akui","Sonadanga","North"]);
 
   //DashBoard Data
   const [dashBoardData, setDashBoardData] = useState({});
@@ -106,13 +113,16 @@ const Store = () => {
 
   //Fetch Dashboard Data
   useEffect(() => {
-    const fetchStoreDashBoardData = async () => {
+    setDashboardLoading(true); 
+    const fetchStoreDashBoardData = async () => { 
       try {
         const response = await axios.get(backEndURL("/store/dashboard"));
         console.log(response.data);
         setDashBoardData(response.data);
       } catch (error) {
         console.error("Error fetching data:", error.message);
+      } finally {
+        setDashboardLoading(false);
       }
     };
     fetchStoreDashBoardData();
@@ -143,6 +153,16 @@ const Store = () => {
     }
   };
 
+  const addBranch = (branch) => {
+    setSelectedBranch(branch);
+    setHideBranchSearch(true);
+    setBranch(branch);
+  }
+  const removeBranch = () => {
+    setSelectedBranch(null);
+    setHideBranchSearch(false);
+    setBranch("");
+  }
   return (
     <div className={`pt-3 mx-5`}>
       {/* HEADING */}
@@ -154,7 +174,7 @@ const Store = () => {
           </div>
         </div>
       </div>
-
+      {!dashboardLoading? <div>
       {/* TOP SECTION */}
       <div className="flex items-center justify-center gap-6 mt-3">
         <div className="w-[400px] h-[125px]">
@@ -179,30 +199,29 @@ const Store = () => {
           Retailing of Store by Month and Year
         </p>
 
-        <div className="flex justify-center items-center relative gap-3 mb-3">
-          <div className="w-2/6 mt-3 mb-2">
+        <div className="flex items-center justify-center w-full gap-6">
+          {/* STORE SEARCH */}
+          <div className="relative w-2/5">
             <input
-              className="text-black w-full p-2 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
+              className="w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-orange-500 text-black"
               placeholder="Search store here"
               value={searchQuery}
               onChange={handleSearchInputChange}
-            ></input>
+            />
+            {/* SEARCH SUGGESTIONS */}
             <ul
-              className={`${
+              className={`absolute left-0 top-[110%] w-full bg-slate-100 shadow-md shadow-gray-700 rounded-b-lg z-30 max-h-48 overflow-y-auto scrollbar-hide dark:text-black ${
                 hideSearch ? "hidden" : ""
-              } z-30 absolute top-24 max-h-48 overflow-y-auto scrollbar-hide md:top-16 lg:top-14 left-50 rounded-b-lg bg-slate-100 shadow-md shadow-gray-700 w-2/6 rounded-t-sm dark:text-black`}
+              }`}
             >
               {searchQuery &&
-                searchedStores &&
                 searchedStores?.length > 0 &&
                 searchedStores.map((result, index) => (
                   <li
                     key={result["Id"]}
-                    className={`${
-                      index !== searchedStores.length - 1
-                        ? "border-b-slate-300 border-b"
-                        : ""
-                    } py-2 px-4 whitespace-pre cursor-pointer truncate text-sm`}
+                    className={`py-2 px-4 cursor-pointer truncate text-sm ${
+                      index !== searchedStores.length - 1 ? "border-b border-gray-300" : ""
+                    }`}
                     onClick={() => showStoreDetails(result["Old_Store_Code"])}
                   >
                     <strong>↖ {result["Old_Store_Code"]}</strong>
@@ -210,38 +229,72 @@ const Store = () => {
                 ))}
             </ul>
           </div>
-
+              
+          {/* BRANCH SEARCH */}
+          <div className={`relative w-1/5 ${hideBranchSearch ? "hidden" : ""}`}>
+            <input
+              className="w-full p-2 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-orange-500 text-black"
+              placeholder="Search Branch..."
+              value={branch}
+              onChange={(e) => setBranch(e.target.value)}
+            />
+            {/* SEARCH SUGGESTIONS (IF APPLICABLE) */}
+            <ul
+              className={`absolute left-0 top-[110%] w-full bg-slate-100 shadow-md shadow-gray-700 rounded-b-lg z-30 max-h-48 overflow-y-auto scrollbar-hide dark:text-black
+              `}
+            >
+              {branch &&
+                branchResult?.length > 0 &&
+                branchResult.map((branch, index) => (
+                  <li
+                    key={index}
+                    className={`py-2 px-4 cursor-pointer truncate text-sm ${
+                      index !== branchResult.length - 1 ? "border-b border-gray-300" : ""
+                    }`}
+                    onClick={() => addBranch(branch)}
+                  >
+                    <strong>🏢 {branch}</strong>
+                  </li>
+                ))}
+            </ul>
+          </div>
+          {selectedBranch && hideBranchSearch && <div className="grid grid-cols-3 gap-2 bg-amber-50 border-2 border-amber-400 py-2 px-3 text-gray-600 rounded-full items-center">
+            <span title={selectedBranch} className="col-span-2 max-w-24 truncate text-sm font-medium">{selectedBranch}</span>
+            <X className="cursor-pointer" size={20} onClick={removeBranch}/>
+          </div>}
+              
           {/* FILTERS */}
-          <div className="flex flex-wrap items-center justify-center gap-3 py-1 px-3 ">
+          <div className="flex flex-wrap items-center gap-3">
             {filtersToShow.map((filter) => (
               <FilterDropdown
                 key={filter.filterKey}
                 filter={filter.filterModule}
                 name={filter.filterLabel}
-                filterKey={filter.filterKey} // Unique key to store selection
+                filterKey={filter.filterKey}
                 selectedFilters={selectedFilters}
                 setSelectedFilters={setSelectedFilters}
               />
             ))}
-
-            {/* SUBMIT BUTTON */}
-            {Object.values(selectedFilters).some(
-              (filter) => filter.length > 0 && !filter.includes("all")
-            ) && (
-              <>
-                <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition">
-                  <CircleCheck />
-                </button>
-                <button
-                  className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition"
-                  onClick={clearAllFilters}
-                >
-                  Clear All
-                </button>
-              </>
-            )}
           </div>
+          
+          {/* SUBMIT & CLEAR BUTTONS */}
+          {Object.values(selectedFilters).some(
+            (filter) => filter.length > 0 && !filter.includes("all")
+          ) && (
+            <div className="flex items-center gap-3">
+              <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition">
+                <CircleCheck />
+              </button>
+              <button
+                className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition"
+                onClick={clearAllFilters}
+              >
+                Clear All
+              </button>
+            </div>
+          )}
         </div>
+
 
         {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
         {Object.values(selectedFilters).some(
@@ -275,7 +328,7 @@ const Store = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-3 mt-6">
           <div className="col-span-2">
             {storeDetails ? (
               // Render the actual LineChart when storeDetails is available
@@ -405,6 +458,7 @@ const Store = () => {
           </div>
         )}
       </div>
+      </div>:<div className="flex items-center justify-center min-h-screen bg-inherit"><HashLoader color="rgb(249, 115, 22)" size={120} loading={dashboardLoading} /></div>}
     </div>
   );
 };
