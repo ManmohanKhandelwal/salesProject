@@ -12,15 +12,16 @@ const generateColors = (size) => {
 
 const RADIAN = Math.PI / 180;
 
-// Labels like RetailChannelPieChart (Shows in Cr)
+// Function to render labels with percentage values
 const renderCustomLabel =
   (formattedData) =>
   ({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.25; // Match label positioning
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.25;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    const originalValue = formattedData[index]?.originalValue;
+    const percentage = formattedData[index]?.percentage.toFixed(2);
+
     return (
       <text
         x={x}
@@ -31,7 +32,7 @@ const renderCustomLabel =
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
       >
-        {originalValue?.toFixed(2)}
+        {percentage}%
       </text>
     );
   };
@@ -45,11 +46,19 @@ const StorePagePieChart = ({ data, nameKey }) => {
 
   if (!isClient) return <p>Loading chart...</p>;
 
-  const formattedData = data?.map((item) => ({
-    name: item[nameKey],
-    originalValue: Number(item.total_retailing), // Store original value
-    value: Math.abs(Number(item.total_retailing)),
-  }));
+  // Sum the absolute values of retailing
+  const totalRetailing = data?.reduce((sum, item) => sum + Math.abs(Number(item.total_retailing)), 0);
+
+  const formattedData = data?.map((item) => {
+    const originalValue = Number(item.total_retailing);
+    const absoluteValue = Math.abs(originalValue); // Always positive for pie chart slices
+    return {
+      name: item[nameKey],
+      originalValue,
+      value: absoluteValue, // Used for rendering PieChart
+      percentage: (absoluteValue / totalRetailing) * 100, // Always positive percentage
+    };
+  });
 
   const COLORS = generateColors(formattedData?.length);
 
@@ -71,10 +80,8 @@ const StorePagePieChart = ({ data, nameKey }) => {
       </Pie>
       <Tooltip
         formatter={(value, name, props) => {
-          const originalValue = formattedData.find(
-            (item) => item.value === value
-          )?.originalValue;
-          return [`${originalValue}`, name]; // Show actual negative/positive value
+          const percentage = formattedData.find((item) => item.value === value)?.percentage.toFixed(2);
+          return [`${percentage}%`, name]; // Show percentage in tooltip
         }}
       />
     </PieChart>
@@ -82,3 +89,5 @@ const StorePagePieChart = ({ data, nameKey }) => {
 };
 
 export default StorePagePieChart;
+
+
