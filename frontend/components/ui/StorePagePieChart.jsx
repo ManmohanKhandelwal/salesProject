@@ -1,12 +1,25 @@
 "use client";
 
-import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { useEffect, useState } from "react";
 
 const generateColors = (size) => {
+  const baseColors = [
+    "#FF6B6B", // Vibrant Red
+    "#FF9F43", // Warm Orange
+    "#E4A11B", // Deep Gold
+    "#6BCB77", // Green
+    "#4D96FF", // Blue
+    "#AA7BC3", // Purple
+    "#FF66C4", // Pink
+    "#00C2C7", // Cyan
+  ];
+
+  // If more colors are needed, generate dynamic HSL-based colors
   return Array.from(
     { length: size },
-    (_, i) => `hsl(${(i * 360) / size}, 80%, 50%)`
+    (_, i) =>
+      baseColors[i % baseColors.length] || `hsl(${(i * 137) % 360}, 70%, 55%)` // Ensures varied, visible colors
   );
 };
 
@@ -47,7 +60,10 @@ const StorePagePieChart = ({ data, nameKey }) => {
   if (!isClient) return <p>Loading chart...</p>;
 
   // Sum the absolute values of retailing
-  const totalRetailing = data?.reduce((sum, item) => sum + Math.abs(Number(item.total_retailing)), 0);
+  const totalRetailing = data?.reduce(
+    (sum, item) => sum + Math.abs(Number(item.total_retailing)),
+    0
+  );
 
   const formattedData = data?.map((item) => {
     const originalValue = Number(item.total_retailing);
@@ -63,10 +79,10 @@ const StorePagePieChart = ({ data, nameKey }) => {
   const COLORS = generateColors(formattedData?.length);
 
   return (
-    <PieChart width={500} height={350}>
+    <PieChart width={800} height={350}>
       <Pie
         data={formattedData}
-        cx="50%"
+        cx="40%" // Shift pie slightly to the right
         cy="50%"
         labelLine
         label={renderCustomLabel(formattedData)}
@@ -79,9 +95,29 @@ const StorePagePieChart = ({ data, nameKey }) => {
         ))}
       </Pie>
       <Tooltip
-        formatter={(value, name, props) => {
-          const percentage = formattedData.find((item) => item.value === value)?.percentage.toFixed(2);
-          return [`${percentage}%`, name]; // Show percentage in tooltip
+        formatter={(value, name) => {
+          const item = formattedData.find((d) => d.value === value);
+          return [`${item?.percentage.toFixed(2)}%`, name]; // Show percentage in tooltip
+        }}
+      />
+      <Legend
+        layout="vertical"
+        align="right"
+        verticalAlign="middle"
+        wrapperStyle={{ right: 10 }} // Moves legend closer to the chart
+        formatter={(value) => {
+          const item = formattedData.find((d) => d.name === value);
+          if (!item) return value; // Fallback if no data found
+
+          const formattedValue = new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            minimumFractionDigits: 0,
+          }).format(item.originalValue);
+
+          return `${item.name} - ${formattedValue} - ${item.percentage.toFixed(
+            2
+          )}%`;
         }}
       />
     </PieChart>
@@ -89,5 +125,3 @@ const StorePagePieChart = ({ data, nameKey }) => {
 };
 
 export default StorePagePieChart;
-
-
