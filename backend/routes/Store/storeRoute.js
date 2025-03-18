@@ -1,6 +1,7 @@
 import { getStoreMetaData } from "#controllers/Fetch/Store/getStoreMetaData.js";
 import { getTopStores } from "#controllers/Fetch/Store/getTopStores.js";
 import {
+  getBranchSuggestions,
   getStoreSuggestions,
   getStoresList,
 } from "#controllers/Fetch/Store/storeFeatures.js";
@@ -92,10 +93,10 @@ storeRouter.get("/store/meta-data", getStoreMetaData);
 
 /**
  * @swagger
- * /store/suggestions:
+ * /store/store-suggestions:
  *   get:
- *     summary: Get store suggestions by store code
- *     description: Fetches suggestions for a store using an old store code.
+ *     summary: Get store suggestions based on filters
+ *     description: Fetches a list of stores based on Old Store Code and optional filters such as branch, managers, and team leaders.
  *     tags:
  *       - Store
  *     parameters:
@@ -104,29 +105,60 @@ storeRouter.get("/store/meta-data", getStoreMetaData);
  *         schema:
  *           type: string
  *         required: true
- *         description: Old store code to search for.
+ *         description: Partial or full Old Store Code to search for.
+ *       - in: query
+ *         name: branchName
+ *         schema:
+ *           type: string
+ *         description: Filter results by New Branch.
+ *       - in: query
+ *         name: zoneManager
+ *         schema:
+ *           type: string
+ *         description: Filter results by Zone Manager.
+ *       - in: query
+ *         name: salesManager
+ *         schema:
+ *           type: string
+ *         description: Filter results by Sales Manager.
+ *       - in: query
+ *         name: businessExecutive
+ *         schema:
+ *           type: string
+ *         description: Filter results by Business Executive.
+ *       - in: query
+ *         name: systemTeamLeader
+ *         schema:
+ *           type: string
+ *         description: Filter results by System Team Leader.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Maximum number of results to return.
  *     responses:
  *       200:
- *         description: Successfully retrieved store metadata
+ *         description: Successfully retrieved store suggestions.
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 type: object
- *                 properties:
- *                   Old_Store_Code:
- *                     type: string
- *                     example: "S123"
- *                   New_Store_Code:
- *                     type: string
- *                     example: "N789"
  *       400:
- *         description: Store code is required
+ *         description: Invalid request (missing required parameters or invalid limit value).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       500:
- *         description: Internal server error
+ *         description: Internal server error.
  */
-storeRouter.get("/store/suggestions", getStoreSuggestions);
+storeRouter.get("/store/store-suggestions", getStoreSuggestions);
 
 /**
  * @swagger
@@ -176,59 +208,51 @@ storeRouter.get("/store", getStoresList);
  * @swagger
  * /store/get-top-stores:
  *   get:
- *     summary: Get top stores based on average retailing
- *     description: Fetches the top stores by average retailing for a given branch within a date range.
+ *     summary: Get top-performing stores by average retailing
+ *     description: Fetches the top stores based on average retailing for a given branch and date range.
  *     tags:
  *       - Store
  *     parameters:
  *       - in: query
  *         name: branchName
- *         required: true
  *         schema:
  *           type: string
- *         description: Name of the branch to filter stores.
+ *         required: true
+ *         description: The name of the branch to fetch top stores for.
  *       - in: query
  *         name: startDate
- *         required: false
  *         schema:
  *           type: string
  *           format: date
- *         description: Start date for filtering records (YYYY-MM-DD). Defaults to 6 months ago.
+ *         description: "Start date for filtering records (default: 6 months ago)."
  *       - in: query
  *         name: endDate
- *         required: false
  *         schema:
  *           type: string
  *           format: date
- *         description: End date for filtering records (YYYY-MM-DD). Defaults to today.
+ *         description: "End date for filtering records (default: current date)."
  *       - in: query
  *         name: topStoresCount
- *         required: false
  *         schema:
  *           type: integer
- *         description: Number of top stores to return (default is 20).
+ *           default: 20
+ *         description: "Number of top stores to return (default: 20)."
  *     responses:
  *       200:
- *         description: Successfully fetched top stores.
+ *         description: Successfully retrieved top-performing stores.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 branchName:
- *                   type: string
- *                   example: "Branch A"
  *                 startDate:
  *                   type: string
  *                   format: date
- *                   example: "2024-01-01"
  *                 endDate:
  *                   type: string
  *                   format: date
- *                   example: "2024-06-30"
  *                 topStoresCount:
  *                   type: integer
- *                   example: 10
  *                 topStoresDetails:
  *                   type: array
  *                   items:
@@ -236,14 +260,87 @@ storeRouter.get("/store", getStoresList);
  *                     properties:
  *                       store_code:
  *                         type: string
+ *                         description: Store code.
  *                       avg_retailing:
  *                         type: number
  *                         format: float
+ *                         description: Average retailing value.
  *       400:
- *         description: Missing required branch name.
+ *         description: Invalid request (missing required parameters).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       500:
- *         description: Server error.
+ *         description: Internal server error.
  */
 storeRouter.get("/store/get-top-stores", getTopStores);
+
+/**
+ * @swagger
+ * /store/branch-suggestions:
+ *   get:
+ *     summary: Get branch suggestions based on filters
+ *     description: Fetches a list of branch names based on filters like managers and team leaders.
+ *     tags:
+ *       - Store
+ *     parameters:
+ *       - in: query
+ *         name: branchName
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Partial or full branch name to search for.
+ *       - in: query
+ *         name: zoneManager
+ *         schema:
+ *           type: string
+ *         description: Filter results by Zone Manager.
+ *       - in: query
+ *         name: salesManager
+ *         schema:
+ *           type: string
+ *         description: Filter results by Sales Manager.
+ *       - in: query
+ *         name: businessExecutive
+ *         schema:
+ *           type: string
+ *         description: Filter results by Business Executive.
+ *       - in: query
+ *         name: systemTeamLeader
+ *         schema:
+ *           type: string
+ *         description: Filter results by System Team Leader.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Maximum number of results to return.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved branch suggestions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ *       400:
+ *         description: Invalid request (missing required parameters or invalid limit value).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Internal server error.
+ */
+storeRouter.get("/store/branch-suggestions", getBranchSuggestions);
 
 export default storeRouter;
