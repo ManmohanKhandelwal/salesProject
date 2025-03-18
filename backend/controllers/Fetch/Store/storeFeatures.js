@@ -29,19 +29,19 @@ export const getStoreSuggestions = async (req, res) => {
       params.push(`%${branchName}%`);
     }
     if (zoneManager) {
-      query += " AND Zone_Manager LIKE ?";
+      query += " AND ZM LIKE ?";
       params.push(`%${zoneManager}%`);
     }
     if (salesManager) {
-      query += " AND Sales_Manager LIKE ?";
+      query += " AND SM LIKE ?";
       params.push(`%${salesManager}%`);
     }
     if (businessExecutive) {
-      query += " AND Business_Executive LIKE ?";
+      query += " AND BE LIKE ?";
       params.push(`%${businessExecutive}%`);
     }
     if (systemTeamLeader) {
-      query += " AND System_Team_Leader LIKE ?";
+      query += " AND STL LIKE ?";
       params.push(`%${systemTeamLeader}%`);
     }
 
@@ -89,8 +89,9 @@ export const getBranchSuggestions = async (req, res) => {
       limit = 10,
     } = req.query;
     if (!branchName) throw { message: "Branch Name KeyWord is required !", status: 400 };
+    console.log("zoneManager:",zoneManager);
     // Start building the query dynamically
-    let query = "SELECT * FROM store_mapping";
+    let query = "SELECT DISTINCT New_Branch FROM store_mapping";
     let params = [];
     if (branchName) {
       query += " WHERE New_Branch LIKE ?";
@@ -122,7 +123,7 @@ export const getBranchSuggestions = async (req, res) => {
     params.push(safeLimit);
 
     const [result] = await mySqlPool.query(query, params);
-
+    console.log(result)
     // Convert result from array of objects to array of strings
     const branches = result.map((row) => row.New_Branch);
 

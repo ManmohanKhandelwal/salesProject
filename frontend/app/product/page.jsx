@@ -2,7 +2,7 @@
 import SummaryCard from "@/components/SummaryCard";
 import axios from "axios";
 import debounce from "lodash.debounce";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -17,35 +17,29 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { backEndURL } from "@/lib/utils";
 
-const sampleData = [
-  { month: "Sep", sales: 4000 },
-  { month: "Oct", sales: 3000 },
-  { month: "Nov", sales: 5000 },
-  { month: "Dec", sales: 7000 },
-  { month: "Jan", sales: 6000 },
-  { month: "Feb", sales: 8000 },
-];
 
 const Product = () => {
-  const [brand, setBrand] = useState("");
-  const [data, setData] = useState(null);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedBrand, setSearchedPBrand] = useState(null);
   const [searchedCategory, setSearchedCategory] = useState(null);
   const [searchType, setSearchType] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState(null);
 
-  const debouncedSearch = debounce(async (q) => {
+  const debouncedSearch = useCallback(debounce(async (q, currentSearchType) => {
+    console.log(q,currentSearchType);
     if (!q) return;
-    if (!searchType) return;
+    if (!currentSearchType) return;
     setLoading(true);
+    let brandName = "", categoryName = "";
+    currentSearchType === "category" ? (categoryName = q) : (brandName = q);
     try {
-      const response = await axios.post(backEndURL(), {
-        searchQuery: q,
-        searchType,
+      const response = await axios.post(backEndURL("/product/suggestions"), {
+        categoryName,
+        brandName,
+        searchType: currentSearchType,
       });
-      console.log(response.data);
+      console.log(response);
       searchType === "category"
         ? setSearchedCategory(response.data)
         : setSearchedPBrand(response.data);
@@ -54,12 +48,13 @@ const Product = () => {
     } finally {
       setLoading(false);
     }
-  }, 500);
+  }, 500),[]);
 
   const handleSearchInputChange = (e) => {
+    console.log(e.target.value);
     const value = e.target.value;
     setSearchQuery(value);
-    debouncedSearch(value);
+    debouncedSearch(value, searchType);
   };
 
   useEffect(() => {
@@ -68,39 +63,9 @@ const Product = () => {
     };
   }, [debouncedSearch]);
 
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [isFocused, setIsFocused] = useState(false);
-
-  const handleSearchTypeSelection = (e) => {
-    setSearchType(searchType === e ? null : e);
-  };
-  const isSearchVisible = isFocused || searchQuery.trim() !== "";
-
-  const handleSearch = () => {
-    // Fetch brand data based on search (Replace with actual API call)
-    const fetchedData = {
-      highestRetailing: {
-        brandform: "Brand A",
-        subBrandform: "Sub A1",
-        amount: 10000,
-      },
-      lowestRetailing: {
-        brandform: "Brand B",
-        subBrandform: "Sub B1",
-        amount: 2000,
-      },
-      highestByBranch: {
-        branch: "Branch X",
-        brandform: "Brand A",
-        amount: 12000,
-      },
-      lowestByBranch: {
-        branch: "Branch Y",
-        brandform: "Brand B",
-        amount: 1500,
-      },
-    };
-    setData(fetchedData);
+  const handleSearchTypeSelection = (type) => {
+    console.log(type);
+    setSearchType((prev) => (prev === type ? null : type));
   };
 
   return (
@@ -115,24 +80,19 @@ const Product = () => {
         <div className="col-span-2 flex justify-end">
           <input
             type="text"
-            className="w-1/2 px-6 py-2 text-black rounded-full outline-none border-green-400 border-2 dark:border-orange-400 border-b-1"
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
+            placeholder="Search Products..."
+            className="w-1/2 px-3 py-2 text-black rounded-lg outline-none focus:border-green-400 border-2 focus:dark:border-orange-400 border-b-1"
+            value={searchQuery}
+            onChange={handleSearchInputChange}
           />
-          <button
-            onClick={handleSearch}
-            className="bg-orange-400 text-white mx-3 px-1.5  rounded-lg"
-          >
-            Search
-          </button>
         </div>
         <div className="flex justify-start mx-3 items-center">
           <div
-            className={`rounded-full dark:bg-slate-100 shadow-md shadow-gray-200 dark:shadow-none dark:text-black py-1.5 border dark:border-orange-400 border-green-400`}
+            className={`rounded-lg shadow-md shadow-gray-200 dark:shadow-none dark:text-black py-1.5 border-2 dark:border-orange-400 border-green-400`}
           >
-            <div className="grid grid-cols-2 gap-3 font-mono text-sm font-bold mx-3">
+            <div className="grid grid-cols-2 gap-3 font-sans tracking-wide text-sm font-medium mx-1.5">
               <div
-                className={`rounded-full border flex items-center justify-center cursor-pointer p-1 ${
+                className={`rounded-lg dark:text-white dark:border-2 flex items-center justify-center cursor-pointer p-1 ${
                   searchType === "category"
                     ? "border-green-600 bg-green-600  dark:border-orange-400 dark:bg-orange-400 text-white"
                     : "border-black"
@@ -142,9 +102,9 @@ const Product = () => {
                 Category
               </div>
               <div
-                className={`rounded-full border flex items-center justify-center cursor-pointer p-1 ${
+                className={`rounded-lg dark:text-white dark:border-2 flex items-center justify-center cursor-pointer p-1 ${
                   searchType === "brand"
-                    ? "border-green-600 bg-green-600 dark:border-orange-400 dark:bg-orange-400 dark:text-white"
+                    ? "border-green-600 bg-green-600 dark:border-orange-400 dark:bg-orange-400 text-white"
                     : "border-black"
                 }`}
                 onClick={() => handleSearchTypeSelection("brand")}
@@ -154,40 +114,15 @@ const Product = () => {
             </div>
           </div>
         </div>
-        <div className="absolute hidden justify-center mt-1 text-black font-medium top-11 left-1/3">
+        {<div className="absolute hidden justify-center mt-1 text-black font-medium top-[110%] left-1/3">
           <ul className="bg-slate-100 shadow-md rounded-md flex flex-col w-[31rem] gap-1 max-h-40 overflow-y-scroll scrollbar-hide">
             <li
               className={`cursor-pointer border-b border-slate-300 px-3 py-1 whitespace-pre tracking-wide`}
             >
               <strong>↖ hello</strong>
             </li>
-            <li
-              className={`cursor-pointer border-b border-slate-300 px-3 py-1 whitespace-pre tracking-wide`}
-            >
-              <strong>↖ hello</strong>
-            </li>
-            <li
-              className={`cursor-pointer border-b border-slate-300 px-3 py-1 whitespace-pre tracking-wide`}
-            >
-              <strong>↖ hello</strong>
-            </li>
-            <li
-              className={`cursor-pointer border-b border-slate-300 px-3 py-1 whitespace-pre tracking-wide`}
-            >
-              <strong>↖ hello</strong>
-            </li>
-            <li
-              className={`cursor-pointer border-b border-slate-300 px-3 py-1 whitespace-pre tracking-wide`}
-            >
-              <strong>↖ hello</strong>
-            </li>
-            <li
-              className={`cursor-pointer px-3 py-1 border-none whitespace-pre tracking-wide`}
-            >
-              <strong>↖ hello</strong>
-            </li>
           </ul>
-        </div>
+        </div>}
       </div>
       {!loading && searchedCategory && (
         <div className="mt-6 grid grid-cols-4">
@@ -223,7 +158,7 @@ const Product = () => {
           </div>
         </div>
       )}
-      {data && (
+      {/*data && (
         <div className="grid grid-cols-2 gap-6">
           {[
             "highestRetailing",
@@ -256,9 +191,9 @@ const Product = () => {
             </Card>
           ))}
         </div>
-      )}
+      )*/}
 
-      <div className="w-full h-64 bg-white p-4 shadow-lg rounded-2xl">
+      {/*<div className="w-full h-64 bg-white p-4 shadow-lg rounded-2xl">
         <h3 className="text-lg font-semibold mb-4">
           Performance Over Last 6 Months
         </h3>
@@ -276,7 +211,7 @@ const Product = () => {
             />
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      </div>*/}
     </div>
   );
 };
