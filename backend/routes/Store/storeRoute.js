@@ -209,37 +209,53 @@ storeRouter.get("/store", getStoresList);
  * /store/get-top-stores:
  *   get:
  *     summary: Get top-performing stores by average retailing
- *     description: Fetches the top stores based on average retailing for a given branch and date range.
+ *     description: Fetches the top stores based on average retailing for a given branch within a specified date range. Supports optional filters for zone manager, sales manager, and pagination.
  *     tags:
- *       - Store
+ *      - Store
  *     parameters:
  *       - in: query
  *         name: branchName
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: The name of the branch to fetch top stores for.
+ *         description: Name of the branch to filter stores.
  *       - in: query
  *         name: startDate
  *         schema:
  *           type: string
  *           format: date
- *         description: "Start date for filtering records (default: 6 months ago)."
+ *         description: Start date for filtering (default is 3 months ago).
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: "End date for filtering records (default: current date)."
+ *         description: End date for filtering (default is today).
  *       - in: query
  *         name: topStoresCount
  *         schema:
  *           type: integer
  *           default: 20
- *         description: "Number of top stores to return (default: 20)."
+ *         description: Number of top stores to retrieve.
+ *       - in: query
+ *         name: zoneManager
+ *         schema:
+ *           type: string
+ *         description: Filter stores by a specific zone manager (optional).
+ *       - in: query
+ *         name: salesManager
+ *         schema:
+ *           type: string
+ *         description: Filter stores by a specific sales manager (optional).
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Offset for pagination (optional).
  *     responses:
  *       200:
- *         description: Successfully retrieved top-performing stores.
+ *         description: A list of top stores with average retailing values.
  *         content:
  *           application/json:
  *             schema:
@@ -253,6 +269,8 @@ storeRouter.get("/store", getStoresList);
  *                   format: date
  *                 topStoresCount:
  *                   type: integer
+ *                 offset:
+ *                   type: integer
  *                 topStoresDetails:
  *                   type: array
  *                   items:
@@ -260,20 +278,13 @@ storeRouter.get("/store", getStoresList);
  *                     properties:
  *                       store_code:
  *                         type: string
- *                         description: Store code.
+ *                         description: Unique store code.
  *                       avg_retailing:
  *                         type: number
  *                         format: float
  *                         description: Average retailing value.
  *       400:
- *         description: Invalid request (missing required parameters).
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
+ *         description: Bad request due to missing or invalid parameters.
  *       500:
  *         description: Internal server error.
  */
