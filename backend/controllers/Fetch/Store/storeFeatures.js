@@ -98,19 +98,19 @@ export const getBranchSuggestions = async (req, res) => {
       params.push(`%${branchName}%`);
     }
     if (zoneManager) {
-      query += " AND Zone_Manager LIKE ?";
+      query += " AND ZM LIKE ?";
       params.push(`%${zoneManager}%`);
     }
     if (salesManager) {
-      query += " AND Sales_Manager LIKE ?";
+      query += " AND SM LIKE ?";
       params.push(`%${salesManager}%`);
     }
     if (businessExecutive) {
-      query += " AND Business_Executive LIKE ?";
+      query += " AND BE LIKE ?";
       params.push(`%${businessExecutive}%`);
     }
     if (systemTeamLeader) {
-      query += " AND System_Team_Leader LIKE ?";
+      query += " AND STL LIKE ?";
       params.push(`%${systemTeamLeader}%`);
     }
 

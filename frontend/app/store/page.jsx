@@ -199,7 +199,8 @@ const Store = () => {
 );
 
 const submitFilters = async () => {
-  if(!searchQuery) return;
+  console.log("query:",branch);
+  if(!searchQuery && !branch) return;
   const lookupForFilter = {
     "zm":"zoneManager",
     "sm":"salesManager"
@@ -209,12 +210,16 @@ const submitFilters = async () => {
     .map(([key, values]) => `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`) // Send only the first valid value
     .join("&");
   console.log(queryParams);
-  const url = backEndURL(`/store/store-suggestions?oldStoreCode=${searchQuery}&${queryParams}&branchName=${selectedBranch}`);
-
+  let url;
+  if(searchQuery && selectedBranch)
+    url = backEndURL(`/store/store-suggestions?oldStoreCode=${searchQuery}&${queryParams}&branchName=${selectedBranch}`);
+  else if(!searchQuery && branch)
+    url = backEndURL(`/store/branch-suggestions?${queryParams}&branchName=${branch}`);
   try {
     const response = await axios.get(url);
     console.log("Filtered Data:", response.data);
-    setSearchedStores(response.data);
+    if(searchQuery) setSearchedStores(response.data);
+    else setBranchResultMiddle(response.data);
   } catch (error) {
     console.error("Error fetching filtered data:", error);
   }
