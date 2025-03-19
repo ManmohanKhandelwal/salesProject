@@ -37,7 +37,7 @@ const Store = () => {
   const [branch, setBranch] = useState("");
   const [hideBranchSearchMiddle, setHideBranchSearchMiddle] = useState(false);
   const [hideBranchSearchLower, setHideBranchSearchLower] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [branchResultMiddle, setBranchResultMiddle] = useState(null);
   const [branchResultLower, setBranchResultLower] = useState(null);
 
@@ -49,7 +49,7 @@ const Store = () => {
     years: ["all"],
     months: ["all"],
     zm: ["all"],
-    sm: ["all"]
+    sm: ["all"],
   });
 
   // Clear all filters
@@ -58,7 +58,7 @@ const Store = () => {
       years: ["all"],
       months: ["all"],
       zm: ["all"],
-      sm: ["all"]
+      sm: ["all"],
     });
     window.location.reload(); // Refresh the page to reflect changes immediately
   };
@@ -76,7 +76,13 @@ const Store = () => {
       console.log("Searching for:", q);
       try {
         const response = await axios.get(
-          backEndURL(`/store/store-suggestions?oldStoreCode=${q}`)
+          backEndURL(
+            `/store/store-suggestions?oldStoreCode=${q}&branchName=${selectedBranch}&zoneManager=${
+              selectedFilters.zm[0] === "all" ? "" : selectedFilters.zm[0]
+            }&salesManager=${
+              selectedFilters.sm[0] === "all" ? "" : selectedFilters.sm[0]
+            }`
+          )
         );
         /*if(!response.ok) throw new Error("Couldn't find searched store")*/
         console.log(response.data);
@@ -137,6 +143,7 @@ const Store = () => {
   const [hideSearch, setHideSearch] = useState(false);
 
   const showStoreDetails = (id) => {
+    console.log("Store ID:", id);
     setHideSearch(true);
     setSelectedItem(id);
     setSearchQuery(id);
@@ -167,70 +174,85 @@ const Store = () => {
   };
 
   const addBranch = (branch) => {
+    setSearchedStores([]);
     setSelectedBranch(branch);
     setHideBranchSearchMiddle(true);
     setBranch(branch);
+    setSearchQuery("");
   };
 
   const removeBranch = () => {
+    setSearchedStores([]);
     setSelectedBranch(null);
     setHideBranchSearchMiddle(false);
     setBranch("");
+    setSearchQuery("");
   };
 
-  const branchInputChange = (e,section) => {
+  const branchInputChange = (e, section) => {
     const value = e.target.value;
-    section==="middle"?setBranch(value):setQuery(value);
-    section==="lower"?setHideBranchSearchLower(false):"";
-    searchBranch(value,section);
-  }
-  const searchBranch = useCallback(
-    debounce(async (q,section) => {
-    if(!q) return;
-    try {
-      const response = await axios.get(backEndURL(`/store/branch-suggestions?branchName=${q}`));
-      console.log(response.data);
-      section==="middle"?setBranchResultMiddle(response.data):setBranchResultLower(response.data);
-    } catch (error) {
-      console.error("Error while loading branches, Error: ",error);
-    }
-  }, 500)
-  ,[]
-);
-
-const submitFilters = async () => {
-  console.log("query:",branch);
-  if(!searchQuery && !branch) return;
-  const lookupForFilter = {
-    "zm":"zoneManager",
-    "sm":"salesManager"
-  }
-  const queryParams = Object.entries(selectedFilters)
-    .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
-    .map(([key, values]) => `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`) // Send only the first valid value
-    .join("&");
-  console.log(queryParams);
-  let url;
-  if(searchQuery && selectedBranch)
-    url = backEndURL(`/store/store-suggestions?oldStoreCode=${searchQuery}&${queryParams}&branchName=${selectedBranch}`);
-  else if(!searchQuery && branch)
-    url = backEndURL(`/store/branch-suggestions?${queryParams}&branchName=${branch}`);
-  try {
-    const response = await axios.get(url);
-    console.log("Filtered Data:", response.data);
-    if(searchQuery) setSearchedStores(response.data);
-    else setBranchResultMiddle(response.data);
-  } catch (error) {
-    console.error("Error fetching filtered data:", error);
-  }
-};
-
-useEffect(() => {
-  return () => {
-    debouncedSearch.cancel();
-    searchBranch.cancel();
+    section === "middle" ? setBranch(value) : setQuery(value);
+    section === "lower" ? setHideBranchSearchLower(false) : "";
+    searchBranch(value, section);
   };
-}, [debouncedSearch, searchBranch]);
+  const searchBranch = useCallback(
+    debounce(async (q, section) => {
+      if (!q) return;
+      try {
+        const response = await axios.get(
+          backEndURL(`/store/branch-suggestions?branchName=${q}`)
+        );
+        console.log(response.data);
+        section === "middle"
+          ? setBranchResultMiddle(response.data)
+          : setBranchResultLower(response.data);
+      } catch (error) {
+        console.error("Error while loading branches, Error: ", error);
+      }
+    }, 500),
+    []
+  );
+
+  const submitFilters = async () => {
+    console.log("query:", branch);
+    if (!searchQuery && !branch) return;
+    const lookupForFilter = {
+      zm: "zoneManager",
+      sm: "salesManager",
+    };
+    const queryParams = Object.entries(selectedFilters)
+      .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
+      .map(
+        ([key, values]) =>
+          `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`
+      ) // Send only the first valid value
+      .join("&");
+    console.log(queryParams);
+    let url;
+    if (searchQuery && selectedBranch)
+      url = backEndURL(
+        `/store/store-suggestions?oldStoreCode=${searchQuery}&${queryParams}&branchName=${selectedBranch}`
+      );
+    else if (!searchQuery && branch)
+      url = backEndURL(
+        `/store/branch-suggestions?${queryParams}&branchName=${branch}`
+      );
+    try {
+      const response = await axios.get(url);
+      console.log("Filtered Data:", response.data);
+      if (searchQuery) setSearchedStores(response.data);
+      else setBranchResultMiddle(response.data);
+    } catch (error) {
+      console.error("Error fetching filtered data:", error);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+      searchBranch.cancel();
+    };
+  }, [debouncedSearch, searchBranch]);
 
   return (
     <div className={`pt-3 mx-5`}>
@@ -310,13 +332,15 @@ useEffect(() => {
 
               {/* BRANCH SEARCH */}
               <div
-                className={`relative w-1/5 ${hideBranchSearchMiddle ? "hidden" : ""}`}
+                className={`relative w-1/5 ${
+                  hideBranchSearchMiddle ? "hidden" : ""
+                }`}
               >
                 <input
                   className="w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-orange-500 text-black"
                   placeholder="Search Branch..."
                   value={branch}
-                  onChange={(e) => branchInputChange(e,"middle")}
+                  onChange={(e) => branchInputChange(e, "middle")}
                 />
                 {/* SEARCH SUGGESTIONS (IF APPLICABLE) */}
                 <ul
@@ -335,7 +359,10 @@ useEffect(() => {
                         }`}
                         onClick={() => addBranch(branch)}
                       >
-                        <span className="inline-flex gap-3 items-center"><MapPin width={16} height={16} strokeWidth={2.5}/><strong> {branch}</strong></span>
+                        <span className="inline-flex gap-3 items-center">
+                          <MapPin width={16} height={16} strokeWidth={2.5} />
+                          <strong> {branch}</strong>
+                        </span>
                       </li>
                     ))}
                 </ul>
@@ -375,7 +402,10 @@ useEffect(() => {
                 (filter) => filter.length > 0 && !filter.includes("all")
               ) && (
                 <div className="flex items-center gap-3">
-                  <button className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition" onClick={submitFilters}>
+                  <button
+                    className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
+                    onClick={submitFilters}
+                  >
                     <CircleCheck />
                   </button>
                   <button
@@ -514,28 +544,36 @@ useEffect(() => {
                 type="text"
                 placeholder="Search..."
                 value={query}
-                onChange={(e) => branchInputChange(e,"lower")}
+                onChange={(e) => branchInputChange(e, "lower")}
                 onKeyDown={handleKeyPress}
                 className="text-black w-1/3 p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
               />
-              <ul className={`${hideBranchSearchLower?"hidden":""} absolute top-[110%] w-1/3 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide`}>
-               {query &&
-                    branchResultLower?.length > 0 &&
-                    branchResultLower.map((branch, index) => (
-                      <li
-                        key={index}
-                        className={`py-2 px-4 cursor-pointer truncate text-sm ${
-                          index !== branchResultLower.length - 1
-                            ? "border-b border-gray-300"
-                            : ""
-                        }`}
-                        onClick={() => {
-                          setHideBranchSearchLower(true);
-                          setQuery(branch)
-                          getTopStores(branch)}}
-                      >
-                        <span className="inline-flex gap-3 items-center"><MapPin width={16} height={16} strokeWidth={2.5}/><strong> {branch}</strong></span>
-                      </li>
+              <ul
+                className={`${
+                  hideBranchSearchLower ? "hidden" : ""
+                } absolute top-[110%] w-1/3 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide`}
+              >
+                {query &&
+                  branchResultLower?.length > 0 &&
+                  branchResultLower.map((branch, index) => (
+                    <li
+                      key={index}
+                      className={`py-2 px-4 cursor-pointer truncate text-sm ${
+                        index !== branchResultLower.length - 1
+                          ? "border-b border-gray-300"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setHideBranchSearchLower(true);
+                        setQuery(branch);
+                        getTopStores(branch);
+                      }}
+                    >
+                      <span className="inline-flex gap-3 items-center">
+                        <MapPin width={16} height={16} strokeWidth={2.5} />
+                        <strong> {branch}</strong>
+                      </span>
+                    </li>
                   ))}
               </ul>
             </div>

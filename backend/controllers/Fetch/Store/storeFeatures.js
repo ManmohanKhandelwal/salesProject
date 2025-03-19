@@ -13,7 +13,9 @@ export const getStoreSuggestions = async (req, res) => {
     } = req.query;
 
     if (!oldStoreCode) {
-      return res.status(400).json({ error: "Old Store Code KeyWord is Required !" });
+      return res
+        .status(400)
+        .json({ error: "Old Store Code KeyWord is Required !" });
     }
 
     const safeLimit = parseInt(limit, 10);
@@ -88,8 +90,8 @@ export const getBranchSuggestions = async (req, res) => {
       systemTeamLeader,
       limit = 10,
     } = req.query;
-    if (!branchName) throw { message: "Branch Name KeyWord is required !", status: 400 };
-    console.log("zoneManager:",zoneManager);
+    if (!branchName)
+      throw { message: "Branch Name KeyWord is required !", status: 400 };
     // Start building the query dynamically
     let query = "SELECT DISTINCT New_Branch FROM store_mapping";
     let params = [];
@@ -123,7 +125,6 @@ export const getBranchSuggestions = async (req, res) => {
     params.push(safeLimit);
 
     const [result] = await mySqlPool.query(query, params);
-    console.log(result)
     // Convert result from array of objects to array of strings
     const branches = result.map((row) => row.New_Branch);
 
