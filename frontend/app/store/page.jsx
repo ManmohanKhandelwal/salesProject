@@ -6,7 +6,6 @@ import axios from "axios";
 import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import CustomLoader from "@/components/ui/loader";
-import StoreCard from "@/components/ui/StoreCard";
 import { CircleCheck, MapPin, X } from "lucide-react";
 import { months, years, zm, sm } from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
@@ -207,11 +206,9 @@ const Store = () => {
         ) // Send only the first valid value
         .join("&");
       console.log(queryParams);
-      const url = `/store/branch-suggestions?${queryParams}&branchName=${q}`
+      const url = `/store/branch-suggestions?${queryParams}&branchName=${q}`;
       try {
-        const response = await axios.get(
-          backEndURL(url)
-        );
+        const response = await axios.get(backEndURL(url));
         console.log(response.data);
         section === "middle"
           ? setBranchResultMiddle(response.data)
@@ -262,7 +259,7 @@ const Store = () => {
       {/* HEADING */}
       <div className={``}>
         <div className="flex-col col-span-1 text-center">
-          <div className="text-3xl font-bold">Store Overview</div>
+          <div className="text-3xl font-bold">Store at Fingertips</div>
           <div className="text-md font-semibold text-gray-500 tracking-wide">
             Your current stores' summary & activity
           </div>
@@ -272,27 +269,6 @@ const Store = () => {
       {!dashboardLoading ? (
         <div>
           {/* TOP SECTION */}
-          <div className="flex items-center justify-center gap-6 mt-3">
-            <div className="w-[400px] h-[125px]">
-              <StoreCard
-                title={"Total Stores"}
-                data={dashBoardData?.storeCount}
-                className={"bg-sale-card-gradient text-white"}
-                isShadow={false}
-                trend={null}
-              />
-            </div>
-            <div className="w-[400px] h-[125px]">
-              {dashBoardData &&
-                dashBoardData?.storeCountByBranch?.length > 0 && (
-                  <BranchWiseStores
-                    branchList={dashBoardData?.storeCountByBranch}
-                  />
-                )}
-            </div>
-          </div>
-
-          {/* MIDDLE SECTION */}
           <div className="p-3 mt-6" ref={middleSectionRef}>
             <p className="text-center text-xl font-semibold pb-1">
               Retailing of Store by Month and Year
@@ -385,7 +361,6 @@ const Store = () => {
                   />
                 </div>
               )}
-
             </div>
 
             <div className="grid grid-cols-3 mt-6">
@@ -471,48 +446,48 @@ const Store = () => {
           {/* BOTTOM SECTION */}
           <div className="p-3 mt-6">
             <p className="text-center font-semibold text-xl">
-              Store Information by Branch
+              Top Stores' Information
             </p>
 
             {/* Search Input */}
             <div className="flex gap-6 items-center justify-center mt-3">
               <div className="relative w-2/5">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={query}
-                onChange={(e) => branchInputChange(e, "lower")}
-                onKeyDown={handleKeyPress}
-                className="text-black w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
-              />
-              <ul
-                className={`${
-                  hideBranchSearchLower ? "hidden" : ""
-                } absolute top-[110%] w-full left-0 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide`}
-              >
-                {query &&
-                  branchResultLower?.length > 0 &&
-                  branchResultLower.map((branch, index) => (
-                    <li
-                      key={index}
-                      className={`py-2 px-4 cursor-pointer truncate text-sm ${
-                        index !== branchResultLower.length - 1
-                          ? "border-b border-gray-300"
-                          : ""
-                      }`}
-                      onClick={() => {
-                        setHideBranchSearchLower(true);
-                        setQuery(branch);
-                        getTopStores(branch);
-                      }}
-                    >
-                      <span className="inline-flex gap-3 items-center">
-                        <MapPin width={16} height={16} strokeWidth={2.5} />
-                        <strong> {branch}</strong>
-                      </span>
-                    </li>
-                  ))}
-              </ul>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={query}
+                  onChange={(e) => branchInputChange(e, "lower")}
+                  onKeyDown={handleKeyPress}
+                  className="text-black w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
+                />
+                <ul
+                  className={`${
+                    hideBranchSearchLower ? "hidden" : ""
+                  } absolute top-[110%] w-full left-0 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide`}
+                >
+                  {query &&
+                    branchResultLower?.length > 0 &&
+                    branchResultLower.map((branch, index) => (
+                      <li
+                        key={index}
+                        className={`py-2 px-4 cursor-pointer truncate text-sm ${
+                          index !== branchResultLower.length - 1
+                            ? "border-b border-gray-300"
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setHideBranchSearchLower(true);
+                          setQuery(branch);
+                          getTopStores(branch);
+                        }}
+                      >
+                        <span className="inline-flex gap-3 items-center">
+                          <MapPin width={16} height={16} strokeWidth={2.5} />
+                          <strong> {branch}</strong>
+                        </span>
+                      </li>
+                    ))}
+                </ul>
               </div>
               {/* FILTERS */}
               <div className="flex items-center gap-3">
