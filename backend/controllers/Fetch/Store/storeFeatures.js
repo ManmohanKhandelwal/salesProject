@@ -9,7 +9,7 @@ export const getStoreSuggestions = async (req, res) => {
       salesManager,
       businessExecutive,
       systemTeamLeader,
-      limit = 5,
+      limit = 10,
     } = req.query;
 
     if (!oldStoreCode) {
@@ -49,7 +49,6 @@ export const getStoreSuggestions = async (req, res) => {
 
     query += " LIMIT ?";
     params.push(safeLimit);
-
     const [rows] = await mySqlPool.query(query, params);
 
     res.json(rows);

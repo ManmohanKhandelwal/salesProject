@@ -16,7 +16,7 @@ export const getTopStores = async (req, res) => {
 
     // Default date range (last 6 months)
     if (!startDate || !endDate) {
-      startDate = new Date(new Date().setMonth(new Date().getMonth() - 3))
+      startDate = new Date(new Date().setMonth(new Date().getMonth() - 6))
         .toISOString()
         .split("T")[0];
       endDate = new Date().toISOString().split("T")[0];

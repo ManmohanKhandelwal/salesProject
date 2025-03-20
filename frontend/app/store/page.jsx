@@ -74,14 +74,11 @@ const Store = () => {
     debounce(async (q) => {
       if (!q) return;
       console.log("Searching for:", q);
+      console.log("Selected branch:", selectedBranch);
       try {
         const response = await axios.get(
           backEndURL(
-            `/store/store-suggestions?oldStoreCode=${q}&branchName=${selectedBranch}&zoneManager=${
-              selectedFilters.zm[0] === "all" ? "" : selectedFilters.zm[0]
-            }&salesManager=${
-              selectedFilters.sm[0] === "all" ? "" : selectedFilters.sm[0]
-            }`
+            `/store/store-suggestions?oldStoreCode=${q}&branchName=${selectedBranch}`
           )
         );
         /*if(!response.ok) throw new Error("Couldn't find searched store")*/
@@ -93,7 +90,7 @@ const Store = () => {
         setLoading(false);
       }
     }, 300),
-    []
+    [selectedBranch]
   );
 
   const handleSearchInputChange = (e) => {
@@ -183,7 +180,7 @@ const Store = () => {
 
   const removeBranch = () => {
     setSearchedStores([]);
-    setSelectedBranch(null);
+    setSelectedBranch("");
     setHideBranchSearchMiddle(false);
     setBranch("");
     setSearchQuery("");
@@ -198,9 +195,22 @@ const Store = () => {
   const searchBranch = useCallback(
     debounce(async (q, section) => {
       if (!q) return;
+      const lookupForFilter = {
+        zm: "zoneManager",
+        sm: "salesManager",
+      };
+      const queryParams = Object.entries(selectedFilters)
+        .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
+        .map(
+          ([key, values]) =>
+            `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`
+        ) // Send only the first valid value
+        .join("&");
+      console.log(queryParams);
+      const url = `/store/branch-suggestions?${queryParams}&branchName=${q}`
       try {
         const response = await axios.get(
-          backEndURL(`/store/branch-suggestions?branchName=${q}`)
+          backEndURL(url)
         );
         console.log(response.data);
         section === "middle"
@@ -210,12 +220,12 @@ const Store = () => {
         console.error("Error while loading branches, Error: ", error);
       }
     }, 500),
-    []
+    [selectedFilters]
   );
 
-  const submitFilters = async () => {
+  /*const submitFilters = async () => {
     console.log("query:", branch);
-    if (!searchQuery && !branch) return;
+    if (!query) return;
     const lookupForFilter = {
       zm: "zoneManager",
       sm: "salesManager",
@@ -228,24 +238,17 @@ const Store = () => {
       ) // Send only the first valid value
       .join("&");
     console.log(queryParams);
-    let url;
-    if (searchQuery && selectedBranch)
-      url = backEndURL(
-        `/store/store-suggestions?oldStoreCode=${searchQuery}&${queryParams}&branchName=${selectedBranch}`
-      );
-    else if (!searchQuery && branch)
-      url = backEndURL(
-        `/store/branch-suggestions?${queryParams}&branchName=${branch}`
-      );
+    const url = backEndURL(
+      `/store/store-suggestions?${queryParams}&branchName=${query}`
+    );
     try {
       const response = await axios.get(url);
       console.log("Filtered Data:", response.data);
-      if (searchQuery) setSearchedStores(response.data);
-      else setBranchResultMiddle(response.data);
+      setBranchResultMiddle(response.data);
     } catch (error) {
       console.error("Error fetching filtered data:", error);
     }
-  };
+  };*/
 
   useEffect(() => {
     return () => {
@@ -383,74 +386,7 @@ const Store = () => {
                 </div>
               )}
 
-              {/* FILTERS */}
-              <div className="flex items-center gap-3">
-                {filtersToShow.map((filter) => (
-                  <FilterDropdown
-                    key={filter.filterKey}
-                    filter={filter.filterModule}
-                    name={filter.filterLabel}
-                    filterKey={filter.filterKey}
-                    selectedFilters={selectedFilters}
-                    setSelectedFilters={setSelectedFilters}
-                  />
-                ))}
-              </div>
-
-              {/* SUBMIT & CLEAR BUTTONS */}
-              {Object.values(selectedFilters).some(
-                (filter) => filter.length > 0 && !filter.includes("all")
-              ) && (
-                <div className="flex items-center gap-3">
-                  <button
-                    className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
-                    onClick={submitFilters}
-                  >
-                    <CircleCheck />
-                  </button>
-                  <button
-                    className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-600 transition"
-                    onClick={clearAllFilters}
-                  >
-                    Clear All
-                  </button>
-                </div>
-              )}
             </div>
-
-            {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
-            {Object.values(selectedFilters).some(
-              (filter) => filter.length > 0 && !filter.includes("all")
-            ) && (
-              <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
-                {Object.entries(selectedFilters)
-                  .filter(
-                    ([, selectedValues]) => !selectedValues.includes("all")
-                  )
-                  .map(([filterKey, selectedValues]) => {
-                    const filter = filtersToShow.find(
-                      (f) => f.filterKey === filterKey
-                    );
-                    return (
-                      <div
-                        key={filterKey}
-                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
-                      >
-                        <span className="font-semibold">
-                          {filter?.filterLabel || filterKey}
-                        </span>
-                        : {selectedValues.join(", ")}
-                        <button
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => removeFilter(filterKey)}
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    );
-                  })}
-              </div>
-            )}
 
             <div className="grid grid-cols-3 mt-6">
               <div className="col-span-2">
@@ -539,19 +475,20 @@ const Store = () => {
             </p>
 
             {/* Search Input */}
-            <div className="flex gap-6 items-center justify-center mt-3 relative">
+            <div className="flex gap-6 items-center justify-center mt-3">
+              <div className="relative w-2/5">
               <input
                 type="text"
                 placeholder="Search..."
                 value={query}
                 onChange={(e) => branchInputChange(e, "lower")}
                 onKeyDown={handleKeyPress}
-                className="text-black w-1/3 p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
+                className="text-black w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
               />
               <ul
                 className={`${
                   hideBranchSearchLower ? "hidden" : ""
-                } absolute top-[110%] w-1/3 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide`}
+                } absolute top-[110%] w-full left-0 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide`}
               >
                 {query &&
                   branchResultLower?.length > 0 &&
@@ -576,7 +513,75 @@ const Store = () => {
                     </li>
                   ))}
               </ul>
+              </div>
+              {/* FILTERS */}
+              <div className="flex items-center gap-3">
+                {filtersToShow.map((filter) => (
+                  <FilterDropdown
+                    key={filter.filterKey}
+                    filter={filter.filterModule}
+                    name={filter.filterLabel}
+                    filterKey={filter.filterKey}
+                    selectedFilters={selectedFilters}
+                    setSelectedFilters={setSelectedFilters}
+                  />
+                ))}
+              </div>
+
+              {/* SUBMIT & CLEAR BUTTONS */}
+              {Object.values(selectedFilters).some(
+                (filter) => filter.length > 0 && !filter.includes("all")
+              ) && (
+                <div className="flex items-center gap-3">
+                  {/*<button
+                    className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
+                    onClick={submitFilters}
+                  >
+                    <CircleCheck />
+                  </button>*/}
+                  <button
+                    className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-600 transition"
+                    onClick={clearAllFilters}
+                  >
+                    Clear All
+                  </button>
+                </div>
+              )}
             </div>
+
+            {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
+            {Object.values(selectedFilters).some(
+              (filter) => filter.length > 0 && !filter.includes("all")
+            ) && (
+              <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
+                {Object.entries(selectedFilters)
+                  .filter(
+                    ([, selectedValues]) => !selectedValues.includes("all")
+                  )
+                  .map(([filterKey, selectedValues]) => {
+                    const filter = filtersToShow.find(
+                      (f) => f.filterKey === filterKey
+                    );
+                    return (
+                      <div
+                        key={filterKey}
+                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
+                      >
+                        <span className="font-semibold">
+                          {filter?.filterLabel || filterKey}
+                        </span>
+                        : {selectedValues.join(", ")}
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => removeFilter(filterKey)}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
 
             {/* Results Table */}
             {results && results.length > 0 && !loading ? (
