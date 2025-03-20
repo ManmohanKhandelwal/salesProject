@@ -88,6 +88,26 @@ const DataUpload = () => {
     }
   };
 
+  const downloadTemplate = (templateType) => {
+    const templates = {
+      psr_data: `document_no,document_date,subbrandform_name,customer_name,customer_code,channel_description,customer_type,category,brand,brandform,retailing
+  123456,2025-03-20,ExampleSubbrand,John Doe,987654,Online,VIP,Beverages,CocaCola,Classic,100.50
+  `,
+      channel_mapping: `customer_type,channel,broad_channel,short_channel
+  Individual,Retail,General Trade,GT
+  `,
+      store_mapping: `Old_Store_Code,New_Store_Code,New_Branch,DSE_Code,ZM,SM,BE,STL
+  S123,N456,MainBranch,DSE0,ZM1,SM2,BE3,STL4
+  `,
+    };
+
+    const blob = new Blob([templates[templateType]], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${templateType}_template.csv`;
+    link.click();
+  };
+
   useEffect(() => {
     fetchUploadedFiles();
   }, []);
@@ -109,12 +129,17 @@ const DataUpload = () => {
             accept=".csv"
             onChange={(e) => handleFileChange(e, setPsrFile)}
           />
-          <Button
-            onClick={() => handleUpload(psrFile, "psr_data")}
-            disabled={!psrFile || loading}
-          >
-            {loading ? "Uploading..." : "Upload"}
-          </Button>
+          <div className="flex space-x-3">
+            <Button
+              onClick={() => handleUpload(psrFile, "psr_data")}
+              disabled={!psrFile || loading}
+            >
+              {loading ? "Uploading..." : "Upload"}
+            </Button>
+            <Button onClick={() => downloadTemplate("psr_data")}>
+              Download Template
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -129,12 +154,19 @@ const DataUpload = () => {
             accept=".csv"
             onChange={(e) => handleFileChange(e, setChannelMappingFile)}
           />
-          <Button
-            onClick={() => handleUpload(channelMappingFile, "channel_mapping")}
-            disabled={!channelMappingFile || loading}
-          >
-            {loading ? "Uploading..." : "Upload"}
-          </Button>
+          <div className="flex space-x-3">
+            <Button
+              onClick={() =>
+                handleUpload(channelMappingFile, "channel_mapping")
+              }
+              disabled={!channelMappingFile || loading}
+            >
+              {loading ? "Uploading..." : "Upload"}
+            </Button>
+            <Button onClick={() => downloadTemplate("channel_mapping")}>
+              Download Template
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -149,12 +181,17 @@ const DataUpload = () => {
             accept=".csv"
             onChange={(e) => handleFileChange(e, setStoreMappingFile)}
           />
-          <Button
-            onClick={() => handleUpload(storeMappingFile, "store_mapping")}
-            disabled={!storeMappingFile || loading}
-          >
-            {loading ? "Uploading..." : "Upload"}
-          </Button>
+          <div className="flex space-x-3">
+            <Button
+              onClick={() => handleUpload(storeMappingFile, "store_mapping")}
+              disabled={!storeMappingFile || loading}
+            >
+              {loading ? "Uploading..." : "Upload"}
+            </Button>
+            <Button onClick={() => downloadTemplate("store_mapping")}>
+              Download Template
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
