@@ -3,139 +3,164 @@ import mySqlPool from "#config/db.js";
 export const getStoreMetaData = async (req, res) => {
   try {
     const { oldStoreCode } = req.query;
-    if (!oldStoreCode) throw { message: "Store code is required", status: 400 };
+    if (!oldStoreCode) {
+      return res.status(400).json({ error: "Store code is required" });
+    }
 
     await mySqlPool.query("SET SESSION sql_mode = ''");
     await mySqlPool.query("SET SESSION group_concat_max_len = 100000");
 
-    const sqlQuery = `
-      WITH StoreMapped AS (
-          SELECT New_Store_Code FROM store_mapping WHERE Old_Store_Code = ?
-      ),
-      MonthlyRetailing AS (
-          SELECT 
-              DATE_FORMAT(p.document_date, '%Y-%m') AS yearMonth,
-              SUM(p.retailing) AS total_retailing
-          FROM psr_data p
-          JOIN StoreMapped s ON p.customer_code = s.New_Store_Code
-          GROUP BY yearMonth
-      ),
-      YearlyTotal AS (
-          SELECT SUM(total_retailing) AS yearly_total FROM MonthlyRetailing
-      ),
-      ProductRetailing AS (
-          SELECT 
-              DATE_FORMAT(p.document_date, '%Y-%m') AS yearMonth,
-              p.brand,
-              SUM(p.retailing) AS total_retailing
-          FROM psr_data p
-          JOIN StoreMapped s ON p.customer_code = s.New_Store_Code
-          GROUP BY yearMonth, p.brand
-      ),
-      StoreTotal AS (
-          SELECT SUM(p.retailing) AS total_retailing
-          FROM psr_data p
-          JOIN StoreMapped s ON p.customer_code = s.New_Store_Code
-      )
-      SELECT 
-          (SELECT yearly_total FROM YearlyTotal) AS yearly_total,
-          (SELECT total_retailing FROM StoreTotal) AS total_retailing,
-          
-          (SELECT yearMonth FROM MonthlyRetailing ORDER BY total_retailing DESC LIMIT 1) AS highest_retailing_month,
-          (SELECT total_retailing FROM MonthlyRetailing ORDER BY total_retailing DESC LIMIT 1) AS highest_retailing_amount,
-          (SELECT yearMonth FROM MonthlyRetailing ORDER BY total_retailing ASC LIMIT 1) AS lowest_retailing_month,
-          (SELECT total_retailing FROM MonthlyRetailing ORDER BY total_retailing ASC LIMIT 1) AS lowest_retailing_amount,
-          
-          (SELECT brand FROM ProductRetailing ORDER BY total_retailing DESC LIMIT 1) AS highest_retailing_product,
-          (SELECT total_retailing FROM ProductRetailing ORDER BY total_retailing DESC LIMIT 1) AS highest_retailing_product_amount,
-          (SELECT brand FROM ProductRetailing ORDER BY total_retailing ASC LIMIT 1) AS lowest_retailing_product,
-          (SELECT total_retailing FROM ProductRetailing ORDER BY total_retailing ASC LIMIT 1) AS lowest_retailing_product_amount
-      FROM MonthlyRetailing;
-    `;
+    // 1️⃣ Fetch Store Mapping
+    const [storeMapping] = await mySqlPool.query(
+      `SELECT New_Store_Code FROM store_mapping WHERE Old_Store_Code = ?`,
+      [oldStoreCode]
+    );
 
-    const [[storeMetaData]] = await mySqlPool.query(sqlQuery, [oldStoreCode]);
-    if (!storeMetaData) res.status(200).json({
-      metadata: {
-        yearly_total: 0,
-        total_retailing: 0,
-        highest_retailing_month: "-",
-        highest_retailing_amount: 0,
-        lowest_retailing_month: "-",
-        lowest_retailing_amount: 0,
-        highest_retailing_product: "-",
-        highest_retailing_product_amount: 0,
-        lowest_retailing_product: "-",
-        lowest_retailing_product_amount: 0,
-      },
-      monthly_sales: [],
-      monthly_metadata: {}, // Keeps original structure
-      category_retailing: [], // ✅ New feature added here
-    });
+    if (!storeMapping.length) {
+      return res.status(404).json({ error: "Store not found" });
+    }
+    const newStoreCode = storeMapping[0].New_Store_Code;
 
-    // Fetch monthly sales trend separately
-    const [monthlySales] = await mySqlPool.query(
-      `SELECT DATE_FORMAT(p.document_date, '%Y-%m') AS monthYear, SUM(p.retailing) AS totalRetailing
+    // 2️⃣ Fetch Store Info
+    const storeInfoQuery = mySqlPool.query(
+      `SELECT 
+          COALESCE(p.customer_name, '') AS store_name, 
+          COALESCE(p.channel_description, '') AS channel_description
        FROM psr_data p
-       JOIN store_mapping s ON p.customer_code = s.New_Store_Code
-       WHERE s.Old_Store_Code = ?
-       GROUP BY monthYear
-       ORDER BY monthYear ASC;`,
-      [oldStoreCode]
+       JOIN channel_mapping cm ON p.customer_type = cm.customer_type
+       WHERE p.customer_code = ?
+       LIMIT 1`,
+      [newStoreCode]
     );
 
-    // Fetch metadata per month
-    const [monthlyMetadata] = await mySqlPool.query(
-      `WITH MonthlyProductData AS (
-          SELECT 
-              DATE_FORMAT(p.document_date, '%Y-%m') AS monthYear,
-              p.brand,
-              SUM(p.retailing) AS totalRetailing
-          FROM psr_data p
-          JOIN store_mapping s ON p.customer_code = s.New_Store_Code
-          WHERE s.Old_Store_Code = ?
-          GROUP BY monthYear, p.brand
-      )
-      SELECT 
-          monthYear,
-          (SELECT brand FROM MonthlyProductData m WHERE m.monthYear = mpd.monthYear ORDER BY totalRetailing DESC LIMIT 1) AS highest_retailing_product,
-          (SELECT totalRetailing FROM MonthlyProductData m WHERE m.monthYear = mpd.monthYear ORDER BY totalRetailing DESC LIMIT 1) AS highest_retailing_product_amount,
-          (SELECT brand FROM MonthlyProductData m WHERE m.monthYear = mpd.monthYear ORDER BY totalRetailing ASC LIMIT 1) AS lowest_retailing_product,
-          (SELECT totalRetailing FROM MonthlyProductData m WHERE m.monthYear = mpd.monthYear ORDER BY totalRetailing ASC LIMIT 1) AS lowest_retailing_product_amount
-      FROM MonthlyProductData mpd
-      GROUP BY monthYear;`,
-      [oldStoreCode]
+    // 3️⃣ Fetch Monthly Data
+    const monthlyQuery = mySqlPool.query(
+      `SELECT 
+          DATE_FORMAT(document_date, '%Y-%m') AS yearMonth,
+          COALESCE(CAST(SUM(retailing) AS DECIMAL(10,2)), 0.00) AS total_retailing
+       FROM psr_data
+       WHERE customer_code = ?
+       GROUP BY yearMonth`,
+      [newStoreCode]
     );
 
-    // Transform `monthlyMetadata` into an object for quick lookup
+    // 4️⃣ Fetch Product Breakdown (Time-Variant)
+    const productQuery = mySqlPool.query(
+      `SELECT 
+          DATE_FORMAT(document_date, '%Y-%m') AS yearMonth,
+          brand,
+          COALESCE(CAST(SUM(retailing) AS DECIMAL(10,2)), 0.00) AS total_retailing
+       FROM psr_data
+       WHERE customer_code = ? AND brand IS NOT NULL
+       GROUP BY yearMonth, brand`,
+      [newStoreCode]
+    );
+
+    // 5️⃣ Fetch Category Breakdown
+    const categoryQuery = mySqlPool.query(
+      `SELECT 
+          DATE_FORMAT(document_date, '%Y-%m') AS yearMonth,
+          category,
+          COALESCE(CAST(SUM(retailing) AS DECIMAL(10,2)), 0.00) AS total_retailing
+       FROM psr_data
+       WHERE customer_code = ? AND category IS NOT NULL
+       GROUP BY yearMonth, category`,
+      [newStoreCode]
+    );
+
+    // Execute all queries in parallel
+    const [
+      [[storeInfo]],
+      [monthlyData],
+      [productData],
+      [categoryData],
+    ] = await Promise.all([
+      storeInfoQuery,
+      monthlyQuery,
+      productQuery,
+      categoryQuery,
+    ]);
+
+    // Ensure all total_retailing values are numbers
+    monthlyData.forEach(row => row.total_retailing = parseFloat(row.total_retailing) || 0);
+    productData.forEach(row => row.total_retailing = parseFloat(row.total_retailing) || 0);
+    categoryData.forEach(row => row.total_retailing = parseFloat(row.total_retailing) || 0);
+
+    // Compute Yearly Total
+    const yearlyTotal = monthlyData.reduce((sum, row) => sum + row.total_retailing, 0).toFixed(2);
+
+    // Find Overall Highest & Lowest Month
+    const highestRetailingMonth = monthlyData.reduce((max, row) => (row.total_retailing > max.total_retailing ? row : max), { total_retailing: 0 });
+    const lowestRetailingMonth = monthlyData.reduce((min, row) => (row.total_retailing < min.total_retailing ? row : min), { total_retailing: Infinity });
+
+    // Structure Monthly Metadata
     const monthlyMetadataMap = {};
-    monthlyMetadata.forEach((row) => {
-      monthlyMetadataMap[row.monthYear] = {
-        highest_retailing_product: row.highest_retailing_product,
-        highest_retailing_product_amount: row.highest_retailing_product_amount,
-        lowest_retailing_product: row.lowest_retailing_product,
-        lowest_retailing_product_amount: row.lowest_retailing_product_amount,
-      };
+    monthlyData.forEach(({ yearMonth, total_retailing }) => {
+      monthlyMetadataMap[yearMonth] = { total_retailing };
     });
 
-    // **New Feature: Retailing Grouped by Category**
-    const [categoryRetailing] = await mySqlPool.query(
-      `SELECT category, SUM(retailing) AS total_retailing
-       FROM psr_data p
-       JOIN store_mapping s ON p.customer_code = s.New_Store_Code
-       WHERE s.Old_Store_Code = ?
-       GROUP BY category
-       ORDER BY total_retailing DESC;`,
-      [oldStoreCode]
-    );
+    // Structure Category Breakdown
+    const categoryRetailingMap = {};
+    categoryData.forEach(({ yearMonth, category, total_retailing }) => {
+      if (!categoryRetailingMap[yearMonth]) categoryRetailingMap[yearMonth] = [];
+      categoryRetailingMap[yearMonth].push({ category, total_retailing });
+    });
+    
+      // Find Overall Highest & Lowest Product
+      const allTimeHighProduct = productData.reduce((max, row) => (row.total_retailing > max.total_retailing ? row : max), { total_retailing: 0 });
+      const allTimeLowProduct = productData.reduce((min, row) => (row.total_retailing < min.total_retailing ? row : min), { total_retailing: Infinity });
+    // Structure Time-Variant Product Breakdown
+    const monthlyProductMetadata = {};
+    productData.forEach(({ yearMonth, brand, total_retailing }) => {
+      if (!monthlyProductMetadata[yearMonth]) {
+        monthlyProductMetadata[yearMonth] = {
+          highest_retailing_product: null,
+          highest_retailing_product_amount: "0.00",
+          lowest_retailing_product: null,
+          lowest_retailing_product_amount: "0.00",
+          all_products: [],
+        };
+      }
+      
+      
+     
+      monthlyProductMetadata[yearMonth].all_products.push({ brand, total_retailing });
 
+      // Set highest selling product
+      if (!monthlyProductMetadata[yearMonth].highest_retailing_product || total_retailing > parseFloat(monthlyProductMetadata[yearMonth].highest_retailing_product_amount)) {
+        monthlyProductMetadata[yearMonth].highest_retailing_product = brand;
+        monthlyProductMetadata[yearMonth].highest_retailing_product_amount = total_retailing.toFixed(2);
+      }
+
+      // Set lowest selling product
+      if (!monthlyProductMetadata[yearMonth].lowest_retailing_product || total_retailing < parseFloat(monthlyProductMetadata[yearMonth].lowest_retailing_product_amount)) {
+        monthlyProductMetadata[yearMonth].lowest_retailing_product = brand;
+        monthlyProductMetadata[yearMonth].lowest_retailing_product_amount = total_retailing.toFixed(2);
+      }
+    });
+
+    // Response
     res.status(200).json({
-      metadata: storeMetaData,
-      monthly_sales: monthlySales,
-      monthly_metadata: monthlyMetadataMap, // Keeps original structure
-      category_retailing: categoryRetailing, // ✅ New feature added here
+      metadata: {
+        store_name: storeInfo?.store_name || "",
+        channel_description: storeInfo?.channel_description || "",
+        yearly_total: yearlyTotal,
+        total_retailing: yearlyTotal,
+        highest_retailing_month: highestRetailingMonth?.yearMonth || "",
+        highest_retailing_amount: (highestRetailingMonth?.total_retailing || 0).toFixed(2),
+        lowest_retailing_month: lowestRetailingMonth?.yearMonth || "",
+        lowest_retailing_amount: (lowestRetailingMonth?.total_retailing || 0).toFixed(2),
+        highest_retailing_product: allTimeHighProduct?.brand || "",
+        highest_retailing_product_amount: (allTimeHighProduct?.total_retailing || 0).toFixed(2),
+        lowest_retailing_product: allTimeLowProduct?.brand || "",
+        lowest_retailing_product_amount: (allTimeLowProduct?.total_retailing || 0).toFixed(2),
+      },
+      monthly_metadata: monthlyMetadataMap,
+      category_retailing: categoryRetailingMap,
+      monthly_product_metadata: monthlyProductMetadata,
     });
   } catch (error) {
     console.error("Error fetching Store data:", error?.message || error);
-    res.status(error?.status || 500).json({ error: error?.message || error });
+    res.status(500).json({ error: error?.message || "Internal Server Error" });
   }
 };

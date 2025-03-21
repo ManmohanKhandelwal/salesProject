@@ -1,4 +1,5 @@
 import { getCatBrandDetails } from "#controllers/Fetch/Product/getCatBrandDetails.js";
+import { getCatBrandSuggestions } from "#controllers/Fetch/Product/getCatBrandSuggestions.js";
 import { getProductSuggestions } from "#controllers/Fetch/Product/getProductFeatures.js";
 import express from "express";
 const productRouter = express.Router();
@@ -78,6 +79,7 @@ const productRouter = express.Router();
  *         description: Internal server error.
  */
 productRouter.post("/product/details", getCatBrandDetails);
+
 /**
  * @swagger
  * /product/suggestions:
@@ -139,5 +141,71 @@ productRouter.post("/product/details", getCatBrandDetails);
  *                   type: string
  */
 productRouter.get("/product/suggestions", getProductSuggestions);
+
+/**
+ * @swagger
+ * /product/options:
+ *   get:
+ *     summary: Get category, brand, brandform, or subbrandform suggestions
+ *     description: Retrieves a list of unique suggestions for category, brand, brandform, or subbrandform based on the provided parent values.
+ *     tags:
+ *       - Product
+ *     parameters:
+ *       - in: query
+ *         name: searchType
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [category, brand, brandform, subbrandform]
+ *         description: The type of data to fetch (category, brand, brandform, or subbrandform).
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: The category name (required if searchType is brand, brandform, or subbrandform).
+ *       - in: query
+ *         name: brand
+ *         schema:
+ *           type: string
+ *         description: The brand name (required if searchType is brandform or subbrandform).
+ *       - in: query
+ *         name: brandform
+ *         schema:
+ *           type: string
+ *         description: The brandform name (required if searchType is subbrandform).
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: The number of results to return.
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: The number of results to skip for pagination.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved suggestions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ *       400:
+ *         description: Invalid searchType or missing parent values.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Internal Server Error.
+ */
+productRouter.get("/product/options", getCatBrandSuggestions);
 
 export default productRouter;

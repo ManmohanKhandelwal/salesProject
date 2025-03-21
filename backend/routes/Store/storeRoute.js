@@ -58,8 +58,8 @@ storeRouter.get("/store/dashboard", getStoreDashBoardData);
  * @swagger
  * /store/meta-data:
  *   get:
- *     summary: Fetch store output data
- *     description: Fetches store-related information based on the old store code.
+ *     summary: Get store metadata, monthly sales, product breakdown, and category breakdown
+ *     description: Fetches metadata for a store based on the old store code, including total sales, highest/lowest months, highest/lowest products, and categorized sales data.
  *     tags:
  *       - Store
  *     parameters:
@@ -68,24 +68,87 @@ storeRouter.get("/store/dashboard", getStoreDashBoardData);
  *         schema:
  *           type: string
  *         required: true
- *         description: The old store code to fetch data for.
+ *         description: The old store code to fetch metadata for
  *     responses:
  *       200:
- *         description: Successfully fetched store output data
+ *         description: Store metadata and sales breakdown
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 yearly_total:
- *                   type: number
- *                   example: 1200000.50
- *                 highest_retailing_month:
- *                   type: string
- *                   format: date
- *                   example: "2024-01"
+ *                 metadata:
+ *                   type: object
+ *                   properties:
+ *                     store_name:
+ *                       type: string
+ *                     channel_description:
+ *                       type: string
+ *                     yearly_total:
+ *                       type: string
+ *                       example: "105000.00"
+ *                     total_retailing:
+ *                       type: string
+ *                     highest_retailing_month:
+ *                       type: string
+ *                     highest_retailing_amount:
+ *                       type: string
+ *                     lowest_retailing_month:
+ *                       type: string
+ *                     lowest_retailing_amount:
+ *                       type: string
+ *                     highest_retailing_product:
+ *                       type: string
+ *                     highest_retailing_product_amount:
+ *                       type: string
+ *                     lowest_retailing_product:
+ *                       type: string
+ *                     lowest_retailing_product_amount:
+ *                       type: string
+ *                 monthly_metadata:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: object
+ *                     properties:
+ *                       total_retailing:
+ *                         type: string
+ *                 category_retailing:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         category:
+ *                           type: string
+ *                         total_retailing:
+ *                           type: string
+ *                 monthly_product_metadata:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: object
+ *                     properties:
+ *                       highest_retailing_product:
+ *                         type: string
+ *                       highest_retailing_product_amount:
+ *                         type: string
+ *                       lowest_retailing_product:
+ *                         type: string
+ *                       lowest_retailing_product_amount:
+ *                         type: string
+ *                       all_products:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             brand:
+ *                               type: string
+ *                             total_retailing:
+ *                               type: string
  *       400:
- *         description: Store code is required
+ *         description: Bad request, missing store code
+ *       404:
+ *         description: Store not found
  *       500:
  *         description: Internal server error
  */
@@ -206,61 +269,70 @@ storeRouter.get("/store", getStoresList);
 
 /**
  * @swagger
- * /store/get-top-stores:
+ * /store/top-stores:
  *   get:
- *     summary: Get top-performing stores by average retailing
- *     description: Fetches the top stores based on average retailing for a given branch within a specified date range. Supports optional filters for zone manager, sales manager, and pagination.
+ *     summary: Get top-performing stores based on average retailing
+ *     description: Retrieves a list of top stores ranked by average retailing over a specified date range. Supports filtering by branch, zone manager, and sales manager.
  *     tags:
- *      - Store
+ *       - Store
  *     parameters:
  *       - in: query
  *         name: branchName
- *         required: true
  *         schema:
  *           type: string
- *         description: Name of the branch to filter stores.
+ *         required: false
+ *         description: Filter by branch name
  *       - in: query
  *         name: startDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Start date for filtering (default is 3 months ago).
+ *         required: false
+ *         description: Start date for the data range (default last 6 months)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: End date for filtering (default is today).
+ *         required: false
+ *         description: End date for the data range (default today)
  *       - in: query
  *         name: topStoresCount
  *         schema:
  *           type: integer
- *           default: 20
- *         description: Number of top stores to retrieve.
+ *         required: false
+ *         description: Number of top stores to retrieve (default 20, max 100 for caching)
  *       - in: query
  *         name: zoneManager
  *         schema:
  *           type: string
- *         description: Filter stores by a specific zone manager (optional).
+ *         required: false
+ *         description: Filter by zone manager
  *       - in: query
  *         name: salesManager
  *         schema:
  *           type: string
- *         description: Filter stores by a specific sales manager (optional).
+ *         required: false
+ *         description: Filter by sales manager
  *       - in: query
  *         name: offset
  *         schema:
  *           type: integer
- *           default: 0
- *         description: Offset for pagination (optional).
+ *         required: false
+ *         description: Pagination offset (default 0)
  *     responses:
  *       200:
- *         description: A list of top stores with average retailing values.
+ *         description: Successfully retrieved top stores
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
+ *                 cached:
+ *                   type: boolean
+ *                   example: false
+ *                 branchName:
+ *                   type: string
  *                 startDate:
  *                   type: string
  *                   format: date
@@ -269,6 +341,11 @@ storeRouter.get("/store", getStoresList);
  *                   format: date
  *                 topStoresCount:
  *                   type: integer
+ *                   example: 20
+ *                 zoneManager:
+ *                   type: string
+ *                 salesManager:
+ *                   type: string
  *                 offset:
  *                   type: integer
  *                 topStoresDetails:
@@ -278,17 +355,19 @@ storeRouter.get("/store", getStoresList);
  *                     properties:
  *                       store_code:
  *                         type: string
- *                         description: Unique store code.
+ *                       store_name:
+ *                         type: string
+ *                       channel:
+ *                         type: string
  *                       avg_retailing:
- *                         type: number
- *                         format: float
- *                         description: Average retailing value.
+ *                         type: string
+ *                         example: "15000.00"
  *       400:
- *         description: Bad request due to missing or invalid parameters.
+ *         description: Bad request due to invalid parameters
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error
  */
-storeRouter.get("/store/get-top-stores", getTopStores);
+storeRouter.get("/store/top-stores", getTopStores);
 
 /**
  * @swagger

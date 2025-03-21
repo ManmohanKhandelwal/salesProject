@@ -150,7 +150,7 @@ const Store = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        backEndURL(`/store/get-top-stores?branchName=${query}`)
+        backEndURL(`/store/top-stores?branchName=${query}`)
       );
       console.log(response?.data);
       setResults(response.data?.topStoresDetails);
