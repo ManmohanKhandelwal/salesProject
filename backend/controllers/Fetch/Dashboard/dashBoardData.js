@@ -1,20 +1,21 @@
 import mySqlPool from "#config/db.js";
-import { readCache, writeCache } from "#utils/cacheManager.js";
+import { getCachedData, readCache, updateCache, writeCache } from "#utils/cacheManager.js";
 import SQLSelect from "#utils/sqlSelect.js";
 import path from "path";
 import { TIME_TO_UPDATE_CACHE_DASHBOARD } from "#config/constant.js";
 
 const CACHE_DIR = path.join(process.cwd(), "cache", "dashboard");
 const CACHE_FILE = path.join(CACHE_DIR, "dashboardData.json");
-
+const cacheKey = "sales-dashboard";
 /** Optimized function to fetch dashboard data */
 export const getDashBoardData = async (req, res) => {
   try {
     // Check cache first
-    const cachedData = await readCache(
-      CACHE_FILE,
-      TIME_TO_UPDATE_CACHE_DASHBOARD
-    );
+    // const cachedData = await readCache(
+    //   CACHE_FILE,
+    //   TIME_TO_UPDATE_CACHE_DASHBOARD
+    // );
+    const cachedData = await getCachedData(cacheKey);
     if (cachedData) return res.status(200).json(cachedData);
 
     // Get database connection
@@ -144,7 +145,7 @@ export const getDashBoardData = async (req, res) => {
     };
 
     // Cache the response
-    await writeCache(CACHE_DIR, CACHE_FILE, responseData);
+    await updateCache(cacheKey, responseData);
 
     return res.status(200).json(responseData);
   } catch (error) {

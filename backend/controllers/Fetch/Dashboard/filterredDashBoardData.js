@@ -1,11 +1,11 @@
 import { TIME_TO_UPDATE_CACHE_DASHBOARD } from "#config/constant.js";
 import mySqlPool from "#config/db.js";
-import { readCache } from "#utils/cacheManager.js";
+import { getCachedData, readCache } from "#utils/cacheManager.js";
 import path from "path";
 
 const CACHE_DIR = path.join(process.cwd(), "cache", "dashboard");
 const CACHE_FILE = path.join(CACHE_DIR, "dashboardData.json");
-
+const cacheKey = "sales-dashboard";
 export const getFilteredDashBoardData = async (req, res) => {
   try {
     const queries = req.body;
@@ -166,10 +166,7 @@ export const getFilteredDashBoardData = async (req, res) => {
 
     // Release connection
     connection.release();
-    const cachedData = await readCache(
-      CACHE_FILE,
-      TIME_TO_UPDATE_CACHE_DASHBOARD
-    );
+    const cachedData = await getCachedData(cacheKey);
 
     // Return the response with all the filtered data
     return res.status(200).json({

@@ -31,11 +31,11 @@ const writeCache = async (CACHE_DIR, CACHE_FILE, data) => {
 
 /** Helper function to get cached data from MySQL */
 const getCachedData = async (cacheKey) => {
-  const [rows] = await mySqlPool.query(
+  const [[rows]] = await mySqlPool.query(
     "SELECT data FROM cacheTable WHERE cache_key = ?",
     [cacheKey]
   );
-  return rows.length ? rows : null;
+  return rows.data ? rows.data : null;
 };
 
 /** Helper function to update cache in MySQL */

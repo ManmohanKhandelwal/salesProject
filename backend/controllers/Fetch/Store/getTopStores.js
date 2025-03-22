@@ -27,7 +27,7 @@ export const getTopStores = async (req, res) => {
 
     // Cache only when branchName is not provided
     const shouldCache = !branchName;
-    const cacheKey = shouldCache ? "topStores_all" : null;
+    const cacheKey = shouldCache ? "top-stores-100" : null;
 
     if (shouldCache) {
       // Enforce top 100 stores for caching
