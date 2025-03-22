@@ -2,9 +2,13 @@ import db from "#config/db.js";
 import { updateTracking } from "#utils/trackingStatus.js";
 import { deleteFileByUUID } from "#utils/uuildFileMng.js";
 export const updatePSRTable = async (req, res) => {
-  const { filePath, tableType } = req.body;
-  const jobId = filePath.split("_")[0];
   try {
+    const { filePath, tableType } = req.body;
+    if (!tableType) throw { message: "Table Type is required!", status: 400 };
+    if (!filePath) throw { message: "File Path is required!", status: 400 };
+    // Insert data from temp_psr_data into psr_data excluding the auto-increment primary
+    // key (psr_id)
+    const jobId = filePath.split("_")[0];
     await db
       .query(
         `
@@ -49,6 +53,10 @@ export const updatePSRTable = async (req, res) => {
       .status(200)
       .json({ message: `${tableType} updated successfully & File Removed !` });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    console.log("Error in updatePSRTable: ", error?.message || error);
+    // Return error response
+    return res
+      .status(error.status || 500)
+      .json({ message: error.message || error || "Internal Server Error" });
   }
 };

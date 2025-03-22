@@ -46,7 +46,7 @@ const DataUpload = () => {
 
   const fetchUploadedFiles = async () => {
     try {
-      const response = await fetch(backEndURL("/uploads"));
+      const response = await fetch(backEndURL("/temp-table-csvfiles"));
       if (response.ok) {
         const data = await response.json();
         setUploadedFiles(data);
@@ -64,12 +64,13 @@ const DataUpload = () => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("fileType", type);
+    formData.append("enctype", "multipart/form-data");
     formData.append("uploadedBy", "Admin"); // You can replace this with the logged-in user's name
 
     try {
-      const response = await fetch(backEndURL("/upload/psr-data"), {
+      const response = await fetch(backEndURL("/upload/new-csv-data"), {
         method: "POST",
-        body: formData,
+        body: formData        
       });
 
       const result = await response.json();
@@ -208,18 +209,48 @@ const DataUpload = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>File Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Upload Date</TableHead>
+                  <TableHead>JOB ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Uploaded At</TableHead>
+                  <TableHead>Last Modified At</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {uploadedFiles.map((file, index) => (
                   <TableRow key={index}>
-                    <TableCell>{file.file_name}</TableCell>
-                    <TableCell>{file.upload_type}</TableCell>
+                    {/* ✅ Old Commented Section (Uncomment if needed) */}
+                    {/* <TableCell>{file.file_name}</TableCell>
+      <TableCell>{file.upload_type}</TableCell>
+      <TableCell>{formatDate(new Date(file.upload_date))}</TableCell> */}
+
+                    {/* ✅ New Detailed File Info */}
+                    <TableCell>{file.jobId}</TableCell>
+                    <TableCell>{file.fileName}</TableCell>
+                    <TableCell>{file.fileSize}</TableCell>
+                    <TableCell>{file.uploadedAt}</TableCell>
+                    <TableCell>{file.lastModified}</TableCell>
                     <TableCell>
-                      {formatDate(new Date(file.upload_date))}
+                      <Button
+                        onClick={() => {
+                          if (window.confirm("Are you sure?")) {
+                            fetch(backEndURL(`/delete-temp-table-csvfiles`), {
+                              method: "POST",
+                              body: JSON.stringify({ jobId: file.jobId }),
+                              headers: { "Content-Type": "application/json" },
+                            }).then((res) => {
+                              if (res.ok) {
+                                alert("File deleted successfully!");
+                                fetchUploadedFiles();
+                              } else {
+                                alert("Failed to delete file.");
+                              }
+                            });
+                          }
+                        }}
+                      >
+                        DELETE
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -32,7 +32,7 @@ const writeCache = async (CACHE_DIR, CACHE_FILE, data) => {
 /** Helper function to get cached data from MySQL */
 const getCachedData = async (cacheKey) => {
   const [[rows]] = await mySqlPool.query(
-    "SELECT data FROM cacheTable WHERE cache_key = ?",
+    "SELECT data FROM cachetable WHERE cache_key = ?",
     [cacheKey]
   );
   return rows.data ? rows.data : null;
@@ -41,7 +41,7 @@ const getCachedData = async (cacheKey) => {
 /** Helper function to update cache in MySQL */
 const updateCache = async (cacheKey, jsonData) => {
   await mySqlPool.query(
-    `INSERT INTO cacheTable (cache_key, data) 
+    `INSERT INTO cachetable (cache_key, data) 
      VALUES (?, ?) 
      ON DUPLICATE KEY UPDATE data = VALUES(data), last_updated = CURRENT_TIMESTAMP;`,
     [cacheKey, JSON.stringify(jsonData)]

@@ -11,12 +11,8 @@ const CACHE_DIR = path.join(process.cwd(), "cache");
 
 export const insertNewData = async (req, res) => {
   try {
-    console.log(req.body);
     const file = req.files?.file; // ✅ Correct way to access uploaded file
     const { fileType } = req.body;
-
-    console.log("📁 Uploaded file:", file?.name);
-    console.log("📂 File type:", fileType);
 
     if (!["channel_mapping", "psr_data", "store_mapping"].includes(fileType)) {
       throw {
@@ -32,7 +28,7 @@ export const insertNewData = async (req, res) => {
     if (!TABLE_SCHEMAS[fileType])
       throw { message: "Invalid fileType schema.", code: 400 };
 
-    const { code: createTableSQL, rows: columnList } = TABLE_SCHEMAS[fileType];
+    // Get File Metadata
     const jobId = uuidv4();
     const fileName = `${jobId}_${file.name}`;
     const filePath = path.join(CACHE_DIR, fileName);
@@ -47,64 +43,7 @@ export const insertNewData = async (req, res) => {
 
     // ✅ Process file asynchronously
     (async () => {
-      try {
-        updateTracking(jobId, { status: "processing" });
-
-        const workbook = xlsx.readFile(filePath);
-        const sheetName = workbook.SheetNames[0];
-        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {
-          defval: "",
-        });
-
-        if (!jsonData.length) throw { message: "CSV has no data.", code: 400 };
-
-        const tempTableName = `temp_${fileType}`;
-        const [tableExists] = await mySqlPool.query(
-          `SELECT * FROM ${tempTableName}`
-        );
-        console.log("📊 Table exists:", tableExists);
-        // if (tableExists.length) await mySqlPool.query(`DROP TABLE ${tempTableName}`);
-        if (!tableExists) await mySqlPool.query(createTableSQL);
-        const loadDataQuery =
-          tempTableName === "temp_psr_data"
-            ? `
-              LOAD DATA LOCAL INFILE ?
-              INTO TABLE ${tempTableName}
-              FIELDS TERMINATED BY ','
-              LINES TERMINATED BY '\n'
-              IGNORE 1 ROWS
-              (document_no, @raw_date, subbrandform_name, customer_name, customer_code, channel_description, customer_type, category, brand, brandform, retailing)
-              SET document_date = STR_TO_DATE(@raw_date, '%d-%m-%Y');
-            `
-            : `
-              LOAD DATA LOCAL INFILE ?
-              INTO TABLE ${tempTableName}
-              FIELDS TERMINATED BY ','
-              LINES TERMINATED BY '\n'
-              IGNORE 1 ROWS
-              (${columnList.join(", ")});`;
-        const connection = await mySqlPool.getConnection();
-        try {
-          // Enable local_infile
-          await connection.query("SET GLOBAL local_infile = 1;");
-          await connection.query({
-            sql: loadDataQuery,
-            values: [filePath],
-            infileStreamFactory: () => fs.createReadStream(filePath),
-          });
-
-          updateTracking(jobId, {
-            status: "completed",
-            completedTime: new Date(),
-            rowsInserted: jsonData.length,
-          });
-        } finally {
-          connection.release();
-        }
-      } catch (err) {
-        console.error("🚫 Processing error:", err);
-        updateTracking(jobId, { status: "failed", error: err.message });
-      }
+      insertInBackground(fileType, filePath, jobId);
     })();
 
     res.status(202).json({
@@ -115,5 +54,82 @@ export const insertNewData = async (req, res) => {
   } catch (error) {
     console.error("❌ Error:", error.message || error);
     res.status(error.code || 500).json({ message: error.message || error });
+  }
+};
+
+// ✅ Dependencies InsertIn Background
+const insertInBackground = async (fileType, filePath, jobId) => {
+  try {
+    updateTracking(jobId, { status: "processing" });
+
+    // Get the table schema
+
+    const { code: createTableSQL, rows: columnList } = TABLE_SCHEMAS[fileType];
+
+    // Read the file
+    const workbook = xlsx.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {
+      defval: "",
+    });
+
+    // Check if the file has data
+    if (!jsonData.length) throw { message: "CSV has no data.", code: 400 };
+
+    const tempTableName = `temp_${fileType}`;
+
+    //Check if the table exists
+    const [tableExists] = await mySqlPool.query(
+      `SHOW TABLES LIKE '%${tempTableName}%'; `
+    );
+
+    // Create the table if it doesn't exist
+    if (!tableExists.length) await mySqlPool.query(createTableSQL);
+
+    //If the table isn't temp_psr_data, truncate the table
+    if (["temp_channel_mapping", "temp_store_mapping"].includes(tempTableName))
+      await mySqlPool.query(`TRUNCATE TABLE ${tempTableName};`);
+
+    // Insert the data into the table
+    let loadDataQuery = "";
+    if (tempTableName === "temp_psr_data") {
+      loadDataQuery = `
+        LOAD DATA LOCAL INFILE ?
+        INTO TABLE ${tempTableName}
+        FIELDS TERMINATED BY ','
+        LINES TERMINATED BY '\n'
+        IGNORE 1 ROWS
+        (document_no, @raw_date, subbrandform_name, customer_name, customer_code, channel_description, customer_type, category, brand, brandform, retailing)
+        SET document_date = STR_TO_DATE(@raw_date, '%d-%m-%Y');
+      `;
+    } else {
+      loadDataQuery = `
+        LOAD DATA LOCAL INFILE ?
+        INTO TABLE ${tempTableName}
+        FIELDS TERMINATED BY ','
+        LINES TERMINATED BY '\n'
+        IGNORE 1 ROWS
+        (${columnList.join(", ")});`;
+    }
+
+    // Enable local_infile
+    await mySqlPool.query("SET GLOBAL local_infile = 1;");
+
+    // Load the data
+    await mySqlPool.query({
+      sql: loadDataQuery,
+      values: [filePath],
+      infileStreamFactory: () => fs.createReadStream(filePath),
+    });
+
+    // Update the tracking
+    updateTracking(jobId, {
+      status: "completed",
+      completedTime: new Date(),
+      rowsInserted: jsonData.length,
+    });
+  } catch (err) {
+    console.error("🚫 Processing error:", err);
+    updateTracking(jobId, { status: "failed", error: err.message });
   }
 };
