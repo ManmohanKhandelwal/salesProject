@@ -3,12 +3,11 @@ import { updateTracking } from "#utils/trackingStatus.js";
 import { deleteFileByUUID } from "#utils/uuildFileMng.js";
 export const updatePSRTable = async (req, res) => {
   try {
-    const { filePath, tableType } = req.body;
-    if (!tableType) throw { message: "Table Type is required!", status: 400 };
-    if (!filePath) throw { message: "File Path is required!", status: 400 };
+    const { jobId, tableType } = req.body;
+    if (!tableType==="psr_data") throw { message: "Table Type is required! (psr_data)", status: 400 };
+    if (!jobId) throw { message: "File Path is required!", status: 400 };
     // Insert data from temp_psr_data into psr_data excluding the auto-increment primary
     // key (psr_id)
-    const jobId = filePath.split("_")[0];
     await db
       .query(
         `

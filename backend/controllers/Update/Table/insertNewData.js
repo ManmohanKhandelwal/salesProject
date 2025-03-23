@@ -39,6 +39,7 @@ export const insertNewData = async (req, res) => {
       fileName,
       status: "pending",
       uploadTime: new Date(),
+      fileType: fileType,
     });
 
     // ✅ Process file asynchronously

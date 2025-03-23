@@ -2,7 +2,8 @@
 import mySqlPool from "#config/db.js";
 import { deleteTempFile } from "#controllers/Delete/Table/deleteTempFIle.js";
 import { getTablesMetaData } from "#controllers/Fetch/Table/fetchMetaData.js";
-import { getTempTableCSVFiles } from "#controllers/Update/Table/getTempTableCSVFiles.js";
+import { getTempTableCSVFiles } from "#controllers/Fetch/Table/getTempTableCSVFiles.js";
+import { getUploadedFiles } from "#controllers/Fetch/Table/getUploadedFiles.js";
 import { insertNewData } from "#controllers/Update/Table/insertNewData.js";
 import { updateMappings } from "#controllers/Update/Table/updateMappings.js";
 import { updatePSRTable } from "#controllers/Update/Table/updatePsrTable.js";
@@ -249,6 +250,8 @@ tableRouter.get("/temp-table-csvfiles", getTempTableCSVFiles);
  */
 
 tableRouter.post("/delete-temp-table-csvfiles", deleteTempFile);
+
+tableRouter.post("/download-uploaded-file", getUploadedFiles);
 
 tableRouter.post("/run-custom-query", async (req, res) => {
   const { query } = req.body;

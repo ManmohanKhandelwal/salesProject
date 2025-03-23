@@ -21,6 +21,7 @@ const DataUpload = () => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fileTypeToMerge, setFileTypeToMerge] = useState("psr_data");
 
   const formatDate = (date) => {
     return new Intl.DateTimeFormat("en-GB", {
@@ -70,7 +71,7 @@ const DataUpload = () => {
     try {
       const response = await fetch(backEndURL("/upload/new-csv-data"), {
         method: "POST",
-        body: formData        
+        body: formData,
       });
 
       const result = await response.json();
@@ -209,7 +210,6 @@ const DataUpload = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>JOB ID</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Size</TableHead>
                   <TableHead>Uploaded At</TableHead>
@@ -225,7 +225,6 @@ const DataUpload = () => {
       <TableCell>{formatDate(new Date(file.upload_date))}</TableCell> */}
 
                     {/* ✅ New Detailed File Info */}
-                    <TableCell>{file.jobId}</TableCell>
                     <TableCell>{file.fileName}</TableCell>
                     <TableCell>{file.fileSize}</TableCell>
                     <TableCell>{file.uploadedAt}</TableCell>
@@ -249,7 +248,83 @@ const DataUpload = () => {
                           }
                         }}
                       >
-                        DELETE
+                        🗑️ DELETE
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => {
+                          fetch(backEndURL(`/download-uploaded-file`), {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              jobId: file.jobId,
+                              fileName: file.fileName,
+                            }),
+                          })
+                            .then((res) => {
+                              if (res.ok) {
+                                alert("File downloaded successfully!");
+                                return res.blob(); // Convert response to a blob
+                              } else {
+                                throw new Error("Failed to download file.");
+                              }
+                            })
+                            .then((blob) => {
+                              // Create a link to download the file
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url;
+                              a.download = file.fileName; // Set the filename for download
+                              document.body.appendChild(a);
+                              a.click();
+                              a.remove();
+                            })
+                            .catch((error) => {
+                              alert(error.message);
+                            });
+                        }}
+                      >
+                        DOWNLOAD ⤵️
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                        <select
+                         name="tableType"
+                          id="tableType"
+                          className="p-2 border border-gray-300 rounded-md"
+                          value={fileTypeToMerge}
+                          onChange={(e) => setFileTypeToMerge(e.target.value)}
+                        >
+                          <option value="psr_data" >PSR Data</option>
+                          <option value="channel_mapping">Channel Mapping</option>
+                          <option value="store_mapping">Store Mapping</option>
+                        </select>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => {
+                          if (window.confirm("Are you sure?")) {
+                            const url = fileTypeToMerge === "psr_data"
+                              ? "/update/psr-data-table" : "/update/mappings-table";
+                            fetch(backEndURL(url), {
+                              method: "POST",
+                              body: JSON.stringify({ jobId: file.jobId, tableType: fileTypeToMerge }),
+                              headers: { "Content-Type": "application/json" },
+                            }).then((res) => {
+                              if (res.ok) {
+                                alert(res?.message || "File Merged successfully!");
+                                fetchUploadedFiles();
+                              } else {
+                                alert(res?.message || "Failed to Merge file.");
+                              }
+                            });
+                          }
+                        }}
+                      >
+                        PUSH ⤴️
                       </Button>
                     </TableCell>
                   </TableRow>
