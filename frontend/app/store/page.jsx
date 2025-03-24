@@ -155,14 +155,15 @@ const Store = () => {
   }, []);
 
   const getTopStores = async (query) => {
-    if (query.trim() === "") return;
+    if (query?.trim() === "") return;
     setLoading(true);
     try {
       const response = await axios.get(
-        backEndURL(`/store/top-stores?branchName=${query}&topStoresCount=20`)
+        backEndURL(`/store/top-stores?branchName=${query}&toStoresCount=20`)
       );
       console.log(response?.data);
-      setPaginatedResults(response.data?.cachedData);
+      setResults(response.data?.cachedData);
+      setCurrentPage(1);
       if(response.data?.cachedData?.length>0) setTotalPages(Math.ceil(response.data?.cachedData?.length/20));
     } catch (error) {
       console.error("Couldn't fetch top stores, Error: ", error);
@@ -171,7 +172,10 @@ const Store = () => {
     }
   };
 
-  const displayedStores = paginatedResults?.slice(
+  const displayedStores = (query==="")?paginatedResults?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  ): results?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -213,6 +217,7 @@ const Store = () => {
     const value = e.target.value;
     section === "middle" ? setBranch(value) : setQuery(value);
     section === "lower" ? setHideBranchSearchLower(false) : "";
+    if(section === "lower" && value==="") setResults([]);
     searchBranch(value, section);
   };
   const searchBranch = useCallback(
@@ -699,7 +704,7 @@ const Store = () => {
               </div>
             ) : (
               <div className="text-center mt-3">
-                {loading ? "Searching for stores..." : "No data available!"}
+                {loading ? "Searching for stores..." : "Enter Branch Name"}
               </div>
             )}
                 </div>
