@@ -83,16 +83,16 @@ const StoreRetailMonthYear = ({ storeRetailMonthYear }) => {
   // Format the data for the LineChart
   console.log(storeRetailMonthYear);
   const formattedstoreRetailMonthYear = storeRetailMonthYear.reduce((acc, data) => {
-    const year = data?.monthYear.split("-")[0];
-    const month = monthNames[Number(data.monthYear?.split("-")[1])] || data.month;
+    const year = data[0]?.split("-")[0];
+    const month = monthNames[Number(data[0]?.split("-")[1])] || data.month;
     const existingEntry = acc.find((entry) => entry.month === month);
 
     if (existingEntry) {
-      existingEntry[year] = data?.totalRetailing / 1000; // Convert value to millions
+      existingEntry[year] = data[1]?.total_retailing / 1000; // Convert value to millions
     } else {
       acc.push({
         month,
-        [year]: data?.totalRetailing / 1000,
+        [year]: data[1]?.total_retailing / 1000,
       });
     }
 
@@ -100,8 +100,9 @@ const StoreRetailMonthYear = ({ storeRetailMonthYear }) => {
   }, []);
 
   // Find the minimum value in the dataset for a better Y-axis start
+  console.log(formattedstoreRetailMonthYear);
   const minValue = Math.min(...formattedstoreRetailMonthYear.flatMap(entry => Object.values(entry).filter(value => typeof value === "number")));
-
+  console.log(minValue);
   return (
     <ResponsiveContainer width={"100%"} height={600}>
       <LineChart

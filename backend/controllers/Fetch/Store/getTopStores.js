@@ -21,7 +21,7 @@ export const getTopStores = async (req, res) => {
 
     // If no filters are applied, check cache
     const shouldUseCache = !branchName && !zoneManager && !salesManager && !startDate && !endDate;
-    
+    console.log(shouldUseCache)
     if (shouldUseCache) {
       const cachedData = await getCachedData(cacheKey);
       console.log("Sending Response:", JSON.stringify({ cached: true, cachedData: cachedData }, null, 2));
@@ -62,15 +62,15 @@ export const getTopStores = async (req, res) => {
 
     // Apply optional filters
     if (branchName) {
-      query += ` AND store.Branch_Name = ?`;
+      query += ` AND store.New_Branch = ?`;
       queryParams.push(branchName);
     }
     if (zoneManager) {
-      query += ` AND store.Zone_Manager = ?`;
+      query += ` AND store.ZM = ?`;
       queryParams.push(zoneManager);
     }
     if (salesManager) {
-      query += ` AND store.Sales_Manager = ?`;
+      query += ` AND store.SM = ?`;
       queryParams.push(salesManager);
     }
 

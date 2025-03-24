@@ -7,7 +7,7 @@ import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import CustomLoader from "@/components/ui/loader";
 import { CircleCheck, MapPin, X } from "lucide-react";
-import { months, years, zm, sm } from "@/constants";
+import { months, years, zm, sm, be } from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
 import StoreAdditionalDetails from "@/components/ui/storeAdditionalDetails";
 import StorePagePieChart from "@/components/ui/StorePagePieChart";
@@ -18,13 +18,16 @@ const HashLoader = dynamic(() => import("react-spinners/HashLoader"), {
   ssr: false,
 });
 
-const filtersToShow = [
+const filtersToShowTop = [
   { filterModule: years, filterLabel: "Year", filterKey: "years" },
   { filterModule: months, filterLabel: "Month", filterKey: "months" },
-  { filterModule: zm, filterLabel: "ZM", filterKey: "zm" },
-  { filterModule: sm, filterLabel: "SM", filterKey: "sm" },
 ];
 
+const filtersToShowBottom = [
+  { filterModule: zm, filterLabel: "ZM", filterKey: "zm" },
+  { filterModule: sm, filterLabel: "SM", filterKey: "sm" },
+  { filterModule: be, filterLabel: "BE", filterKey: "be" },
+]
 const Store = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedStores, setSearchedStores] = useState(null);
@@ -39,34 +42,46 @@ const Store = () => {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [branchResultMiddle, setBranchResultMiddle] = useState(null);
   const [branchResultLower, setBranchResultLower] = useState(null);
+  const [top100StoresLoading, setTop100StoresLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginatedResults, setPaginatedResults] = useState([]);
+  const [totalPages, setTotalPages] = useState(5);
+  const itemsPerPage = 20;
 
   const middleSectionRef = useRef(null);
 
   //DashBoard Data
   const [dashBoardData, setDashBoardData] = useState({});
-  const [selectedFilters, setSelectedFilters] = useState({
+  const [selectedFiltersTop, setSelectedFiltersTop] = useState({
     years: ["all"],
     months: ["all"],
+  });
+  const [selectedFiltersBottom, setSelectedFiltersBottom] = useState({
     zm: ["all"],
     sm: ["all"],
-  });
-
+    be:["all"]
+  })
   // Clear all filters
   const clearAllFilters = () => {
-    setSelectedFilters({
+    setSelectedFiltersTop({
       years: ["all"],
       months: ["all"],
+    });
+    setSelectedFiltersBottom({
       zm: ["all"],
       sm: ["all"],
-    });
+      be:["all"]
+    })
     window.location.reload(); // Refresh the page to reflect changes immediately
   };
 
   // Remove a single filter
-  const removeFilter = (filterKey) => {
-    const updatedFilters = { ...selectedFilters };
+  const removeFilter = (filterKey,section) => {
+    let updatedFilters;
+    section==="top"? updatedFilters = { ...selectedFiltersTop }: updatedFilters = { ...selectedFiltersBottom };
+    console.log("updatedFilters: ",updatedFilters);
     delete updatedFilters[filterKey]; // Remove filter from selected state
-    setSelectedFilters(updatedFilters);
+    section==="top"?setSelectedFiltersTop(updatedFilters):setSelectedFiltersBottom(updatedFilters);
   };
 
   const debouncedSearch = useCallback(
@@ -106,7 +121,7 @@ const Store = () => {
     if (!selectedItem) return;
     const fetchStoreData = async () => {
       try {
-        console.log(selectedItem);
+        console.log("SelectedItem: ",selectedItem);
         const response = await axios.get(
           backEndURL(`/store/meta-data?oldStoreCode=${selectedItem}`)
         );
@@ -121,20 +136,45 @@ const Store = () => {
 
   //Fetch Dashboard Data
   useEffect(() => {
+    setTop100StoresLoading(true);
     setDashboardLoading(true);
-    const fetchStoreDashBoardData = async () => {
+    const fetchTop100Stores = async () => {
       try {
-        const response = await axios.get(backEndURL("/store/dashboard"));
-        console.log(response.data);
-        setDashBoardData(response.data);
+        const response = await axios.get(backEndURL(`/store/top-stores`));
+        console.log(response);
+        setPaginatedResults(response.data?.cachedData || response.data?.topStoresDetails);
+        if(response.data?.cachedData?.length>0) setTotalPages(Math.ceil(response.data?.cachedData?.length/20));
       } catch (error) {
-        console.error("Error fetching data:", error.message);
+        console.error("Error fetching top 100 stores, Error: ",error);
       } finally {
+        setTop100StoresLoading(false);
         setDashboardLoading(false);
       }
-    };
-    fetchStoreDashBoardData();
+    }
+    fetchTop100Stores();
   }, []);
+
+  const getTopStores = async (query) => {
+    if (query.trim() === "") return;
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        backEndURL(`/store/top-stores?branchName=${query}&topStoresCount=20`)
+      );
+      console.log(response?.data);
+      setPaginatedResults(response.data?.cachedData);
+      if(response.data?.cachedData?.length>0) setTotalPages(Math.ceil(response.data?.cachedData?.length/20));
+    } catch (error) {
+      console.error("Couldn't fetch top stores, Error: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const displayedStores = paginatedResults?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const [hideSearch, setHideSearch] = useState(false);
 
@@ -143,22 +183,6 @@ const Store = () => {
     setHideSearch(true);
     setSelectedItem(id);
     setSearchQuery(id);
-  };
-
-  const getTopStores = async (query) => {
-    if (query.trim() === "") return;
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        backEndURL(`/store/top-stores?branchName=${query}`)
-      );
-      console.log(response?.data);
-      setResults(response.data?.topStoresDetails);
-    } catch (error) {
-      console.error("Couldn't fetch top stores, Error: ", error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleKeyPress = (event) => {
@@ -197,8 +221,9 @@ const Store = () => {
       const lookupForFilter = {
         zm: "zoneManager",
         sm: "salesManager",
+        be:"businessExecutive"
       };
-      const queryParams = Object.entries(selectedFilters)
+      const queryParams = Object.entries(selectedFiltersBottom)
         .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
         .map(
           ([key, values]) =>
@@ -217,7 +242,7 @@ const Store = () => {
         console.error("Error while loading branches, Error: ", error);
       }
     }, 500),
-    [selectedFilters]
+    [selectedFiltersBottom]
   );
 
   /*const submitFilters = async () => {
@@ -361,14 +386,70 @@ const Store = () => {
                   />
                 </div>
               )}
+              {/* FILTERS */}
+              <div className="flex items-center gap-3">
+                {filtersToShowTop.map((filter) => (
+                  <FilterDropdown
+                    key={filter.filterKey}
+                    filter={filter.filterModule}
+                    name={filter.filterLabel}
+                    filterKey={filter.filterKey}
+                    selectedFilters={selectedFiltersTop}
+                    setSelectedFilters={setSelectedFiltersTop}
+                  />
+                ))}
+              </div>
+              {/* SUBMIT & CLEAR BUTTONS */}
+              {Object.values(selectedFiltersTop).some(
+                (filter) => filter.length > 0 && !filter.includes("all")
+              ) && (
+                <div className="flex items-center gap-3">
+                  <button
+                    className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-600 transition"
+                    onClick={clearAllFilters}
+                  >
+                    Clear All
+                  </button>
+                </div>
+              )}
             </div>
+            {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
+            {/* Filters Display */}
+            {Object.values(selectedFiltersTop).some(
+              (filter) => filter.length > 0 && !filter.includes("all")
+            ) && (
+              <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
+                {Object.entries(selectedFiltersTop)
+                  .filter(([, selectedValues]) => !selectedValues.includes("all"))
+                  .map(([filterKey, selectedValues]) => {
+                    const filter = filtersToShowTop.find((f) => f.filterKey === filterKey);
+                    return (
+                      <div
+                        key={filterKey}
+                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
+                      >
+                        <span className="font-semibold">
+                          {filter?.filterLabel || filterKey}
+                        </span>
+                        : {selectedValues.join(", ")}
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => removeFilter(filterKey,"top")}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
 
             <div className="grid grid-cols-3 mt-6">
               <div className="col-span-2">
                 {storeDetails ? (
                   // Render the actual LineChart when storeDetails is available
                   <StoreRetailMonthYear
-                    storeRetailMonthYear={storeDetails.monthly_sales}
+                    storeRetailMonthYear={Object.entries(storeDetails.monthly_metadata)}
                   />
                 ) : (
                   // Skeleton Loader for Line Chart
@@ -418,7 +499,7 @@ const Store = () => {
                 </p>
                 {storeDetails ? (
                   <div className="mt-3">
-                    <StoreAdditionalDetails data={storeDetails?.metadata} />
+                    <StoreAdditionalDetails data={storeDetails?.metadata}/>
                   </div>
                 ) : (
                   <div className="mt-4 text-white/80 text-center p-3 rounded-md bg-gradient-to-t from-gray-700 to-gray-600  ">
@@ -435,8 +516,10 @@ const Store = () => {
                 </div>
                 <div className="">
                   <StorePagePieChart
-                    data={storeDetails?.category_retailing}
+                    categoryData={storeDetails?.category_retailing}
                     nameKey="category"
+                    yearFilter={String(selectedFiltersTop?.years || "all")}
+                    monthFilter={String(selectedFiltersTop?.months || "all")}
                   />
                 </div>
               </div>
@@ -491,29 +574,23 @@ const Store = () => {
               </div>
               {/* FILTERS */}
               <div className="flex items-center gap-3">
-                {filtersToShow.map((filter) => (
+                {filtersToShowBottom.map((filter) => (
                   <FilterDropdown
                     key={filter.filterKey}
                     filter={filter.filterModule}
                     name={filter.filterLabel}
                     filterKey={filter.filterKey}
-                    selectedFilters={selectedFilters}
-                    setSelectedFilters={setSelectedFilters}
+                    selectedFilters={selectedFiltersBottom}
+                    setSelectedFilters={setSelectedFiltersBottom}
                   />
                 ))}
               </div>
 
               {/* SUBMIT & CLEAR BUTTONS */}
-              {Object.values(selectedFilters).some(
+              {Object.values(selectedFiltersBottom).some(
                 (filter) => filter.length > 0 && !filter.includes("all")
               ) && (
                 <div className="flex items-center gap-3">
-                  {/*<button
-                    className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition"
-                    onClick={submitFilters}
-                  >
-                    <CircleCheck />
-                  </button>*/}
                   <button
                     className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-600 transition"
                     onClick={clearAllFilters}
@@ -525,18 +602,15 @@ const Store = () => {
             </div>
 
             {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
-            {Object.values(selectedFilters).some(
+            {/* Filters Display */}
+            {Object.values(selectedFiltersBottom).some(
               (filter) => filter.length > 0 && !filter.includes("all")
             ) && (
               <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
-                {Object.entries(selectedFilters)
-                  .filter(
-                    ([, selectedValues]) => !selectedValues.includes("all")
-                  )
+                {Object.entries(selectedFiltersBottom)
+                  .filter(([, selectedValues]) => !selectedValues.includes("all"))
                   .map(([filterKey, selectedValues]) => {
-                    const filter = filtersToShow.find(
-                      (f) => f.filterKey === filterKey
-                    );
+                    const filter = filtersToShowBottom.find((f) => f.filterKey === filterKey);
                     return (
                       <div
                         key={filterKey}
@@ -548,7 +622,7 @@ const Store = () => {
                         : {selectedValues.join(", ")}
                         <button
                           className="text-red-500 hover:text-red-700"
-                          onClick={() => removeFilter(filterKey)}
+                          onClick={() => removeFilter(filterKey,"bottom")}
                         >
                           <X size={16} />
                         </button>
@@ -559,10 +633,9 @@ const Store = () => {
             )}
 
             {/* Results Table */}
-            {results && results.length > 0 && !loading ? (
+            {paginatedResults && paginatedResults.length > 0 && !top100StoresLoading && displayedStores.length>0 ? (
               <div className="overflow-x-auto mt-6">
                 <table className="w-full max-w-4xl mx-auto border-collapse border border-gray-300 dark:border-gray-700 shadow-md">
-                  {/* Table Header */}
                   <thead className="bg-gray-100 dark:bg-gray-800">
                     <tr className="text-left">
                       <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
@@ -576,26 +649,20 @@ const Store = () => {
                       </th>
                     </tr>
                   </thead>
-
-                  {/* Table Body */}
                   <tbody>
-                    {results.map((storeDetails, index) => (
+                    {displayedStores.map((storeDetails, index) => (
                       <tr
                         key={index}
-                        className={`border border-gray-300 dark:border-gray-700 ${
-                          index % 2 === 0
-                            ? "bg-gray-50 dark:bg-gray-900"
-                            : "bg-white dark:bg-gray-800"
-                        } hover:bg-gray-200 dark:hover:bg-gray-700 transition-all`}
+                        className={`border border-gray-300 dark:border-gray-700 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-800"} hover:bg-gray-200 dark:hover:bg-gray-700 transition-all`}
                       >
                         <td className="p-3 text-center text-gray-800 dark:text-gray-300">
-                          {index + 1}
+                          {index + 1 + (currentPage - 1) * itemsPerPage}
                         </td>
                         <td
                           className="p-3 text-center font-semibold text-gray-900 dark:text-gray-200 cursor-pointer"
                           onClick={() => {
-                            setSearchQuery(storeDetails["store_code"]); // Autofill the search input
-                            showStoreDetails(storeDetails["store_code"]); // Fetch store details
+                            setSearchQuery(storeDetails["store_code"]);
+                            showStoreDetails(storeDetails["store_code"]);
                             middleSectionRef.current?.scrollIntoView({
                               behavior: "smooth",
                               block: "start",
@@ -611,24 +678,42 @@ const Store = () => {
                     ))}
                   </tbody>
                 </table>
+                {/* Pagination Controls */}
+                <div className="flex justify-center items-center gap-3 mt-4">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 border border-gray-300 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-gray-700 dark:text-gray-200">Page {currentPage} of {totalPages}</span>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, 5))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 border border-gray-300 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="text-center mt-3">
                 {loading ? "Searching for stores..." : "No data available!"}
               </div>
             )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center min-h-screen bg-inherit">
+                <HashLoader
+                  color="rgb(249, 115, 22)"
+                  size={120}
+                  loading={dashboardLoading}
+                />
+              </div>
+            )}
           </div>
-        </div>
-      ) : (
-        <div className="flex items-center justify-center min-h-screen bg-inherit">
-          <HashLoader
-            color="rgb(249, 115, 22)"
-            size={120}
-            loading={dashboardLoading}
-          />
-        </div>
-      )}
-    </div>
   );
 };
 

@@ -2,6 +2,22 @@
 
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { useEffect, useState } from "react";
+import { flatMap } from "lodash";
+
+const monthNameToNumber = {
+  January: "01",
+  February: "02",
+  March: "03",
+  April: "04",
+  May: "05",
+  June: "06",
+  July: "07",
+  August: "08",
+  September: "09",
+  October: "10",
+  November: "11",
+  December: "12",
+};
 
 const generateColors = (size) => {
   const baseColors = [
@@ -14,6 +30,7 @@ const generateColors = (size) => {
     "#FF66C4", // Pink
     "#00C2C7", // Cyan
   ];
+
 
   // If more colors are needed, generate dynamic HSL-based colors
   return Array.from(
@@ -50,7 +67,7 @@ const renderCustomLabel =
     );
   };
 
-const StorePagePieChart = ({ data, nameKey }) => {
+const StorePagePieChart = ({ categoryData, nameKey, yearFilter, monthFilter }) => {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -59,17 +76,50 @@ const StorePagePieChart = ({ data, nameKey }) => {
 
   if (!isClient) return <p>Loading chart...</p>;
 
-  // Sum the absolute values of retailing
-  const totalRetailing = data?.reduce(
+   // Filter data based on applied filters
+   console.log("categoryData, Year, Month: ",categoryData, yearFilter, monthFilter);
+  // Filtering categoryData based on yearFilter & monthFilter
+  const filteredData = Object.entries(categoryData)
+    .filter(([key]) => {
+      const [year, month] = key.split("-");
+      const isAllYears = yearFilter.includes("all") ;
+      const isAllMonths = monthFilter.includes("all");
+      console.log(isAllYears,isAllMonths);
+      const filteredMonths = isAllMonths?monthFilter:monthNameToNumber[monthFilter];
+
+      return (
+        (isAllYears && isAllMonths) || // Default: Show all data
+        (isAllYears && filteredMonths.includes(month)) || // Filter by month only
+        (isAllMonths && yearFilter.includes(year)) || // Filter by year only
+        (yearFilter.includes(year) && filteredMonths.includes(month)) // Filter by both
+      );
+    })
+    .flatMap(([_, values]) => values); // Flatten arrays
+
+  console.log("filteredData:",filteredData)
+  // Aggregating total_retailing per category
+  const aggregatedData = filteredData.reduce((acc, item) => {
+    const existing = acc.find((el) => el.category === item.category);
+    if (existing) {
+      existing.total_retailing += Number(item.total_retailing);
+    } else {
+      acc.push({ category: item.category, total_retailing: Number(item.total_retailing) });
+    }
+    return acc;
+  }, []);
+
+  console.log("Filtered & Aggregated Data:", aggregatedData);
+
+  const totalRetailing = aggregatedData.reduce(
     (sum, item) => sum + Math.abs(Number(item.total_retailing)),
     0
   );
 
-  const formattedData = data?.map((item) => {
+  const formattedData = aggregatedData.map((item) => {
     const originalValue = Number(item.total_retailing);
     const absoluteValue = Math.abs(originalValue); // Always positive for pie chart slices
     return {
-      name: item[nameKey],
+      name: item[nameKey] || item.category,
       originalValue,
       value: absoluteValue, // Used for rendering PieChart
       percentage: (absoluteValue / totalRetailing) * 100, // Always positive percentage
