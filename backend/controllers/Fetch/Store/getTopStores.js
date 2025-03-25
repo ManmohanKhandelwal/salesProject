@@ -24,8 +24,6 @@ export const getTopStores = async (req, res) => {
     console.log(shouldUseCache)
     if (shouldUseCache) {
       const cachedData = await getCachedData(cacheKey);
-      console.log("Sending Response:", JSON.stringify({ cached: true, cachedData: cachedData }, null, 2));
-
       if (cachedData) {
         return res.json({
           cached: true,
@@ -53,7 +51,7 @@ export const getTopStores = async (req, res) => {
             AVG(psr.retailing) AS avg_retailing
         FROM
             psr_data psr
-            JOIN store_mapping store ON psr.customer_code = store.New_Store_Code
+            JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
         WHERE
             psr.document_date BETWEEN ? AND ?
     `;

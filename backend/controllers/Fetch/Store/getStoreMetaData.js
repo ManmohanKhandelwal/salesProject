@@ -19,7 +19,7 @@ export const getStoreMetaData = async (req, res) => {
     if (!storeMapping.length) {
       return res.status(404).json({ error: "Store not found" });
     }
-    const newStoreCode = storeMapping[0].New_Store_Code;
+    const newStoreCode = storeMapping[0]?.New_Store_Code;
 
     // 2️⃣ Fetch Store Info
     const storeInfoQuery = mySqlPool.query(
@@ -69,46 +69,79 @@ export const getStoreMetaData = async (req, res) => {
     );
 
     // Execute all queries in parallel
-    const [
-      [[storeInfo]],
-      [monthlyData],
-      [productData],
-      [categoryData],
-    ] = await Promise.all([
-      storeInfoQuery,
-      monthlyQuery,
-      productQuery,
-      categoryQuery,
-    ]);
+    const [[[storeInfo]], [monthlyData], [productData], [categoryData]] =
+      await Promise.all([
+        storeInfoQuery,
+        monthlyQuery,
+        productQuery,
+        categoryQuery,
+      ]);
 
     // Ensure all total_retailing values are numbers
-    monthlyData.forEach(row => row.total_retailing = parseFloat(row.total_retailing) || 0);
-    productData.forEach(row => row.total_retailing = parseFloat(row.total_retailing) || 0);
-    categoryData.forEach(row => row.total_retailing = parseFloat(row.total_retailing) || 0);
+    monthlyData.forEach(
+      (row) => (row.total_retailing = parseFloat(row.total_retailing) || 0)
+    );
+    productData.forEach(
+      (row) => (row.total_retailing = parseFloat(row.total_retailing) || 0)
+    );
+    categoryData.forEach(
+      (row) => (row.total_retailing = parseFloat(row.total_retailing) || 0)
+    );
 
     // Compute Yearly Total
-    const yearlyTotal = monthlyData.reduce((sum, row) => sum + row.total_retailing, 0).toFixed(2);
+    const yearlyTotal = monthlyData
+      .reduce((sum, row) => sum + row.total_retailing, 0)
+      .toFixed(2);
 
     // Find Overall Highest & Lowest Month
-    const highestRetailingMonth = monthlyData.reduce((max, row) => (row.total_retailing > max.total_retailing ? row : max), { total_retailing: 0 });
-    const lowestRetailingMonth = monthlyData.reduce((min, row) => (row.total_retailing < min.total_retailing ? row : min), { total_retailing: Infinity });
+    const highestRetailingMonth = monthlyData.reduce(
+      (max, row) => (row.total_retailing > max.total_retailing ? row : max),
+      { total_retailing: 0 }
+    );
+    const lowestRetailingMonth = monthlyData.reduce(
+      (min, row) => (row.total_retailing < min.total_retailing ? row : min),
+      { total_retailing: Infinity }
+    );
 
     // Structure Monthly Metadata
     const monthlyMetadataMap = {};
+
     monthlyData.forEach(({ yearMonth, total_retailing }) => {
-      monthlyMetadataMap[yearMonth] = { total_retailing };
+      const [year, month] = yearMonth.split("-");
+
+      if (!monthlyMetadataMap[year]) {
+        monthlyMetadataMap[year] = {
+          total_retailing: 0, // Initialize total retailing for the year
+          months: {}, // Store months inside each year
+        };
+      }
+
+      // Add to total retailing for the year
+      monthlyMetadataMap[year].total_retailing += total_retailing;
+
+      // Store month-wise retailing
+      monthlyMetadataMap[year].months[month] = total_retailing;
     });
+
+    console.log(monthlyMetadataMap);
 
     // Structure Category Breakdown
     const categoryRetailingMap = {};
     categoryData.forEach(({ yearMonth, category, total_retailing }) => {
-      if (!categoryRetailingMap[yearMonth]) categoryRetailingMap[yearMonth] = [];
+      if (!categoryRetailingMap[yearMonth])
+        categoryRetailingMap[yearMonth] = [];
       categoryRetailingMap[yearMonth].push({ category, total_retailing });
     });
-    
-      // Find Overall Highest & Lowest Product
-      const allTimeHighProduct = productData.reduce((max, row) => (row.total_retailing > max.total_retailing ? row : max), { total_retailing: 0 });
-      const allTimeLowProduct = productData.reduce((min, row) => (row.total_retailing < min.total_retailing ? row : min), { total_retailing: Infinity });
+
+    // Find Overall Highest & Lowest Product
+    const allTimeHighProduct = productData.reduce(
+      (max, row) => (row.total_retailing > max.total_retailing ? row : max),
+      { total_retailing: 0 }
+    );
+    const allTimeLowProduct = productData.reduce(
+      (min, row) => (row.total_retailing < min.total_retailing ? row : min),
+      { total_retailing: Infinity }
+    );
     // Structure Time-Variant Product Breakdown
     const monthlyProductMetadata = {};
     productData.forEach(({ yearMonth, brand, total_retailing }) => {
@@ -121,21 +154,36 @@ export const getStoreMetaData = async (req, res) => {
           all_products: [],
         };
       }
-      
-      
-     
-      monthlyProductMetadata[yearMonth].all_products.push({ brand, total_retailing });
+
+      monthlyProductMetadata[yearMonth].all_products.push({
+        brand,
+        total_retailing,
+      });
 
       // Set highest selling product
-      if (!monthlyProductMetadata[yearMonth].highest_retailing_product || total_retailing > parseFloat(monthlyProductMetadata[yearMonth].highest_retailing_product_amount)) {
+      if (
+        !monthlyProductMetadata[yearMonth].highest_retailing_product ||
+        total_retailing >
+          parseFloat(
+            monthlyProductMetadata[yearMonth].highest_retailing_product_amount
+          )
+      ) {
         monthlyProductMetadata[yearMonth].highest_retailing_product = brand;
-        monthlyProductMetadata[yearMonth].highest_retailing_product_amount = total_retailing.toFixed(2);
+        monthlyProductMetadata[yearMonth].highest_retailing_product_amount =
+          total_retailing.toFixed(2);
       }
 
       // Set lowest selling product
-      if (!monthlyProductMetadata[yearMonth].lowest_retailing_product || total_retailing < parseFloat(monthlyProductMetadata[yearMonth].lowest_retailing_product_amount)) {
+      if (
+        !monthlyProductMetadata[yearMonth].lowest_retailing_product ||
+        total_retailing <
+          parseFloat(
+            monthlyProductMetadata[yearMonth].lowest_retailing_product_amount
+          )
+      ) {
         monthlyProductMetadata[yearMonth].lowest_retailing_product = brand;
-        monthlyProductMetadata[yearMonth].lowest_retailing_product_amount = total_retailing.toFixed(2);
+        monthlyProductMetadata[yearMonth].lowest_retailing_product_amount =
+          total_retailing.toFixed(2);
       }
     });
 
@@ -147,13 +195,21 @@ export const getStoreMetaData = async (req, res) => {
         yearly_total: yearlyTotal,
         total_retailing: yearlyTotal,
         highest_retailing_month: highestRetailingMonth?.yearMonth || "",
-        highest_retailing_amount: (highestRetailingMonth?.total_retailing || 0).toFixed(2),
+        highest_retailing_amount: (
+          highestRetailingMonth?.total_retailing || 0
+        ).toFixed(2),
         lowest_retailing_month: lowestRetailingMonth?.yearMonth || "",
-        lowest_retailing_amount: (lowestRetailingMonth?.total_retailing || 0).toFixed(2),
+        lowest_retailing_amount: (
+          lowestRetailingMonth?.total_retailing || 0
+        ).toFixed(2),
         highest_retailing_product: allTimeHighProduct?.brand || "",
-        highest_retailing_product_amount: (allTimeHighProduct?.total_retailing || 0).toFixed(2),
+        highest_retailing_product_amount: (
+          allTimeHighProduct?.total_retailing || 0
+        ).toFixed(2),
         lowest_retailing_product: allTimeLowProduct?.brand || "",
-        lowest_retailing_product_amount: (allTimeLowProduct?.total_retailing || 0).toFixed(2),
+        lowest_retailing_product_amount: (
+          allTimeLowProduct?.total_retailing || 0
+        ).toFixed(2),
       },
       monthly_metadata: monthlyMetadataMap,
       category_retailing: categoryRetailingMap,

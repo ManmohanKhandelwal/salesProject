@@ -10,7 +10,8 @@
     "#utils/*": "./utils/*",
     "#config/*": "./config/*",
     "#controllers/*": "./controllers/*",
-    "#routes/*": "./routes/*"
+    "#routes/*": "./routes/*",
+    "#commands/*": "./commands/*"
   },
   "nodemonConfig": {
     "ignore": [

@@ -1,21 +1,18 @@
 import mySqlPool from "#config/db.js";
-import { getCachedData, readCache, updateCache, writeCache } from "#utils/cacheManager.js";
+import {
+  getCachedData,
+  updateCache
+} from "#utils/cacheManager.js";
 import SQLSelect from "#utils/sqlSelect.js";
-import path from "path";
-import { TIME_TO_UPDATE_CACHE_DASHBOARD } from "#config/constant.js";
 
-const CACHE_DIR = path.join(process.cwd(), "cache", "dashboard");
-const CACHE_FILE = path.join(CACHE_DIR, "dashboardData.json");
-const cacheKey = "sales-dashboard";
+const CACHE_KEY_DASHBOARD = "sales-dashboard";
+const CACHE_KEY_SUMMARY = "psr_summary";
 /** Optimized function to fetch dashboard data */
 export const getDashBoardData = async (req, res) => {
   try {
-    // Check cache first
-    // const cachedData = await readCache(
-    //   CACHE_FILE,
-    //   TIME_TO_UPDATE_CACHE_DASHBOARD
-    // );
-    const cachedData = await getCachedData(cacheKey);
+
+    // Check if data is cached
+    const cachedData = await getCachedData(CACHE_KEY_DASHBOARD);
     if (cachedData) return res.status(200).json(cachedData);
 
     // Get database connection
@@ -48,9 +45,7 @@ export const getDashBoardData = async (req, res) => {
       [retailTrend],
       [topTenBrandForm],
     ] = await Promise.all([
-      connection.query(
-        SQLSelect({ Queries: ["*"], TableName: "dashboard_summary", Limit: 0 })
-      ),
+      getCachedData(CACHE_KEY_SUMMARY),
       connection.query(query),
       connection.query(
         SQLSelect({
@@ -145,7 +140,7 @@ export const getDashBoardData = async (req, res) => {
     };
 
     // Cache the response
-    await updateCache(cacheKey, responseData);
+    await updateCache(CACHE_KEY_DASHBOARD, responseData);
 
     return res.status(200).json(responseData);
   } catch (error) {

@@ -8,14 +8,14 @@ const dashBoardRouter = express.Router();
 /**
  * @swagger
  * /dashboard/update-psr-summary:
- *   get:
- *     summary: Update the PSR summary table
- *     description: Updates or inserts data into the `dashboard_summary` table based on the latest `psr_data`.
+ *   put:
+ *     summary: Update PSR Summary
+ *     description: Updates the dashboard summary by fetching retailing data, branch details, and brand details. The result is cached for faster retrieval.
  *     tags:
- *       - Dashboard
+ *       - PSR Summary
  *     responses:
  *       200:
- *         description: Successfully updated dashboard summary
+ *         description: Dashboard summary updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -23,11 +23,37 @@ const dashBoardRouter = express.Router();
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "Dashboard summary updated"
  *                 result:
  *                   type: object
+ *                   properties:
+ *                     retailing_sum:
+ *                       type: number
+ *                       example: 150000.50
+ *                     highest_retailing_branch:
+ *                       type: string
+ *                       example: "New York Central"
+ *                     highest_retailing_branch_value:
+ *                       type: number
+ *                       example: 50000.75
+ *                     highest_retailing_brand:
+ *                       type: string
+ *                       example: "Nike"
+ *                     highest_retailing_brand_value:
+ *                       type: number
+ *                       example: 75000.25
  *       500:
- *         description: Internal server error
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Error updating dashboard summary"
  */
+
 dashBoardRouter.get("/dashboard/update-psr-summary", updatePSRSummary);
 
 /**

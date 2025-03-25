@@ -37,7 +37,7 @@ export const getCatBrandDetails = async (req, res) => {
           `WITH branch_sales AS (
               SELECT store.New_Branch AS branch, SUM(psr.retailing) AS total_retailing
               FROM psr_data psr
-              JOIN store_mapping store ON psr.customer_code = store.New_Store_Code
+              JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
               WHERE category = ?
               GROUP BY store.New_Branch
            )
@@ -103,7 +103,7 @@ export const getCatBrandDetails = async (req, res) => {
           `WITH branch_sales AS (
               SELECT store.New_Branch AS branch, SUM(psr.retailing) AS total_retailing
               FROM psr_data psr
-              JOIN store_mapping store ON psr.customer_code = store.New_Store_Code
+              JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
               WHERE brand = ?
               GROUP BY store.New_Branch
           )

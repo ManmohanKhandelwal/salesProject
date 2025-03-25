@@ -5,11 +5,12 @@ const readCache = async (CACHE_FILE, VALID_TIME_SPAN) => {
   try {
     const fileData = await fs.readFile(CACHE_FILE, "utf-8");
     const cachedData = JSON.parse(fileData);
+    console.log(fileData);
     if (Date.now() - cachedData.timestamp < VALID_TIME_SPAN) {
       return cachedData.data;
     }
-  } catch {
-    console.log("Cache not found or expired, fetching new data...");
+  } catch(error) {
+    console.log("Error reading cache:", error);
   }
   return null;
 };
@@ -31,10 +32,12 @@ const writeCache = async (CACHE_DIR, CACHE_FILE, data) => {
 
 /** Helper function to get cached data from MySQL */
 const getCachedData = async (cacheKey) => {
+  console.log("Getting cached data for:", cacheKey);
   const [[rows]] = await mySqlPool.query(
     "SELECT data FROM cachetable WHERE cache_key = ?",
     [cacheKey]
   );
+  console.log("Rows:", rows);
   return rows.data ? rows.data : null;
 };
 
