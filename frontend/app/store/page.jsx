@@ -159,7 +159,7 @@ const Store = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        backEndURL(`/store/top-stores?branchName=${query}&toStoresCount=20`)
+        backEndURL(`/store/top-stores?branchName=${query}&topStoresCount=20&offset=0`)
       );
       console.log(response?.data);
       setResults(response.data?.cachedData);
@@ -453,9 +453,15 @@ const Store = () => {
               <div className="col-span-2">
                 {storeDetails ? (
                   // Render the actual LineChart when storeDetails is available
-                  <StoreRetailMonthYear
-                    storeRetailMonthYear={Object.entries(storeDetails.monthly_metadata)}
-                  />
+                  <div>
+                    <div className="flex justify-center items-center gap-6 font-medium mb-1">
+                      <p>Name - {storeDetails.metadata?.store_name}</p>
+                      <p>Channel - {storeDetails.metadata?.channel_description}</p>
+                    </div>
+                    <StoreRetailMonthYear
+                      storeRetailMonthYear={Object.entries(storeDetails.monthly_metadata)}
+                    />
+                  </div>
                 ) : (
                   // Skeleton Loader for Line Chart
                   <div className="h-[400px] bg-gradient-to-br rounded-lg from-slate-200 to-slate-600 relative overflow-hidden">
@@ -650,6 +656,12 @@ const Store = () => {
                         Store Code
                       </th>
                       <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                        Name
+                      </th>
+                      <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                        Channel
+                      </th>
+                      <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
                         Avg Retailing (₹)
                       </th>
                     </tr>
@@ -675,6 +687,12 @@ const Store = () => {
                           }}
                         >
                           {storeDetails["store_code"]}
+                        </td>
+                        <td className="p-3 text-center text-gray-800 dark:text-gray-300">
+                          {storeDetails["store_name"]}
+                        </td>
+                        <td className="p-3 text-center text-gray-800 dark:text-gray-300">
+                          {storeDetails["channel"]}
                         </td>
                         <td className="p-3 text-center text-lg font-medium text-green-600 dark:text-orange-400">
                           ₹ {Number(storeDetails["avg_retailing"]).toFixed(2)}
