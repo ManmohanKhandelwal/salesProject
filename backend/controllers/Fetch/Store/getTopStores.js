@@ -21,7 +21,8 @@ export const getTopStores = async (req, res) => {
 
     // If no filters are applied, check cache
     const shouldUseCache = !branchName && !zoneManager && !salesManager && !startDate && !endDate;
-    console.log(shouldUseCache)
+
+    // Check cache
     if (shouldUseCache) {
       const cachedData = await getCachedData(cacheKey);
       if (cachedData) {
@@ -45,15 +46,15 @@ export const getTopStores = async (req, res) => {
         SELECT
             psr.customer_code AS store_code,
             psr.customer_name AS store_name,
+            store.New_Branch AS branch_name,
             psr.customer_type,
             psr.channel_description AS channel,
             SUM(psr.retailing) AS total_retailing,
             AVG(psr.retailing) AS avg_retailing
         FROM
-            psr_data psr
-            JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
-        WHERE
-            psr.document_date BETWEEN ? AND ?
+        psr_data psr
+        JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
+        WHERE psr.document_date BETWEEN ? AND ?
     `;
 
     let queryParams = [startDate, endDate];
@@ -77,10 +78,11 @@ export const getTopStores = async (req, res) => {
         GROUP BY
             psr.customer_code,
             psr.customer_name,
+            store.New_Branch,
             psr.customer_type,
             psr.channel_description
         ORDER BY
-            total_retailing DESC
+            avg_retailing DESC
         LIMIT ? OFFSET ?;
     `;
 
