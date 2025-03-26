@@ -46,6 +46,7 @@ const Store = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedResults, setPaginatedResults] = useState([]);
   const [totalPages, setTotalPages] = useState(5);
+  const [selectedBranchBottom, setSelectedBranchBottom] = useState("");
   const itemsPerPage = 20;
 
   const middleSectionRef = useRef(null);
@@ -154,12 +155,26 @@ const Store = () => {
     fetchTop100Stores();
   }, []);
 
-  const getTopStores = async (query) => {
+  const getTopStores = useCallback(async (query) => {
     if (query?.trim() === "") return;
     setLoading(true);
+    const lookupForFilter = {
+      zm: "zoneManager",
+      sm: "salesManager",
+      be:"businessExecutive"
+    };
+    console.log("selectedBranchBottom: ",selectedBranchBottom)
+    const queryParams = Object.entries(selectedFiltersBottom)
+      .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
+      .map(
+        ([key, values]) =>
+          `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`
+      ) // Send only the first valid value
+      .join("&");
+    console.log("queryParams: ",queryParams)
     try {
       const response = await axios.get(
-        backEndURL(`/store/top-stores?branchName=${query}&topStoresCount=20&offset=0`)
+        backEndURL(`/store/top-stores?${queryParams}&branchName=${query}&topStoresCount=20&offset=0`)
       );
       console.log(response?.data);
       setResults(response.data?.cachedData);
@@ -170,9 +185,9 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
-  };
+  },[selectedBranchBottom,selectedFiltersBottom]);
 
-  const displayedStores = (query==="")?paginatedResults?.slice(
+  const displayedStores = (query==="" || selectedBranchBottom==="")?paginatedResults?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   ): results?.slice(
@@ -222,7 +237,7 @@ const Store = () => {
   };
   const searchBranch = useCallback(
     debounce(async (q, section) => {
-      if (!q) return;
+      if (q?.trim()==="") return;
       const lookupForFilter = {
         zm: "zoneManager",
         sm: "salesManager",
@@ -276,6 +291,10 @@ const Store = () => {
       console.error("Error fetching filtered data:", error);
     }
   };*/
+
+  useEffect(() => {
+    getTopStores(query);
+  },[selectedFiltersBottom])
 
   useEffect(() => {
     return () => {
@@ -572,6 +591,7 @@ const Store = () => {
                         onClick={() => {
                           setHideBranchSearchLower(true);
                           setQuery(branch);
+                          setSelectedBranchBottom(branch);
                           getTopStores(branch);
                         }}
                       >
@@ -722,7 +742,7 @@ const Store = () => {
               </div>
             ) : (
               <div className="text-center mt-3">
-                {loading ? "Searching for stores..." : "Enter Branch Name"}
+                {loading ? "Searching for stores..." : "No data available!"}
               </div>
             )}
                 </div>
