@@ -135,6 +135,12 @@ const Store = () => {
     fetchStoreData();
   }, [selectedItem]);
 
+  const isAnyBottomFilterSelected = () => {
+    const queryParams = Object.entries(selectedFiltersBottom)
+    .filter(([key, values]) => values.length > 0 && !values.includes("all"));
+    return queryParams.length>0?true:false;
+  }
+
   //Fetch Dashboard Data
   useEffect(() => {
     setTop100StoresLoading(true);
@@ -152,29 +158,16 @@ const Store = () => {
         setDashboardLoading(false);
       }
     }
+    isAnyBottomFilterSelected();
     fetchTop100Stores();
   }, []);
 
   const getTopStores = useCallback(async (query) => {
     if (query?.trim() === "") return;
     setLoading(true);
-    const lookupForFilter = {
-      zm: "zoneManager",
-      sm: "salesManager",
-      be:"businessExecutive"
-    };
-    console.log("selectedBranchBottom: ",selectedBranchBottom)
-    const queryParams = Object.entries(selectedFiltersBottom)
-      .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
-      .map(
-        ([key, values]) =>
-          `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`
-      ) // Send only the first valid value
-      .join("&");
-    console.log("queryParams: ",queryParams)
     try {
       const response = await axios.get(
-        backEndURL(`/store/top-stores?${queryParams}&branchName=${query}&topStoresCount=20&offset=0`)
+        backEndURL(`/store/top-stores?branchName=${query}&topStoresCount=100&offset=0`)
       );
       console.log(response?.data);
       setResults(response.data?.cachedData);
@@ -185,9 +178,38 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
-  },[selectedBranchBottom,selectedFiltersBottom]);
+  },[selectedBranchBottom]);
 
-  const displayedStores = (query==="" || selectedBranchBottom==="")?paginatedResults?.slice(
+  const getTopStoresByFilter = useCallback(async () => {
+    const lookupForFilter = {
+      zm: "zoneManager",
+      sm: "salesManager",
+      be:"businessExecutive"
+    };
+    const queryParams = Object.entries(selectedFiltersBottom)
+    .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
+    .map(
+      ([key, values]) =>
+        `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`
+    ) // Send only the first valid value
+    .join("&");
+    if(queryParams?.length===0) return;
+    if(queryParams?.split('&')?.length > 1) return;
+    console.log("queryParams: ",queryParams)
+    setLoading(true);
+    try {
+      const response = await axios.get(backEndURL(`/store/top-stores?${queryParams}`));
+      setResults(response.data?.cachedData);
+      setCurrentPage(1);
+      if(response.data?.cachedData?.length>0) setTotalPages(Math.ceil(response.data?.cachedData?.length/20));
+    } catch (error) {
+      console.error("Error fetching top stores by filter, error: ",error);
+    } finally {
+      setLoading(false);
+    }
+  },[selectedFiltersBottom]);
+
+  const displayedStores = ((query==="" || selectedBranchBottom==="") && !isAnyBottomFilterSelected())?paginatedResults?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   ): results?.slice(
@@ -293,7 +315,7 @@ const Store = () => {
   };*/
 
   useEffect(() => {
-    getTopStores(query);
+    getTopStoresByFilter();
   },[selectedFiltersBottom])
 
   useEffect(() => {
@@ -605,7 +627,7 @@ const Store = () => {
               </div>
               {/* FILTERS */}
               <div className="flex items-center gap-3">
-                {filtersToShowBottom.map((filter) => (
+                {(!query) && filtersToShowBottom.map((filter) => (
                   <FilterDropdown
                     key={filter.filterKey}
                     filter={filter.filterModule}
