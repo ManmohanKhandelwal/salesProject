@@ -2,6 +2,15 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Check User Confirmation",
+      "type": "shell",
+      "command": "${workspaceFolder}/.vscode/ask.bat",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Detect Remote & Git Pull",
       "type": "shell",
       "command": "git pull https://github.com/ManmohanKhandelwal/salesProject",
@@ -12,7 +21,8 @@
       "presentation": {
         "reveal": "always",
         "close": true
-      }
+      },
+      "dependsOn": ["Check User Confirmation"]
     },
     {
       "label": "Install Backend Dependencies",
@@ -26,7 +36,8 @@
         "reveal": "always",
         "panel": "shared",
         "group": "backend"
-      }
+      },
+      "dependsOn": ["Check User Confirmation"]
     },
     {
       "label": "Install Frontend Dependencies",
@@ -40,7 +51,8 @@
         "reveal": "always",
         "panel": "shared",
         "group": "frontend"
-      }
+      },
+      "dependsOn": ["Check User Confirmation"]
     },
     {
       "label": "Run Backend",
@@ -75,6 +87,7 @@
     {
       "label": "Run Everything",
       "dependsOn": [
+        "Check User Confirmation",
         "Detect Remote & Git Pull",
         "Install Backend Dependencies",
         "Install Frontend Dependencies",

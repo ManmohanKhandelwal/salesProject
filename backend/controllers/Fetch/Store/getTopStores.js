@@ -12,6 +12,7 @@ export const getTopStores = async (req, res) => {
       topStoresCount,
       zoneManager,
       salesManager,
+      branchExecutive,
       offset,
     } = req.query;
 
@@ -20,7 +21,7 @@ export const getTopStores = async (req, res) => {
     offset = parseInt(offset, 10) || 0;
 
     // If no filters are applied, check cache
-    const shouldUseCache = !branchName && !zoneManager && !salesManager && !startDate && !endDate;
+    const shouldUseCache = !branchName && !zoneManager && !salesManager && !branchExecutive && !startDate && !endDate;
 
     // Check cache
     if (shouldUseCache) {
@@ -34,12 +35,13 @@ export const getTopStores = async (req, res) => {
     }
 
     // Default date range (last 6 months) if not provided
-    if (!startDate || !endDate) {
+    if (!startDate) {
       startDate = new Date(new Date().setMonth(new Date().getMonth() - 6))
         .toISOString()
         .split("T")[0];
       endDate = new Date().toISOString().split("T")[0];
     }
+    if (!endDate) endDate = new Date().toISOString().split("T")[0];
 
     // **Build SQL Query Dynamically Based on Filters**
     let query = `
@@ -73,6 +75,11 @@ export const getTopStores = async (req, res) => {
       queryParams.push(salesManager);
     }
 
+    if (branchExecutive) {
+      query += ` AND store.BE = ?`;
+      queryParams.push(branchExecutive);
+    }
+
     // Grouping, ordering, and limiting results
     query += `
         GROUP BY
@@ -87,7 +94,7 @@ export const getTopStores = async (req, res) => {
     `;
 
     queryParams.push(topStoresCount, offset);
-
+    console.log(query, queryParams);
     // **Query Database**
     const [topStoresDetails] = await mySqlPool.query(query, queryParams);
 

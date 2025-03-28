@@ -5,7 +5,7 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-export default async function fetchDashBoardData(selectedFilters) {
+export default async function fetchDashBoardData(selectedFilters={}) {
   try {
     const res = await fetch("/api/dashboard", {
       method: "POST",

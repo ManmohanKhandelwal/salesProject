@@ -13,7 +13,7 @@
  * avg_retailing: Number
  * }
  */
-const defaultTop100Stores = `
+const top100StoresQuery = `
     SELECT
         psr.customer_code AS store_code,
         psr.customer_name AS store_name,
@@ -38,4 +38,4 @@ const defaultTop100Stores = `
         100;
 `;
 
-export { defaultTop100Stores };
+export { top100StoresQuery };

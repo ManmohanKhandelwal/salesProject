@@ -123,7 +123,6 @@ export const getStoreMetaData = async (req, res) => {
       monthlyMetadataMap[year].months[month] = total_retailing;
     });
 
-    console.log(monthlyMetadataMap);
 
     // Structure Category Breakdown
     const categoryRetailingMap = {};
