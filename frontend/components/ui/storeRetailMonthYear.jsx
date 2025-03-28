@@ -65,50 +65,68 @@ import {
   YAxis,
 } from "recharts";
 
-const StoreRetailMonthYear = ({ storeRetailMonthYear }) => {
-
+const StoreRetailMonthYear = ({ storeRetailMonthYear, yearFilter, monthFilter }) => {
   const vibrantColors = ["#FF6F61", "#6B5B95"]; // Light mode vibrant colors
-  
-  // Mapping Month number to Month Name
+
+  // Mapping month names to numeric format
   const monthNames = {
-    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
-    7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec",
+    January: "01",
+    February: "02",
+    March: "03",
+    April: "04",
+    May: "05",
+    June: "06",
+    July: "07",
+    August: "08",
+    September: "09",
+    October: "10",
+    November: "11",
+    December: "12",
   };
 
-  // Get current year dynamically
-  const currentYear = new Date().getFullYear();
-  const previousYear1 = currentYear - 1;
-  const previousYear2 = currentYear - 2;
+  const isAllYears = yearFilter.includes("all");
+  const isAllMonths = monthFilter.includes("all");
 
-  // Format the data for the LineChart
-  console.log(storeRetailMonthYear);
-  const formattedstoreRetailMonthYear = storeRetailMonthYear.reduce((acc, data) => {
-    const year = data[0]?.split("-")[0];
-    const month = monthNames[Number(data[0]?.split("-")[1])] || data.month;
-    const existingEntry = acc.find((entry) => entry.month === month);
+  // Filter and format data based on selected filters
+  const formattedData = [];
 
-    if (existingEntry) {
-      existingEntry[year] = data[1]?.total_retailing / 1000; // Convert value to millions
-    } else {
-      acc.push({
-        month,
-        [year]: data[1]?.total_retailing / 1000,
-      });
-    }
+  storeRetailMonthYear.forEach((arr) => {
+    const year = arr[0];
+    const retailData = arr[1];
 
-    return acc;
-  }, []);
+    Object.keys(retailData.months).forEach((monthNum) => {
+      const month = Object.keys(monthNames).find((key) => monthNames[key] === monthNum);
+
+      // Check if the entry exists for the given month
+      if (
+        (isAllYears || year === yearFilter) &&
+        (isAllMonths || monthFilter === month)
+      ) {
+        let existingEntry = formattedData.find((entry) => entry.month === month);
+
+        if (!existingEntry) {
+          existingEntry = { month };
+          formattedData.push(existingEntry);
+        }
+
+        existingEntry[year] = retailData.months[monthNum] /1000; // Convert value to K
+      }
+    });
+  });
 
   // Find the minimum value in the dataset for a better Y-axis start
-  console.log(formattedstoreRetailMonthYear);
-  const minValue = Math.min(...formattedstoreRetailMonthYear.flatMap(entry => Object.values(entry).filter(value => typeof value === "number")));
-  console.log(minValue);
+  const minValue = Math.min(
+    ...formattedData.flatMap((entry) =>
+      Object.values(entry).filter((value) => typeof value === "number")
+    )
+  );
+
   return (
     <ResponsiveContainer width={"100%"} height={600}>
       <LineChart
         width={500}
         height={300}
-        data={formattedstoreRetailMonthYear}
+        data={formattedData}
         margin={{ top: 5, bottom: 5, left: 20, right: 20 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
@@ -119,31 +137,30 @@ const StoreRetailMonthYear = ({ storeRetailMonthYear }) => {
         />
         <YAxis
           tick={{ fill: "var(--color-tick)", fontWeight: "bold" }}
-          unit="K" // Indicate values are in millions
+          unit="K" // Indicate values are in thousands
           domain={[minValue * 0.9, "auto"]} // Start slightly below the minimum value
         />
         <Tooltip contentStyle={{ color: "#000" }} />
         <Legend />
 
-        {/* Lines for the last two years */}
-        <Line
-          type="monotone"
-          dataKey={previousYear2}
-          stroke={`var(--color-line-1, ${vibrantColors[0]})`}
-          strokeWidth={2}
-          dot={{ r: 4 }}
-        />
-        <Line
-          type="monotone"
-          dataKey={previousYear1}
-          stroke={`var(--color-line-2, ${vibrantColors[1]})`}
-          strokeWidth={2}
-          dot={{ r: 4 }}
-        />
+        {/* Lines for each year */}
+        {Object.keys(storeRetailMonthYear.reduce((acc, cur) => ({ ...acc, [cur[0]]: true }), {})).map(
+          (year, index) => (
+            <Line
+              key={year}
+              type="monotone"
+              dataKey={year}
+              stroke={vibrantColors[index % vibrantColors.length]}
+              strokeWidth={2}
+              dot={{ r: 4 }}
+            />
+          )
+        )}
       </LineChart>
     </ResponsiveContainer>
   );
 };
 
 export default StoreRetailMonthYear;
+
 

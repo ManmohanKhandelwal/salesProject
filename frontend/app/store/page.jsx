@@ -184,7 +184,7 @@ const Store = () => {
     const lookupForFilter = {
       zm: "zoneManager",
       sm: "salesManager",
-      be:"businessExecutive"
+      be:"branchExecutive"
     };
     const queryParams = Object.entries(selectedFiltersBottom)
     .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
@@ -263,7 +263,7 @@ const Store = () => {
       const lookupForFilter = {
         zm: "zoneManager",
         sm: "salesManager",
-        be:"businessExecutive"
+        be:"branchExecutive"
       };
       const queryParams = Object.entries(selectedFiltersBottom)
         .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
@@ -501,6 +501,8 @@ const Store = () => {
                     </div>
                     <StoreRetailMonthYear
                       storeRetailMonthYear={Object.entries(storeDetails.monthly_metadata)}
+                      yearFilter={String(selectedFiltersTop?.years || "all")}
+                      monthFilter={String(selectedFiltersTop?.months || "all")}
                     />
                   </div>
                 ) : (
