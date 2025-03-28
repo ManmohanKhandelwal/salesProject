@@ -3,7 +3,6 @@ import mySqlPool from "#config/db.js";
 export const getTablesMetaData = async (req, res) => {
   try {
     const { tableName } = req.body;
-    console.log(tableName);
     if (tableName) {
       const [tableMetaData] = await mySqlPool.query(`DESCRIBE ${tableName}`);
       res.status(200).json(tableMetaData);

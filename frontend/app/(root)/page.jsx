@@ -9,21 +9,20 @@ import RetailMonthYear from "@/components/RetailMonthYear";
 import SalesCard from "@/components/SalesCard";
 import SummaryCard from "@/components/SummaryCard";
 import CustomLoader from "@/components/ui/loader";
-import fetchDashBoardData from "@/lib/utils";
 import { months } from "@/constants";
+import { backEndURL } from "@/lib/utils";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
     totalRetailingValue: 0,
-    latestMonthTotalRetailing: { year: "", month: "", total_retailing: "" },
+    latestMonthTotalRetailing: { year: "", month: 0, total_retailing: "" },
     percentageChangeinRetailing: "",
-    topRetailingBrand: { title: "", value: "" },
     topRetailingBranch: { title: "", value: "" },
     retailChannelData: [],
-    retailCategoryChannelData: [],
     topRetailingBranch: [],
     topRetailingBrand: [],
-    retailMonthYearData: [],
+    retailCategoryData: [],
+    retailTrendByMonthAndYear: [],
     topTenBrandForm: [],
     trendRetailData: [],
     trendCoverageData: [],
@@ -49,8 +48,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetchDashBoardData(selectedFilters)
-      .then((data) => setDashboardData(data))
+    fetch(backEndURL("/dashboard"))
+      .then((res) => res.json()).then((data) => setDashboardData(data)).catch((error) =>
+        console.error("Error fetching Dashboard data:", error))
       .finally(() => setLoading(false)); // Ensure loading state is removed only after fetch is done
   }, []);
 
@@ -84,9 +84,8 @@ const Dashboard = () => {
                 isShadow={false}
               />
               <SalesCard
-                title={`Retailing in ${
-                  months[dashboardData?.latestMonthTotalRetailing.month].title
-                } ${dashboardData?.latestMonthTotalRetailing.year}`}
+                title={`Retailing in ${months[dashboardData?.latestMonthTotalRetailing?.month].title
+                  } ${dashboardData?.latestMonthTotalRetailing?.year}`}
                 data={dashboardData?.latestMonthTotalRetailing.total_retailing}
                 trend={
                   dashboardData?.percentageChangeinRetailing > 0 ? "up" : "down"
@@ -112,7 +111,7 @@ const Dashboard = () => {
               <div className="flex flex-col items-center col-span-1">
                 <h1 className="text-xl font-semibold">Retailing by Category</h1>
                 <RetailCategoryPieChart
-                  ChannelData={dashboardData?.retailCategoryChannelData}
+                  ChannelData={dashboardData?.retailCategoryData}
                 />
               </div>
             </div>
@@ -137,7 +136,7 @@ const Dashboard = () => {
                 Retail Performance Over the Years
               </h1>
               <RetailMonthYear
-                RetailMonthYearData={dashboardData?.retailMonthYearData}
+                RetailMonthYearData={dashboardData?.retailTrendByMonthAndYear}
               />
             </div>
 

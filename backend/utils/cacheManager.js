@@ -37,7 +37,7 @@ const getCachedData = async (cacheKey) => {
     "SELECT data FROM cachetable WHERE cache_key = ?",
     [cacheKey]
   );
-  console.log("Rows:", rows);
+  // console.log("Rows:", rows);
   return rows.data ? rows.data : null;
 };
 

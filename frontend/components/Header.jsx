@@ -15,7 +15,7 @@ import {
   years,
   zm,
 } from "@/constants";
-import fetchDashBoardData from "@/lib/utils";
+import fetchDashBoardData, { backEndURL } from "@/lib/utils";
 import { CircleCheck, X } from "lucide-react";
 import FilterDropdown from "./FilterDropdown";
 
@@ -77,9 +77,15 @@ const Header = ({
     console.clear();
     console.log("Selected Filters:", SelectedFilters);
     SetLoading(true);
-    fetchDashBoardData(SelectedFilters)
-      .then((data) => SetDashboarddata(data))
-      .finally(() => SetLoading(false));
+    fetch(backEndURL("/dashboard/filterred-dashboard-data"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(SelectedFilters),
+    }).then((res) => res.json()).then((data) => SetDashboarddata(data)).catch((error) =>
+      console.error("Error fetching filtered dashboard data:", error))
+      .finally(() => SetLoading(false)); // Ensure loading state is removed only after fetch is done
   };
 
   return (

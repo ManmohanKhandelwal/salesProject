@@ -8,7 +8,7 @@ const dashBoardRouter = express.Router();
 /**
  * @swagger
  * /dashboard/update-psr-summary:
- *   put:
+ *   get:
  *     summary: Update PSR Summary
  *     description: Updates the dashboard summary by fetching retailing data, branch details, and brand details. The result is cached for faster retrieval.
  *     tags:
