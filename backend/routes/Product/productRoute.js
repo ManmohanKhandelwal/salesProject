@@ -1,6 +1,6 @@
 import { getCatBrandDetails } from "#controllers/Fetch/Product/getCatBrandDetails.js";
 import { getCatBrandSuggestions } from "#controllers/Fetch/Product/getCatBrandSuggestions.js";
-import { getProductSuggestions } from "#controllers/Fetch/Product/getProductFeatures.js";
+import { getProductSuggestions } from "#controllers/Fetch/Product/getProductSuggestions.js";
 import express from "express";
 const productRouter = express.Router();
 

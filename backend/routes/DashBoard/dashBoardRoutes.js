@@ -120,11 +120,11 @@ dashBoardRouter.get("/dashboard", getDashBoardData);
  *           schema:
  *             type: object
  *             properties:
- *               years:
+ *               year:
  *                 type: array
  *                 items:
- *                   type: integer
- *               months:
+ *                   type: string
+ *               month:
  *                 type: array
  *                 items:
  *                   type: string
@@ -140,11 +140,39 @@ dashBoardRouter.get("/dashboard", getDashBoardData);
  *                 type: array
  *                 items:
  *                   type: string
- *               customer_type:
+ *               subBrandform:
  *                 type: array
  *                 items:
  *                   type: string
- *               branches:
+ *               customerType:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               branch:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               zoneManager:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               salesManager:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               branchExecutive:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               channel:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               broadChannel:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               shortChannel:
  *                 type: array
  *                 items:
  *                   type: string
@@ -183,6 +211,7 @@ dashBoardRouter.get("/dashboard", getDashBoardData);
  *       500:
  *         description: Internal server error
  */
+
 dashBoardRouter.post("/dashboard/filterred-dashboard-data", getFilteredDashBoardData);
 
 export default dashBoardRouter;

@@ -1,6 +1,7 @@
-import db from "#config/db.js";
+import mySqlPool from "#config/db.js";
 import { updateTracking } from "#utils/trackingStatus.js";
-import { deleteFileByUUID } from "#utils/uuildFileMng.js";
+import { deleteFileByUUID } from "#utils/deleteFileByUUID.js";
+
 export const updatePSRTable = async (req, res) => {
   try {
     const { jobId, tableType } = req.body;
@@ -8,43 +9,44 @@ export const updatePSRTable = async (req, res) => {
     if (!jobId) throw { message: "File Path is required!", status: 400 };
     // Insert data from temp_psr_data into psr_data excluding the auto-increment primary
     // key (psr_id)
-    await db
+    await mySqlPool
       .query(
-        `
-            -- Insert data from temp_psr_data into psr_data excluding the auto-increment primary key (psr_id)
-                INSERT INTO psr_data (
-                document_no,
-                document_date,
-                subbrandform_name,
-                customer_name,
-                customer_code,
-                channel_description,
-                customer_type,
-                category,
-                brand,
-                brandform,
-                retailing
-                )
-                SELECT
-                document_no,
-                document_date,
-                subbrandform_name,
-                customer_name,
-                customer_code,
-                channel_description,
-                customer_type,
-                category,
-                brand,
-                brandform,
-                retailing
-                FROM temp_psr_data;
+        `INSERT INTO
+            psr_data (
+              document_no,
+              document_date,
+              subbrandform_name,
+              customer_name,
+              customer_code,
+              channel_description,
+              customer_type,
+              category,
+              brand,
+              brandform,
+              retailing
+            )
+          SELECT
+            document_no,
+            document_date,
+            subbrandform_name,
+            customer_name,
+            customer_code,
+            channel_description,
+            customer_type,
+            category,
+            brand,
+            brandform,
+            retailing
+          FROM
+            temp_psr_data;
             `
       )
       .then(() => {
         // Drop the temp_psr_data table
-        db.query(`DROP TABLE temp_${tableType}`);
+        mySqlPool.query(`DROP TABLE temp_${tableType}`);
       })
       .then(() => {
+        // Update the tracking status & delete the file
         updateTracking(jobId, { status: `Data Inserted into ${tableType}!` });
         deleteFileByUUID(jobId);
       });

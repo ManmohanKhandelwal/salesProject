@@ -1,6 +1,6 @@
 import mySqlPool from "#config/db.js";
 import { updateTracking } from "#utils/trackingStatus.js";
-import { deleteFileByUUID } from "#utils/uuildFileMng.js";
+import { deleteFileByUUID } from "#utils/deleteFileByUUID.js";
 
 export const updateMappings = async (req, res) => {
   try {
@@ -11,24 +11,50 @@ export const updateMappings = async (req, res) => {
 
     if (!jobId) throw { message: "jobId is required!", status: 400 };
 
-    let truncateQuery = `TRUNCATE TABLE ${tableType};`;
+    const truncateQuery = `TRUNCATE TABLE ${tableType};`;
     let insertQuery = "";
 
     if (tableType === "channel_mapping") {
       insertQuery = `
-        INSERT INTO channel_mapping (
-          customer_type, channel, broad_channel, short_channel
-        )
-        SELECT customer_type, channel, broad_channel, short_channel
-        FROM temp_channel_mapping;
+       INSERT INTO
+          channel_mapping (
+            customer_type,
+            channel,
+            broad_channel,
+            short_channel
+          )
+        SELECT
+          customer_type,
+          channel,
+          broad_channel,
+          short_channel
+        FROM
+          temp_channel_mapping;
       `;
     } else if (tableType === "store_mapping") {
       insertQuery = `
-        INSERT INTO store_mapping (
-          Old_Store_Code, New_Store_Code, New_Branch, DSE_Code, ZM, SM, BE, STL
-        )
-        SELECT Old_Store_Code, New_Store_Code, New_Branch, DSE_Code, ZM, SM, BE, STL
-        FROM temp_store_mapping;
+        INSERT INTO
+          store_mapping (
+            Old_Store_Code,
+            New_Store_Code,
+            New_Branch,
+            DSE_Code,
+            ZM,
+            SM,
+            BE,
+            STL
+          )
+        SELECT
+          Old_Store_Code,
+          New_Store_Code,
+          New_Branch,
+          DSE_Code,
+          ZM,
+          SM,
+          BE,
+          STL
+        FROM
+          temp_store_mapping;
       `;
     }
 

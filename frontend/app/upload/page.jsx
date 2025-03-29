@@ -233,7 +233,7 @@ const DataUpload = () => {
                       <Button
                         onClick={() => {
                           if (window.confirm("Are you sure?")) {
-                            fetch(backEndURL(`/delete-temp-table-csvfiles`), {
+                            fetch(backEndURL(`/delete-uploaded-file`), {
                               method: "POST",
                               body: JSON.stringify({ jobId: file.jobId }),
                               headers: { "Content-Type": "application/json" },

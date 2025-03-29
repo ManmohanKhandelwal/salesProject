@@ -1,4 +1,4 @@
-import { deleteFileByUUID } from "#utils/uuildFileMng.js";
+import { deleteFileByUUID } from "#utils/deleteFileByUUID.js";
 
 export const deleteTempFile = async (req, res) => {
   try {

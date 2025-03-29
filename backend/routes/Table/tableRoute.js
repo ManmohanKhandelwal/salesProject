@@ -4,7 +4,7 @@ import { deleteTempFile } from "#controllers/Delete/Table/deleteTempFIle.js";
 import { downloadFile } from "#controllers/Fetch/Table/downloadFile.js";
 import { getFileList } from "#controllers/Fetch/Table/getFileList.js";
 import { getTablesMetaData } from "#controllers/Fetch/Table/getTablesMetaData.js";
-import { insertNewData } from "#controllers/Update/Table/insertNewData.js";
+import { uploadFile } from "#controllers/Update/Table/uploadFile.js";
 import { updateMappings } from "#controllers/Update/Table/updateMappings.js";
 import { updatePSRTable } from "#controllers/Update/Table/updatePsrTable.js";
 import express from "express";
@@ -40,7 +40,8 @@ const tableRouter = express.Router();
  *       500:
  *         description: Internal server error.
  */
-tableRouter.post("/upload/new-csv-data", insertNewData);
+
+tableRouter.post("/upload/new-csv-data", uploadFile);
 
 /**
  * @swagger
@@ -67,6 +68,7 @@ tableRouter.post("/upload/new-csv-data", insertNewData);
  *       500:
  *         description: Internal server error.
  */
+
 tableRouter.post("/update/psr-data-table", updatePSRTable);
 
 /**
@@ -128,6 +130,7 @@ tableRouter.post("/update/psr-data-table", updatePSRTable);
  *                   type: string
  *                   example: "Internal Server Error"
  */
+
 tableRouter.post("/update/mappings-table", updateMappings);
 
 /**
@@ -150,6 +153,7 @@ tableRouter.post("/update/mappings-table", updateMappings);
  *       500:
  *         description: Internal server error.
  */
+
 tableRouter.post("/table-meta-data", getTablesMetaData);
 
 /**
@@ -193,11 +197,12 @@ tableRouter.post("/table-meta-data", getTablesMetaData);
  *                   type: string
  *                   description: Error message explaining the issue.
  */
+
 tableRouter.get("/temp-table-csvfiles", getFileList);
 
 /**
  * @swagger
- * /delete-temp-table-csvfiles:
+ * /delete-uploaded-file:
  *   post:
  *     summary: Delete a temporary file by Job ID
  *     description: Removes a temporary file from the system based on the provided Job ID.
@@ -249,9 +254,121 @@ tableRouter.get("/temp-table-csvfiles", getFileList);
  *                   example: "Internal Server Error"
  */
 
-tableRouter.post("/delete-temp-table-csvfiles", deleteTempFile);
+tableRouter.post("/delete-uploaded-file", deleteTempFile);
+
+/**
+ * @swagger
+ * /download-uploaded-file:
+ *   post:
+ *     summary: Download a file
+ *     description: Allows users to download a file stored in the `/backend/cache/` directory based on the provided job ID and file name.
+ *     tags:
+ *       - File Management
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               jobId:
+ *                 type: string
+ *                 description: Unique identifier of the file
+ *               fileName:
+ *                 type: string
+ *                 description: Name of the file to download
+ *             required:
+ *               - jobId
+ *               - fileName
+ *     responses:
+ *       200:
+ *         description: File successfully downloaded
+ *         content:
+ *           application/octet-stream: {}
+ *       400:
+ *         description: Bad request, missing jobId or fileName
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Job ID and File Name are required!
+ *       404:
+ *         description: File not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: File not found!
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal Server Error
+ */
 
 tableRouter.post("/download-uploaded-file", downloadFile);
+
+/**
+ * @swagger
+ * /run-custom-query:
+ *   post:
+ *     summary: Execute a custom SQL query
+ *     description: Runs a raw SQL query provided in the request body and returns the results.
+ *     tags:
+ *       - Database
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               query:
+ *                 type: string
+ *                 description: The raw SQL query to execute
+ *             required:
+ *               - query
+ *     responses:
+ *       200:
+ *         description: Successfully executed the query and returned results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       400:
+ *         description: Bad request, missing query parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Query is required!
+ *       500:
+ *         description: Internal server error or invalid SQL query
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal Server Error
+ */
 
 tableRouter.post("/run-custom-query", async (req, res) => {
   const { query } = req.body;
