@@ -5,14 +5,14 @@ import debounce from "lodash.debounce";
 import axios from "axios";
 import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import CustomLoader from "@/components/ui/loader";
-import { CircleCheck, MapPin, X } from "lucide-react";
+import { MapPin, X } from "lucide-react";
 import { months, years, zm, sm, be } from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
 import StoreAdditionalDetails from "@/components/ui/storeAdditionalDetails";
 import StorePagePieChart from "@/components/ui/StorePagePieChart";
-import BranchWiseStores from "@/components/ui/BranchWiseStores";
 import { backEndURL } from "@/lib/utils";
+
+import BranchWiseStores from "@/components/ui/BranchWiseStores";
 
 const HashLoader = dynamic(() => import("react-spinners/HashLoader"), {
   ssr: false,
@@ -27,7 +27,8 @@ const filtersToShowBottom = [
   { filterModule: zm, filterLabel: "ZM", filterKey: "zm" },
   { filterModule: sm, filterLabel: "SM", filterKey: "sm" },
   { filterModule: be, filterLabel: "BE", filterKey: "be" },
-]
+];
+
 const Store = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedStores, setSearchedStores] = useState(null);
@@ -60,29 +61,20 @@ const Store = () => {
   const [selectedFiltersBottom, setSelectedFiltersBottom] = useState({
     zm: ["all"],
     sm: ["all"],
-    be:["all"]
-  })
-  // Clear all filters
-  const clearAllFilters = () => {
-    setSelectedFiltersTop({
-      years: ["all"],
-      months: ["all"],
-    });
-    setSelectedFiltersBottom({
-      zm: ["all"],
-      sm: ["all"],
-      be:["all"]
-    })
-    window.location.reload(); // Refresh the page to reflect changes immediately
-  };
+    be: ["all"],
+  });
 
   // Remove a single filter
-  const removeFilter = (filterKey,section) => {
+  const removeFilter = (filterKey, section) => {
     let updatedFilters;
-    section==="top"? updatedFilters = { ...selectedFiltersTop }: updatedFilters = { ...selectedFiltersBottom };
-    console.log("updatedFilters: ",updatedFilters);
+    section === "top"
+      ? (updatedFilters = { ...selectedFiltersTop })
+      : (updatedFilters = { ...selectedFiltersBottom });
+    console.log("updatedFilters: ", updatedFilters);
     delete updatedFilters[filterKey]; // Remove filter from selected state
-    section==="top"?setSelectedFiltersTop(updatedFilters):setSelectedFiltersBottom(updatedFilters);
+    section === "top"
+      ? setSelectedFiltersTop(updatedFilters)
+      : setSelectedFiltersBottom(updatedFilters);
   };
 
   const debouncedSearch = useCallback(
@@ -122,7 +114,7 @@ const Store = () => {
     if (!selectedItem) return;
     const fetchStoreData = async () => {
       try {
-        console.log("SelectedItem: ",selectedItem);
+        console.log("SelectedItem: ", selectedItem);
         const response = await axios.get(
           backEndURL(`/store/meta-data?oldStoreCode=${selectedItem}`)
         );
@@ -136,10 +128,11 @@ const Store = () => {
   }, [selectedItem]);
 
   const isAnyBottomFilterSelected = () => {
-    const queryParams = Object.entries(selectedFiltersBottom)
-    .filter(([key, values]) => values.length > 0 && !values.includes("all"));
-    return queryParams.length>0?true:false;
-  }
+    const queryParams = Object.entries(selectedFiltersBottom).filter(
+      ([key, values]) => values.length > 0 && !values.includes("all")
+    );
+    return queryParams.length > 0 ? true : false;
+  };
 
   //Fetch Dashboard Data
   useEffect(() => {
@@ -149,73 +142,89 @@ const Store = () => {
       try {
         const response = await axios.get(backEndURL(`/store/top-stores`));
         console.log(response);
-        setPaginatedResults(response.data?.cachedData || response.data?.topStoresDetails);
-        if(response.data?.cachedData?.length>0) setTotalPages(Math.ceil(response.data?.cachedData?.length/20));
+        setPaginatedResults(
+          response.data?.cachedData || response.data?.topStoresDetails
+        );
+        if (response.data?.cachedData?.length > 0)
+          setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
       } catch (error) {
-        console.error("Error fetching top 100 stores, Error: ",error);
+        console.error("Error fetching top 100 stores, Error: ", error);
       } finally {
         setTop100StoresLoading(false);
         setDashboardLoading(false);
       }
-    }
+    };
     isAnyBottomFilterSelected();
     fetchTop100Stores();
   }, []);
 
-  const getTopStores = useCallback(async (query) => {
-    if (query?.trim() === "") return;
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        backEndURL(`/store/top-stores?branchName=${query}&topStoresCount=100&offset=0`)
-      );
-      console.log(response?.data);
-      setResults(response.data?.cachedData);
-      setCurrentPage(1);
-      if(response.data?.cachedData?.length>0) setTotalPages(Math.ceil(response.data?.cachedData?.length/20));
-    } catch (error) {
-      console.error("Couldn't fetch top stores, Error: ", error);
-    } finally {
-      setLoading(false);
-    }
-  },[selectedBranchBottom]);
+  const getTopStores = useCallback(
+    async (query) => {
+      if (query?.trim() === "") return;
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          backEndURL(
+            `/store/top-stores?branchName=${query}&topStoresCount=100&offset=0`
+          )
+        );
+        console.log(response?.data);
+        setResults(response.data?.cachedData);
+        setCurrentPage(1);
+        if (response.data?.cachedData?.length > 0)
+          setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
+      } catch (error) {
+        console.error("Couldn't fetch top stores, Error: ", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedBranchBottom]
+  );
 
   const getTopStoresByFilter = useCallback(async () => {
     const lookupForFilter = {
       zm: "zoneManager",
       sm: "salesManager",
-      be:"branchExecutive"
+      be: "branchExecutive",
     };
     const queryParams = Object.entries(selectedFiltersBottom)
-    .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
-    .map(
-      ([key, values]) =>
-        `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`
-    ) // Send only the first valid value
-    .join("&");
-    if(queryParams?.length===0) return;
-    if(queryParams?.split('&')?.length > 1) return;
-    console.log("queryParams: ",queryParams)
+      .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
+      .map(
+        ([key, values]) =>
+          `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`
+      ) // Send only the first valid value
+      .join("&");
+    if (queryParams?.length === 0) return;
+    if (queryParams?.split("&")?.length > 1) return;
+    console.log("queryParams: ", queryParams);
     setLoading(true);
     try {
-      const response = await axios.get(backEndURL(`/store/top-stores?${queryParams}`));
+      const response = await axios.get(
+        backEndURL(`/store/top-stores?${queryParams}`)
+      );
       setResults(response.data?.cachedData);
       setCurrentPage(1);
-      if(response.data?.cachedData?.length>0) setTotalPages(Math.ceil(response.data?.cachedData?.length/20));
+      if (response.data?.cachedData?.length > 0)
+        setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
     } catch (error) {
-      console.error("Error fetching top stores by filter, error: ",error);
+      console.error("Error fetching top stores by filter, error: ", error);
     } finally {
       setLoading(false);
     }
-  },[selectedFiltersBottom]);
+  }, [selectedFiltersBottom]);
 
-  const displayedStores = ((query==="" || selectedBranchBottom==="") && !isAnyBottomFilterSelected())?paginatedResults?.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  ): results?.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const displayedStores =
+    (query === "" || selectedBranchBottom === "") &&
+    !isAnyBottomFilterSelected()
+      ? paginatedResults?.slice(
+          (currentPage - 1) * itemsPerPage,
+          currentPage * itemsPerPage
+        )
+      : results?.slice(
+          (currentPage - 1) * itemsPerPage,
+          currentPage * itemsPerPage
+        );
 
   const [hideSearch, setHideSearch] = useState(false);
 
@@ -254,16 +263,17 @@ const Store = () => {
     const value = e.target.value;
     section === "middle" ? setBranch(value) : setQuery(value);
     section === "lower" ? setHideBranchSearchLower(false) : "";
-    if(section === "lower" && value==="") setResults([]);
+    if (section === "lower" && value === "") setResults([]);
     searchBranch(value, section);
   };
+
   const searchBranch = useCallback(
     debounce(async (q, section) => {
-      if (q?.trim()==="") return;
+      if (q?.trim() === "") return;
       const lookupForFilter = {
         zm: "zoneManager",
         sm: "salesManager",
-        be:"branchExecutive"
+        be: "branchExecutive",
       };
       const queryParams = Object.entries(selectedFiltersBottom)
         .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
@@ -316,7 +326,7 @@ const Store = () => {
 
   useEffect(() => {
     getTopStoresByFilter();
-  },[selectedFiltersBottom])
+  }, [selectedFiltersBottom]);
 
   useEffect(() => {
     return () => {
@@ -341,7 +351,7 @@ const Store = () => {
         <div>
           {/* TOP SECTION */}
           <div className="p-3 mt-6" ref={middleSectionRef}>
-            <p className="text-center text-xl font-semibold pb-1">
+            <p className="text-center text-xl font-semibold pb-2">
               Retailing of Store by Month and Year
             </p>
 
@@ -417,6 +427,7 @@ const Store = () => {
                     ))}
                 </ul>
               </div>
+
               {selectedBranch && hideBranchSearchMiddle && (
                 <div className="grid grid-cols-3 gap-2 bg-amber-50 border-2 border-amber-400 py-2 px-3 text-gray-600 rounded-full items-center">
                   <span
@@ -432,6 +443,7 @@ const Store = () => {
                   />
                 </div>
               )}
+
               {/* FILTERS */}
               <div className="flex items-center gap-3">
                 {filtersToShowTop.map((filter) => (
@@ -445,30 +457,21 @@ const Store = () => {
                   />
                 ))}
               </div>
-              {/* SUBMIT & CLEAR BUTTONS */}
-              {Object.values(selectedFiltersTop).some(
-                (filter) => filter.length > 0 && !filter.includes("all")
-              ) && (
-                <div className="flex items-center gap-3">
-                  <button
-                    className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-600 transition"
-                    onClick={clearAllFilters}
-                  >
-                    Clear All
-                  </button>
-                </div>
-              )}
             </div>
+
             {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
-            {/* Filters Display */}
             {Object.values(selectedFiltersTop).some(
               (filter) => filter.length > 0 && !filter.includes("all")
             ) && (
               <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
                 {Object.entries(selectedFiltersTop)
-                  .filter(([, selectedValues]) => !selectedValues.includes("all"))
+                  .filter(
+                    ([, selectedValues]) => !selectedValues.includes("all")
+                  )
                   .map(([filterKey, selectedValues]) => {
-                    const filter = filtersToShowTop.find((f) => f.filterKey === filterKey);
+                    const filter = filtersToShowTop.find(
+                      (f) => f.filterKey === filterKey
+                    );
                     return (
                       <div
                         key={filterKey}
@@ -480,7 +483,7 @@ const Store = () => {
                         : {selectedValues.join(", ")}
                         <button
                           className="text-red-500 hover:text-red-700"
-                          onClick={() => removeFilter(filterKey,"top")}
+                          onClick={() => removeFilter(filterKey, "top")}
                         >
                           <X size={16} />
                         </button>
@@ -490,45 +493,61 @@ const Store = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-3 mt-6">
-              <div className="col-span-2">
+            {/* STORE DETAILS */}
+            <div className="grid grid-cols-3 gap-6 mt-6">
+              <div className="col-span-2 bg-gray-100 dark:bg-gray-900 rounded-xl p-6 shadow-md">
                 {storeDetails ? (
-                  // Render the actual LineChart when storeDetails is available
                   <div>
-                    <div className="flex justify-center items-center gap-6 font-medium mb-1">
-                      <p>Name - {storeDetails.metadata?.store_name}</p>
-                      <p>Channel - {storeDetails.metadata?.channel_description}</p>
+                    {/* Store Metadata */}
+                    <div className="flex justify-center items-center gap-8 font-medium text-xl text-gray-700 dark:text-gray-300">
+                      <p>
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          Store Name:
+                        </span>{" "}
+                        {storeDetails.metadata?.store_name}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          Channel:
+                        </span>{" "}
+                        {storeDetails.metadata?.channel_description}
+                      </p>
                     </div>
-                    <StoreRetailMonthYear
-                      storeRetailMonthYear={Object.entries(storeDetails.monthly_metadata)}
-                      yearFilter={String(selectedFiltersTop?.years || "all")}
-                      monthFilter={String(selectedFiltersTop?.months || "all")}
-                    />
+
+                    {/* Line Chart */}
+                    <div className="mt-6">
+                      <StoreRetailMonthYear
+                        storeRetailMonthYear={Object.entries(
+                          storeDetails.monthly_metadata
+                        )}
+                        yearFilter={String(selectedFiltersTop?.years || "all")}
+                        monthFilter={String(
+                          selectedFiltersTop?.months || "all"
+                        )}
+                      />
+                    </div>
                   </div>
                 ) : (
                   // Skeleton Loader for Line Chart
-                  <div className="h-[400px] bg-gradient-to-br rounded-lg from-slate-200 to-slate-600 relative overflow-hidden">
-                    {/* Shimmer Effect */}
-                    <div className="absolute inset-0 bg-white/10 animate-shimmer"></div>
-
-                    {/* Placeholder Axes and Gridlines */}
-                    <div className="flex flex-col justify-between h-full p-4">
+                  <div className="relative h-[400px] bg-gradient-to-br from-gray-300 to-gray-500 dark:from-gray-700 dark:to-gray-900 rounded-lg overflow-hidden">
+                    <div className="absolute inset-0 bg-white/10 dark:bg-gray-800/10 animate-pulse"></div>
+                    <div className="flex flex-col justify-between h-full p-6">
                       {/* Y-Axis Labels */}
                       <div className="flex justify-between">
-                        <div className="w-8 h-4 bg-white/30 rounded"></div>
-                        <div className="w-8 h-4 bg-white/30 rounded"></div>
+                        <div className="w-8 h-4 bg-white/30 dark:bg-gray-600 rounded"></div>
+                        <div className="w-8 h-4 bg-white/30 dark:bg-gray-600 rounded"></div>
                       </div>
                       <div className="flex justify-between">
-                        <div className="w-8 h-4 bg-white/30 rounded"></div>
-                        <div className="w-8 h-4 bg-white/30 rounded"></div>
+                        <div className="w-8 h-4 bg-white/30 dark:bg-gray-600 rounded"></div>
+                        <div className="w-8 h-4 bg-white/30 dark:bg-gray-600 rounded"></div>
                       </div>
 
                       {/* X-Axis Labels */}
                       <div className="flex justify-between mt-4">
-                        <div className="w-12 h-4 bg-white/30 rounded"></div>
-                        <div className="w-12 h-4 bg-white/30 rounded"></div>
-                        <div className="w-12 h-4 bg-white/30 rounded"></div>
-                        <div className="w-12 h-4 bg-white/30 rounded"></div>
+                        <div className="w-12 h-4 bg-white/30 dark:bg-gray-600 rounded"></div>
+                        <div className="w-12 h-4 bg-white/30 dark:bg-gray-600 rounded"></div>
+                        <div className="w-12 h-4 bg-white/30 dark:bg-gray-600 rounded"></div>
+                        <div className="w-12 h-4 bg-white/30 dark:bg-gray-600 rounded"></div>
                       </div>
                     </div>
 
@@ -541,30 +560,32 @@ const Store = () => {
                         strokeWidth="2"
                       ></path>
                     </svg>
-                    <div className="absolute inset-0 flex justify-center items-center text-white tracking-wider text-lg">
+                    <div className="absolute inset-0 flex justify-center items-center text-white text-lg tracking-wide">
                       Enter store code to see data
                     </div>
                   </div>
                 )}
               </div>
-              <div className="px-3">
-                <p className="text-center -mt-4 text-xl font-semibold">
+
+              {/* Additional Details Section */}
+              <div className="bg-gray-100 dark:bg-gray-900 rounded-xl p-6 shadow-md">
+                <p className="text-center text-2xl font-semibold text-gray-900 dark:text-white">
                   Additional Details
                 </p>
                 {storeDetails ? (
-                  <div className="mt-3">
-                    <StoreAdditionalDetails data={storeDetails?.metadata}/>
+                  <div className="mt-4">
+                    <StoreAdditionalDetails data={storeDetails?.metadata} />
                   </div>
                 ) : (
-                  <div className="mt-4 text-white/80 text-center p-3 rounded-md bg-gradient-to-t from-gray-700 to-gray-600  ">
-                    No data available !
+                  <div className="mt-6 text-gray-700 dark:text-gray-300 text-center p-4 rounded-md bg-gray-300 dark:bg-gray-800">
+                    No data available!
                   </div>
                 )}
               </div>
             </div>
 
             {storeDetails && storeDetails?.category_retailing && (
-              <div className="flex flex-col items-center mt-3">
+              <div className="flex flex-col items-center mt-3 bg-gray-100 dark:bg-gray-900 rounded-xl p-6 shadow-md">
                 <div className="text-center text-2xl font-bold text-gray-700 dark:text-white">
                   Categorywise Retailing
                 </div>
@@ -627,45 +648,36 @@ const Store = () => {
                     ))}
                 </ul>
               </div>
+
               {/* FILTERS */}
               <div className="flex items-center gap-3">
-                {(!query) && filtersToShowBottom.map((filter) => (
-                  <FilterDropdown
-                    key={filter.filterKey}
-                    filter={filter.filterModule}
-                    name={filter.filterLabel}
-                    filterKey={filter.filterKey}
-                    selectedFilters={selectedFiltersBottom}
-                    setSelectedFilters={setSelectedFiltersBottom}
-                  />
-                ))}
+                {!query &&
+                  filtersToShowBottom.map((filter) => (
+                    <FilterDropdown
+                      key={filter.filterKey}
+                      filter={filter.filterModule}
+                      name={filter.filterLabel}
+                      filterKey={filter.filterKey}
+                      selectedFilters={selectedFiltersBottom}
+                      setSelectedFilters={setSelectedFiltersBottom}
+                    />
+                  ))}
               </div>
-
-              {/* SUBMIT & CLEAR BUTTONS */}
-              {Object.values(selectedFiltersBottom).some(
-                (filter) => filter.length > 0 && !filter.includes("all")
-              ) && (
-                <div className="flex items-center gap-3">
-                  <button
-                    className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-600 transition"
-                    onClick={clearAllFilters}
-                  >
-                    Clear All
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
-            {/* Filters Display */}
             {Object.values(selectedFiltersBottom).some(
               (filter) => filter.length > 0 && !filter.includes("all")
             ) && (
               <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
                 {Object.entries(selectedFiltersBottom)
-                  .filter(([, selectedValues]) => !selectedValues.includes("all"))
+                  .filter(
+                    ([, selectedValues]) => !selectedValues.includes("all")
+                  )
                   .map(([filterKey, selectedValues]) => {
-                    const filter = filtersToShowBottom.find((f) => f.filterKey === filterKey);
+                    const filter = filtersToShowBottom.find(
+                      (f) => f.filterKey === filterKey
+                    );
                     return (
                       <div
                         key={filterKey}
@@ -677,7 +689,7 @@ const Store = () => {
                         : {selectedValues.join(", ")}
                         <button
                           className="text-red-500 hover:text-red-700"
-                          onClick={() => removeFilter(filterKey,"bottom")}
+                          onClick={() => removeFilter(filterKey, "bottom")}
                         >
                           <X size={16} />
                         </button>
@@ -688,39 +700,52 @@ const Store = () => {
             )}
 
             {/* Results Table */}
-            {paginatedResults && paginatedResults.length > 0 && !top100StoresLoading && displayedStores.length>0 ? (
+            {paginatedResults &&
+            paginatedResults.length > 0 &&
+            !top100StoresLoading &&
+            displayedStores.length > 0 ? (
               <div className="overflow-x-auto mt-6">
-                <table className="w-full max-w-4xl mx-auto border-collapse border border-gray-300 dark:border-gray-700 shadow-md">
-                  <thead className="bg-gray-100 dark:bg-gray-800">
-                    <tr className="text-left">
-                      <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                <table className="w-full max-w-5xl mx-auto border border-gray-300 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
+                  {/* Table Header */}
+                  <thead className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <tr>
+                      <th className="p-4 text-center text-sm font-semibold border border-gray-300 dark:border-gray-700">
                         Rank
                       </th>
-                      <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                      <th className="p-4 text-center text-sm font-semibold border border-gray-300 dark:border-gray-700">
                         Store Code
                       </th>
-                      <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                      <th className="p-4 text-center text-sm font-semibold border border-gray-300 dark:border-gray-700">
                         Name
                       </th>
-                      <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                      <th className="p-4 text-center text-sm font-semibold border border-gray-300 dark:border-gray-700">
                         Channel
                       </th>
-                      <th className="p-3 text-center border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                      <th className="p-4 text-center text-sm font-semibold border border-gray-300 dark:border-gray-700">
                         Avg Retailing (₹)
                       </th>
                     </tr>
                   </thead>
+
+                  {/* Table Body */}
                   <tbody>
                     {displayedStores.map((storeDetails, index) => (
                       <tr
                         key={index}
-                        className={`border border-gray-300 dark:border-gray-700 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-800"} hover:bg-gray-200 dark:hover:bg-gray-700 transition-all`}
+                        className={`border border-gray-300 dark:border-gray-700 ${
+                          index % 2 === 0
+                            ? "bg-gray-100 dark:bg-gray-900"
+                            : "bg-white dark:bg-gray-800"
+                        } hover:bg-gray-300 dark:hover:bg-gray-700 transition-all`}
                       >
-                        <td className="p-3 text-center text-gray-800 dark:text-gray-300">
+                        {/* Rank */}
+                        <td className="p-4 text-center text-gray-800 dark:text-gray-300">
                           {index + 1 + (currentPage - 1) * itemsPerPage}
                         </td>
+
+                        {/* Store Code (Clickable) */}
                         <td
-                          className="p-3 text-center font-semibold text-gray-900 dark:text-gray-200 cursor-pointer"
+                          className="p-4 text-center font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
                           onClick={() => {
                             setSearchQuery(storeDetails["store_code"]);
                             showStoreDetails(storeDetails["store_code"]);
@@ -732,35 +757,63 @@ const Store = () => {
                         >
                           {storeDetails["store_code"]}
                         </td>
-                        <td className="p-3 text-center text-gray-800 dark:text-gray-300">
+
+                        {/* Store Name */}
+                        <td className="p-4 text-center text-gray-800 dark:text-gray-300">
                           {storeDetails["store_name"]}
                         </td>
-                        <td className="p-3 text-center text-gray-800 dark:text-gray-300">
+
+                        {/* Channel */}
+                        <td className="p-4 text-center text-gray-800 dark:text-gray-300">
                           {storeDetails["channel"]}
                         </td>
-                        <td className="p-3 text-center text-lg font-medium text-green-600 dark:text-orange-400">
+
+                        {/* Avg Retailing */}
+                        <td className="p-4 text-center text-lg font-semibold text-green-700 dark:text-orange-400">
                           ₹ {Number(storeDetails["avg_retailing"]).toFixed(2)}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+
                 {/* Pagination Controls */}
-                <div className="flex justify-center items-center gap-3 mt-4">
+                <div className="flex justify-center items-center gap-2 mt-6">
+                  {/* Previous Button */}
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition disabled:opacity-50"
                   >
-                    Previous
+                    ← Previous
                   </button>
-                  <span className="text-gray-700 dark:text-gray-200">Page {currentPage} of {totalPages}</span>
+
+                  {/* Page Number Buttons */}
+                  {Array.from({ length: totalPages }, (_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`px-3 py-2 border rounded-md transition text-gray-700 dark:text-gray-200 ${
+                        currentPage === index + 1
+                          ? "bg-blue-600 text-white dark:bg-blue-500"
+                          : "bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+
+                  {/* Next Button */}
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, 5))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition disabled:opacity-50"
                   >
-                    Next
+                    Next →
                   </button>
                 </div>
               </div>
@@ -769,18 +822,18 @@ const Store = () => {
                 {loading ? "Searching for stores..." : "No data available!"}
               </div>
             )}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center min-h-screen bg-inherit">
-                <HashLoader
-                  color="rgb(249, 115, 22)"
-                  size={120}
-                  loading={dashboardLoading}
-                />
-              </div>
-            )}
           </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center min-h-screen bg-inherit">
+          <HashLoader
+            color="rgb(249, 115, 22)"
+            size={120}
+            loading={dashboardLoading}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
