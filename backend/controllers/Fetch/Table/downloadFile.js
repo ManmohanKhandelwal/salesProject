@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 
-export const getUploadedFiles = async (req, res) => {
+export const downloadFile = async (req, res) => {
   try {
     const { jobId, fileName } = req.body;
 

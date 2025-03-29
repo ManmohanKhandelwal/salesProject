@@ -29,19 +29,20 @@ const Dashboard = () => {
   });
 
   const [selectedFilters, setSelectedFilters] = useState({
-    years: ["all"],
-    months: ["all"],
-    branches: ["all"],
-    zm: ["all"],
-    sm: ["all"],
-    be: ["all"],
-    channel: ["all"],
-    broadChannel: ["all"],
-    shortChannel: ["all"],
+    year: ["all"],
+    month: ["all"],
     category: ["all"],
     brand: ["all"],
     brandform: ["all"],
-    subBrandform: ["all"],
+    // subBrandform: ["all"],
+    // customerType:  ["all"],
+    branch: ["all"],
+    zoneManager: ["all"],
+    salesManager: ["all"],
+    branchExecutive: ["all"],
+    channel: ["all"],
+    broadChannel: ["all"],
+    shortChannel: ["all"],
   });
 
   const [loading, setLoading] = useState(true);

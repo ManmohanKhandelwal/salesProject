@@ -12,7 +12,7 @@ const convertToIST = (date) => {
   return istDate.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }); // Format for India
 };
 
-export const getTempTableCSVFiles = async (req, res) => {
+export const getFileList = async (req, res) => {
   try {
     // Check if cache directory exists, if not, return empty response
     if (!fs.existsSync(CACHE_DIR)) {

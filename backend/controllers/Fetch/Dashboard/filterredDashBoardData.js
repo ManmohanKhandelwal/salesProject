@@ -12,8 +12,10 @@ export const getFilteredDashBoardData = async (req, res) => {
     const filteredQueries = Object.entries(queries).reduce(
       (acc, [key, value]) => {
         if (value.length > 0 && !value.includes("all")) {
+          console.log("Key:", key, "Value:", value);
+          // Map month names to numbers if the key is "month"
           acc[key] =
-            key === "months"
+            key === "month"
               ? value.map((month) => monthMapping[month] || month)
               : value;
         }
@@ -22,12 +24,14 @@ export const getFilteredDashBoardData = async (req, res) => {
       {}
     );
 
+    console.log("Queries:", queries);
     console.log("Filtered Queries:", filteredQueries);
 
     // Identify tables required based on filters
     const requiresStoreMapping = Object.keys(filteredQueries).some((key) =>
-      ["branches", "zm", "sm", "be"].includes(key)
+      ["branch", "zoneManager", "salesManager", "branchExecutive"].includes(key)
     );
+
     const requiresChannelMapping = Object.keys(filteredQueries).some((key) =>
       ["channel", "broadChannel", "shortChannel"].includes(key)
     );
@@ -53,16 +57,19 @@ export const getFilteredDashBoardData = async (req, res) => {
           })
           .join(" AND ");
     }
+    console.clear();
+    // console.log("Query Params:", queryParams);
+    console.log("Where Clause:", whereClause);
 
     // Construct FROM and JOINs based on required tables
-    let fromClause = "FROM psr_data AS pd"; // Alias pd for pd
+    let fromClause = "FROM psr_data"; // Alias pd for pd
     if (requiresStoreMapping) {
       fromClause +=
-        " JOIN store_mapping ON pd.customer_code = store_mapping.Old_Store_Code";
+        " JOIN store_mapping ON psr_data.customer_code = store_mapping.Old_Store_Code";
     }
     if (requiresChannelMapping) {
       fromClause +=
-        " JOIN channel_mapping ON pd.customer_type = channel_mapping.customer_type";
+        " JOIN channel_mapping ON psr_data.customer_type = channel_mapping.customer_type";
     }
 
     // Get database connection
@@ -70,41 +77,41 @@ export const getFilteredDashBoardData = async (req, res) => {
     await connection.query("SET SESSION sql_mode = ''");
 
     const sqlQueryTotalRetailing = `
-    SELECT SUM(pd.retailing) AS totalRetailingValue
+    SELECT SUM(psr_data.retailing) AS totalRetailingValue
     ${requiresChannelMapping ? ", channel_mapping.broad_channel" : ""}
     ${fromClause}
     ${whereClause}
   `;
 
     const sqlQueryRetailChannelData = `
-    SELECT cm.broad_channel as name, SUM(pd.retailing) AS value
+    SELECT cm.broad_channel as name, SUM(psr_data.retailing) AS value
     ${fromClause}
-    JOIN channel_mapping cm ON pd.customer_type = cm.customer_type
+    JOIN channel_mapping cm ON psr_data.customer_type = cm.customer_type
     ${whereClause}
     GROUP BY cm.broad_channel
   `;
 
     const sqlQueryRetailCategoryChannelData = `
-    SELECT pd.category, SUM(pd.retailing) AS totalRetailing
+    SELECT psr_data.category, SUM(psr_data.retailing) AS totalRetailing
     ${fromClause}
     ${whereClause}
-    GROUP BY pd.category
+    GROUP BY psr_data.category
   `;
     const sqlQueryRetailCategoryData = `SELECT category as name, SUM(retailing) as value
     ${fromClause}
     ${whereClause} GROUP BY category`;
     const sqlQueryRetailTrendByMonthAndYear = `
-    SELECT YEAR(pd.document_date) AS year, MONTH(pd.document_date) AS month, SUM(pd.retailing) AS value
+    SELECT YEAR(psr_data.document_date) AS year, MONTH(psr_data.document_date) AS month, SUM(psr_data.retailing) AS value
     ${fromClause}
     ${whereClause}
-    GROUP BY YEAR(pd.document_date), MONTH(pd.document_date)
+    GROUP BY YEAR(psr_data.document_date), MONTH(psr_data.document_date)
   `;
 
     const sqlQueryTopBrandForm = `
-    SELECT pd.brandform, SUM(pd.retailing) AS totalRetailing
+    SELECT psr_data.brandform, SUM(psr_data.retailing) AS totalRetailing
     ${fromClause}
     ${whereClause}
-    GROUP BY pd.brandform
+    GROUP BY psr_data.brandform
     ORDER BY totalRetailing DESC
     LIMIT 10
   `;

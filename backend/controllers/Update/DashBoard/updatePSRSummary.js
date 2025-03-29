@@ -2,11 +2,13 @@ import {
   retailingSumQuery,
   branchDetailsQuery,
   brandDetailsQuery,
-} from "#commands/psrTable/updatePSRSummary.js";
+} from "#commands/psrTable/psrCacheQuery.js";
+
 import mySqlPool from "#config/db.js";
 import { getCachedData, updateCache } from "#utils/cacheManager.js";
 
 const CACHE_KEY = "psr_summary";
+
 export const updatePSRSummary = async (req, res) => {
   try {
     // Import queries from commands & run it to update the dashboard summary in cacheTable Table.

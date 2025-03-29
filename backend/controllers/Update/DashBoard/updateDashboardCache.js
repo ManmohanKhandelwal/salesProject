@@ -1,4 +1,4 @@
-import { retailingByCategoryQuery, retailingByChannelQuery, retailingStatsQuery, retailTrendQuery, topTenBrandFormQuery } from "#commands/Dashboard/Dashboard.js";
+import { retailingByCategoryQuery, retailingByChannelQuery, retailingStatsQuery, retailTrendQuery, topTenBrandFormQuery } from "#commands/Dashboard/dashboardQuery.js";
 import mySqlPool from "#config/db.js";
 import { getCachedData, updateCache } from "#utils/cacheManager.js";
 const CACHE_KEY_DASHBOARD = "sales-dashboard";

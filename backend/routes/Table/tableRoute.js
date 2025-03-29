@@ -1,9 +1,9 @@
 // routes/tableRouter.js
 import mySqlPool from "#config/db.js";
 import { deleteTempFile } from "#controllers/Delete/Table/deleteTempFIle.js";
-import { getTablesMetaData } from "#controllers/Fetch/Table/fetchMetaData.js";
-import { getTempTableCSVFiles } from "#controllers/Fetch/Table/getTempTableCSVFiles.js";
-import { getUploadedFiles } from "#controllers/Fetch/Table/getUploadedFiles.js";
+import { downloadFile } from "#controllers/Fetch/Table/downloadFile.js";
+import { getFileList } from "#controllers/Fetch/Table/getFileList.js";
+import { getTablesMetaData } from "#controllers/Fetch/Table/getTablesMetaData.js";
 import { insertNewData } from "#controllers/Update/Table/insertNewData.js";
 import { updateMappings } from "#controllers/Update/Table/updateMappings.js";
 import { updatePSRTable } from "#controllers/Update/Table/updatePsrTable.js";
@@ -193,7 +193,7 @@ tableRouter.post("/table-meta-data", getTablesMetaData);
  *                   type: string
  *                   description: Error message explaining the issue.
  */
-tableRouter.get("/temp-table-csvfiles", getTempTableCSVFiles);
+tableRouter.get("/temp-table-csvfiles", getFileList);
 
 /**
  * @swagger
@@ -251,7 +251,7 @@ tableRouter.get("/temp-table-csvfiles", getTempTableCSVFiles);
 
 tableRouter.post("/delete-temp-table-csvfiles", deleteTempFile);
 
-tableRouter.post("/download-uploaded-file", getUploadedFiles);
+tableRouter.post("/download-uploaded-file", downloadFile);
 
 tableRouter.post("/run-custom-query", async (req, res) => {
   const { query } = req.body;

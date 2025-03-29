@@ -1,4 +1,14 @@
 import mySqlPool from "#config/db.js";
+import {
+  brandDataForCategoryQuery,
+  trendDataForCategoryQuery,
+  storeDataForCategoryQuery,
+  brandDataForBrandQuery,
+  brandFormDataForBrandQuery,
+  trendDataForBrandQuery,
+  storeDataForBrandQuery
+} from "#commands/Product/Category_Brand_Query.js";
+
 
 export const getCatBrandDetails = async (req, res) => {
   try {
@@ -12,119 +22,60 @@ export const getCatBrandDetails = async (req, res) => {
 
     if (searchType === "category") {
       const queries = [
-        mySqlPool.query(
-          `WITH brand_sales AS (
-              SELECT brand, SUM(retailing) AS total_retailing
-              FROM psr_data
-              WHERE category = ?
-              GROUP BY brand
-           )
-           SELECT brand, total_retailing
-           FROM brand_sales
-           WHERE total_retailing = (SELECT MAX(total_retailing) FROM brand_sales)
-              OR total_retailing = (SELECT MIN(total_retailing) FROM brand_sales);`,
-          [categoryName]
+        // Highest & Lowest Retailing Brand
+        mySqlPool.query(brandDataForCategoryQuery, [categoryName]
         ),
+
+        // Retailing Trend Over Time
         mySqlPool.query(
-          `SELECT DATE_FORMAT(document_date, '%Y-%m') AS month_year, SUM(retailing) AS total_retailing 
-           FROM psr_data 
-           WHERE category = ? 
-           GROUP BY month_year 
-           ORDER BY month_year;`,
-          [categoryName]
+          trendDataForCategoryQuery, [categoryName]
         ),
-        mySqlPool.query(
-          `WITH branch_sales AS (
-              SELECT store.New_Branch AS branch, SUM(psr.retailing) AS total_retailing
-              FROM psr_data psr
-              JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
-              WHERE category = ?
-              GROUP BY store.New_Branch
-           )
-           SELECT branch, total_retailing
-           FROM branch_sales
-           WHERE total_retailing = (SELECT MAX(total_retailing) FROM branch_sales)
-              OR total_retailing = (SELECT MIN(total_retailing) FROM branch_sales);`,
-          [categoryName]
+
+        // Highest & Lowest Retailing Store for Given Category
+        mySqlPool.query(storeDataForCategoryQuery, [categoryName]
         ),
       ];
 
       const results = await Promise.all(queries);
+      const [brandData, trendData, storeData] = results.map(r => r[0] || []);
 
       response = {
-        highest_brand: results[0]?.[0]?.[0] || null,
-        lowest_brand: results[0]?.[0]?.[1] || null,
-        retailing_trend: results[1]?.[0] || [],
-        lowest_reatiling_store: results[2]?.[0]?.[0] || null,
-        highest_reatiling_store: results[2]?.[0]?.[1] || null,
+        highest_brand: brandData[0] || null,
+        lowest_brand: brandData[1] || null,
+        retailing_trend: trendData || [],
+        highest_retailing_store: storeData[0] || null,
+        lowest_retailing_store: storeData[1] || null,
       };
     } else if (searchType === "brand") {
       const queries = [
         // Highest & Lowest Retailing Brand
-        mySqlPool.query(
-          `WITH brand_sales AS (
-              SELECT brand, SUM(retailing) AS total_retailing
-              FROM psr_data
-              GROUP BY brand
-          )
-          SELECT brand, total_retailing
-          FROM brand_sales
-          WHERE total_retailing = (SELECT MAX(total_retailing) FROM brand_sales)
-             OR total_retailing = (SELECT MIN(total_retailing) FROM brand_sales);`
+        mySqlPool.query(brandDataForBrandQuery,
         ),
 
         // Highest & Lowest Brandform for a Given Brand
-        mySqlPool.query(
-          `WITH brandform_sales AS (
-              SELECT brandform, subbrandform_name, SUM(retailing) AS total_retailing
-              FROM psr_data
-              WHERE brand = ?
-              GROUP BY brandform, subbrandform_name
-          )
-          SELECT brandform, subbrandform_name, total_retailing
-          FROM brandform_sales
-          WHERE total_retailing = (SELECT MAX(total_retailing) FROM brandform_sales)
-             OR total_retailing = (SELECT MIN(total_retailing) FROM brandform_sales);`,
-          [brandName]
+        mySqlPool.query(brandFormDataForBrandQuery, [brandName]
         ),
 
-        // Retailing Trend Over Time (Month & Year)
-        mySqlPool.query(
-          `SELECT DATE_FORMAT(document_date, '%Y-%m') AS month_year, SUM(retailing) AS total_retailing 
-           FROM psr_data 
-           WHERE brand = ? 
-           GROUP BY month_year 
-           ORDER BY month_year;`,
-          [brandName]
+        // Retailing Trend Over Time
+        mySqlPool.query(trendDataForBrandQuery, [brandName]
         ),
 
-        // Highest & Lowest Retailing Branch for a Given Brand
-        mySqlPool.query(
-          `WITH branch_sales AS (
-              SELECT store.New_Branch AS branch, SUM(psr.retailing) AS total_retailing
-              FROM psr_data psr
-              JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
-              WHERE brand = ?
-              GROUP BY store.New_Branch
-          )
-          SELECT branch, total_retailing
-          FROM branch_sales
-          WHERE total_retailing = (SELECT MAX(total_retailing) FROM branch_sales)
-             OR total_retailing = (SELECT MIN(total_retailing) FROM branch_sales);`,
-          [brandName]
+        // Highest & Lowest Retailing Store for a Given Brand
+        mySqlPool.query(storeDataForBrandQuery, [brandName]
         ),
       ];
 
       const results = await Promise.all(queries);
+      const [brandData, brandformData, trendData, storeData] = results.map(r => r[0] || []);
 
       response = {
-        highest_brand: results[0]?.[0]?.[0] || null,
-        lowest_brand: results[0]?.[0]?.[1] || null,
-        highest_brandform: results[1]?.[0]?.[0] || null,
-        lowest_brandform: results[1]?.[0]?.[1] || null,
-        retailing_trend: results[2]?.[0] || [],
-        lowest_reatiling_store: results[3]?.[0]?.[0] || null,
-        highest_reatiling_store: results[3]?.[0]?.[1] || null,
+        highest_brand: brandData[0] || null,
+        lowest_brand: brandData[1] || null,
+        highest_brandform: brandformData[0] || null,
+        lowest_brandform: brandformData[1] || null,
+        retailing_trend: trendData || [],
+        highest_retailing_store: storeData[0] || null,
+        lowest_retailing_store: storeData[1] || null,
       };
     }
 

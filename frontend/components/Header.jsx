@@ -21,12 +21,12 @@ import FilterDropdown from "./FilterDropdown";
 
 // Define all filters dynamically
 const filtersToShow = [
-  { filterModule: years, filterLabel: "Year", filterKey: "years" },
-  { filterModule: months, filterLabel: "Month", filterKey: "months" },
-  { filterModule: branches, filterLabel: "Branch", filterKey: "branches" },
-  { filterModule: zm, filterLabel: "ZM", filterKey: "zm" },
-  { filterModule: sm, filterLabel: "SM", filterKey: "sm" },
-  { filterModule: be, filterLabel: "BE", filterKey: "be" },
+  { filterModule: years, filterLabel: "Year", filterKey: "year" },
+  { filterModule: months, filterLabel: "Month", filterKey: "month" },
+  { filterModule: branches, filterLabel: "Branch", filterKey: "branch" },
+  { filterModule: zm, filterLabel: "ZM", filterKey: "zoneManager" },
+  { filterModule: sm, filterLabel: "SM", filterKey: "salesManager" },
+  { filterModule: be, filterLabel: "BE", filterKey: "branchExecutive" },
   { filterModule: channel, filterLabel: "Channel", filterKey: "channel" },
   {
     filterModule: broadChannel,
