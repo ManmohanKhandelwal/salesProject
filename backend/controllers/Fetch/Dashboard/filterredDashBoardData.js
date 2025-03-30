@@ -1,9 +1,7 @@
 import mySqlPool from "#config/db.js";
+import { DB_CACHE_KEYS } from "#config/key.js";
 import { getCachedData } from "#utils/cacheManager.js";
 import { formattedQueryKeys, monthMapping } from "#utils/tableMetaData.js";
-
-const cacheKey = "sales-dashboard";
-
 export const getFilteredDashBoardData = async (req, res) => {
   try {
     const queries = req.body;
@@ -136,7 +134,7 @@ export const getFilteredDashBoardData = async (req, res) => {
 
     // Release connection
     connection.release();
-    const cachedData = await getCachedData(cacheKey);
+    const cachedData = await getCachedData(DB_CACHE_KEYS.SALES_DASHBOARD);
 
     // Return the response with all the filtered data
     return res.status(200).json({

@@ -1,8 +1,7 @@
 import { retailingByCategoryQuery, retailingByChannelQuery, retailingStatsQuery, retailTrendQuery, topTenBrandFormQuery } from "#commands/Dashboard/dashboardQuery.js";
 import mySqlPool from "#config/db.js";
+import { DB_CACHE_KEYS } from "#config/key.js";
 import { getCachedData, updateCache } from "#utils/cacheManager.js";
-const CACHE_KEY_DASHBOARD = "sales-dashboard";
-const CACHE_KEY_SUMMARY = "psr_summary";
 
 export const updateDashBoardCache = async (req, res) => {
     try {
@@ -17,7 +16,7 @@ export const updateDashBoardCache = async (req, res) => {
             [retailTrend],
             [topTenBrandForm],
         ] = await Promise.all([
-            getCachedData(CACHE_KEY_SUMMARY),
+            getCachedData(DB_CACHE_KEYS.PSR_SUMMARY),
             mySqlPool.query(retailingStatsQuery),
             mySqlPool.query(retailingByChannelQuery),
             mySqlPool.query(retailingByCategoryQuery),
@@ -75,7 +74,7 @@ export const updateDashBoardCache = async (req, res) => {
         };
 
         // Cache the response
-        await updateCache(CACHE_KEY_DASHBOARD, responseData);
+        await updateCache(DB_CACHE_KEYS.SALES_DASHBOARD, responseData);
         return res.status(200).json(responseData);
 
     } catch (error) {

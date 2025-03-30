@@ -1,7 +1,7 @@
 import mySqlPool from "#config/db.js"; // Ensure correct import
+import { DB_CACHE_KEYS } from "#config/key.js";
 import { getCachedData } from "#utils/cacheManager.js";
 
-const cacheKey = "top-stores-100";
 
 export const getTopStores = async (req, res) => {
   try {
@@ -25,7 +25,7 @@ export const getTopStores = async (req, res) => {
 
     // Check cache
     if (shouldUseCache) {
-      const cachedData = await getCachedData(cacheKey);
+      const cachedData = await getCachedData(DB_CACHE_KEYS.TOP_100_STORE);
       if (cachedData) {
         return res.json({
           cached: true,

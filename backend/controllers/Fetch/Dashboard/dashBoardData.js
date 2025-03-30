@@ -1,14 +1,14 @@
+import { DB_CACHE_KEYS } from "#config/key.js";
 import {
   getCachedData
 } from "#utils/cacheManager.js";
 
-const CACHE_KEY_DASHBOARD = "sales-dashboard";
 
 /** Optimized function to fetch dashboard data */
 export const getDashBoardData = async (req, res) => {
   try {
     // Check if data is cached
-    const cachedData = await getCachedData(CACHE_KEY_DASHBOARD);
+    const cachedData = await getCachedData(DB_CACHE_KEYS.SALES_DASHBOARD);
     if (cachedData) return res.status(200).json(cachedData);
 
   } catch (error) {

@@ -1,13 +1,13 @@
 import {
-  retailingSumQuery,
   branchDetailsQuery,
   brandDetailsQuery,
+  retailingSumQuery,
 } from "#commands/psrTable/psrCacheQuery.js";
 
 import mySqlPool from "#config/db.js";
+import { DB_CACHE_KEYS } from "#config/key.js";
 import { getCachedData, updateCache } from "#utils/cacheManager.js";
 
-const CACHE_KEY = "psr_summary";
 
 export const updatePSRSummary = async (req, res) => {
   try {
@@ -30,8 +30,8 @@ export const updatePSRSummary = async (req, res) => {
     console.log("Updated summary info:", updatedSummaryInfo);
 
     // Update the cacheTable with the updated summary info.
-    await updateCache(CACHE_KEY, updatedSummaryInfo);
-    const result = await getCachedData(CACHE_KEY);
+    await updateCache(DB_CACHE_KEYS.PSR_SUMMARY, updatedSummaryInfo);
+    const result = await getCachedData(DB_CACHE_KEYS.PSR_SUMMARY);
     return res
       .status(200)
       .json({ message: "Dashboard summary updated", result });
