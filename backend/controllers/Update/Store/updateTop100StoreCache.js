@@ -1,4 +1,4 @@
-import { top100StoresQuery } from "#commands/Store/top100StoreCache.js";
+import { top100StoresQuery } from "#commands/Store/top100StoreCacheQuery.js";
 import mySqlPool from "#config/db.js";
 import { DB_CACHE_KEYS } from "#config/key.js";
 import { updateCache } from "#utils/cacheManager.js";

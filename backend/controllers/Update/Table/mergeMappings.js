@@ -1,10 +1,10 @@
 import mySqlPool from "#config/db.js";
 import { deleteFileByUUID } from "#utils/deleteFileByUUID.js";
 import { updateTracking } from "#utils/trackingStatus.js";
-import { updateDashBoardCache } from "../DashBoard/updateDashboardCache";
-import { updatePSRSummary } from "../DashBoard/updatePSRSummary";
-import { updateStoreDashBoardCache } from "../Store/updateStoreDashBoardCache";
-import { updateTop100StoreCache } from "../Store/updateTop100StoreCache";
+import { updateDashBoardCache } from "../DashBoard/updateDashboardCache.js";
+import { updatePSRSummary } from "../DashBoard/updatePSRSummary.js";
+import { updateStoreDashBoardCache } from "../Store/updateStoreDashBoardCache.js";
+import { updateTop100StoreCache } from "../Store/updateTop100StoreCache.js";
 
 export const mergeMappings = async (req, res) => {
   try {
