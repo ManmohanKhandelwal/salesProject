@@ -30,7 +30,7 @@ const top100StoresQuery = `
         psr.customer_type,
         psr.channel_description AS channel,
         SUM(psr.retailing) AS total_retailing,
-        SUM(psr.retailing) / COUNT(DISTINCT DATE_FORMAT (psr.document_date, '%Y-%m')) AS monthly_avg_retailing
+        SUM(psr.retailing) / COUNT(DISTINCT DATE_FORMAT (psr.document_date, '%Y-%m')) AS avg_retailing
     FROM
         psr_data psr
         JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
@@ -48,7 +48,7 @@ const top100StoresQuery = `
         psr.customer_type,
         psr.channel_description
     ORDER BY
-        monthly_avg_retailing DESC
+        avg_retailing DESC
     LIMIT
         100;
 `;
