@@ -1,6 +1,10 @@
 import mySqlPool from "#config/db.js";
-import { updateTracking } from "#utils/trackingStatus.js";
 import { deleteFileByUUID } from "#utils/deleteFileByUUID.js";
+import { updateTracking } from "#utils/trackingStatus.js";
+import { updateDashBoardCache } from "../DashBoard/updateDashboardCache";
+import { updatePSRSummary } from "../DashBoard/updatePSRSummary";
+import { updateStoreDashBoardCache } from "../Store/updateStoreDashBoardCache";
+import { updateTop100StoreCache } from "../Store/updateTop100StoreCache";
 
 export const mergeMappings = async (req, res) => {
   try {
@@ -68,6 +72,13 @@ export const mergeMappings = async (req, res) => {
     // Update tracking & delete uploaded file
     updateTracking(jobId, { status: `Data Inserted into ${tableType}!` });
     deleteFileByUUID(jobId);
+
+    //Update PSR Summary & then DashBoard Cache in CacheTable
+    updatePSRSummary().then(updateDashBoardCache());
+
+    //Update Store Dahboard Cache & Top-100 Store Cache
+    updateStoreDashBoardCache();
+    updateTop100StoreCache();
 
     return res
       .status(200)

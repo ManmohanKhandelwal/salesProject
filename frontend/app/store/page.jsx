@@ -109,11 +109,15 @@ const Store = () => {
     const fileData = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
-
-    saveAs(
-      fileData,
-      `Top_Stores_${new Date().toISOString().slice(0, 10)}.xlsx`
-    );
+    if (selectedBranchBottom)
+      saveAs(fileData,
+        `Top_Stores - ${selectedBranchBottom} ${new Date().toISOString().slice(0, 10)}.xlsx`
+      )
+    else
+      saveAs(
+        fileData,
+        `Top_Stores_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
   };
 
   // Remove a single filter

@@ -33,33 +33,30 @@ export const getTopStores = async (req, res) => {
         });
       }
     }
-
-    // Default date range (last 6 months) if not provided
-    if (!startDate) {
-      startDate = new Date(new Date().setMonth(new Date().getMonth() - 6))
-        .toISOString()
-        .split("T")[0];
-      endDate = new Date().toISOString().split("T")[0];
-    }
-    if (!endDate) endDate = new Date().toISOString().split("T")[0];
-
     // **Build SQL Query Dynamically Based on Filters**
     let query = `
-        SELECT
-            psr.customer_code AS store_code,
-            psr.customer_name AS store_name,
-            store.New_Branch AS branch_name,
-            psr.customer_type,
-            psr.channel_description AS channel,
-            SUM(psr.retailing) AS total_retailing,
-            AVG(psr.retailing) AS avg_retailing
-        FROM
-        psr_data psr
-        JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
-        WHERE psr.document_date BETWEEN ? AND ?
-    `;
+    WITH Last_Three_Months AS (
+        SELECT DISTINCT
+            DATE_FORMAT(document_date, '%Y-%m') AS month
+        FROM psr_data
+        ORDER BY month DESC
+        LIMIT 3
+    )
+    SELECT
+        psr.customer_code AS store_code,
+        psr.customer_name AS store_name,
+        store.New_Branch AS branch_name,
+        psr.customer_type,
+        psr.channel_description AS channel,
+        SUM(psr.retailing) AS total_retailing,
+        SUM(psr.retailing) / COUNT(DISTINCT DATE_FORMAT(psr.document_date, '%Y-%m')) AS avg_retailing
+    FROM psr_data psr
+    JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
+    WHERE DATE_FORMAT(psr.document_date, '%Y-%m') IN (
+        SELECT month FROM Last_Three_Months
+    )`;
 
-    let queryParams = [startDate, endDate];
+    let queryParams = [];
 
     // Apply optional filters
     if (branchName) {
@@ -74,7 +71,6 @@ export const getTopStores = async (req, res) => {
       query += ` AND store.SM = ?`;
       queryParams.push(salesManager);
     }
-
     if (branchExecutive) {
       query += ` AND store.BE = ?`;
       queryParams.push(branchExecutive);
@@ -82,19 +78,20 @@ export const getTopStores = async (req, res) => {
 
     // Grouping, ordering, and limiting results
     query += `
-        GROUP BY
-            psr.customer_code,
-            psr.customer_name,
-            store.New_Branch,
-            psr.customer_type,
-            psr.channel_description
-        ORDER BY
-            avg_retailing DESC
-        LIMIT ? OFFSET ?;
-    `;
+    GROUP BY
+        psr.customer_code,
+        psr.customer_name,
+        store.New_Branch,
+        psr.customer_type,
+        psr.channel_description
+    ORDER BY
+        avg_retailing DESC
+    LIMIT ? OFFSET ?;
+`;
 
     queryParams.push(topStoresCount, offset);
     console.log(query, queryParams);
+
     // **Query Database**
     const [topStoresDetails] = await mySqlPool.query(query, queryParams);
 
@@ -102,7 +99,6 @@ export const getTopStores = async (req, res) => {
       cached: false,
       cachedData: topStoresDetails,
     });
-
   } catch (error) {
     console.error("Error fetching top stores:", error?.message || error);
     res
