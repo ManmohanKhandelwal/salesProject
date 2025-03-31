@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import debounce from "lodash.debounce";
 import axios from "axios";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { MapPin, X } from "lucide-react";
@@ -48,6 +50,7 @@ const Store = () => {
   const [paginatedResults, setPaginatedResults] = useState([]);
   const [totalPages, setTotalPages] = useState(5);
   const [selectedBranchBottom, setSelectedBranchBottom] = useState("");
+  const [topStoresData, setTopStoresData] = useState([]);
   const itemsPerPage = 20;
 
   const middleSectionRef = useRef(null);
@@ -63,6 +66,55 @@ const Store = () => {
     sm: ["all"],
     be: ["all"],
   });
+
+  // Download Excel
+  const downloadExcel = async () => {
+    if (topStoresData.length === 0) {
+      console.error("No data available for download.");
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Top Stores");
+
+    // Define Column Headers
+    worksheet.columns = [
+      { header: "Store Code", key: "store_code", width: 15 },
+      { header: "Store Name", key: "store_name", width: 25 },
+      { header: "Branch Name", key: "branch_name", width: 20 },
+      { header: "Customer Type", key: "customer_type", width: 15 },
+      { header: "Channel", key: "channel", width: 15 },
+      { header: "Avg Retailing", key: "avg_retailing", width: 20 },
+    ];
+
+    // Add Data Rows
+    topStoresData.forEach((store) => {
+      const { total_retailing, ...filteredStore } = store;
+      worksheet.addRow(filteredStore);
+    });
+
+    // Style the Header Row
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: "center" };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFFF00" }, // Yellow background
+      };
+    });
+
+    // Generate & Download Excel File
+    const buffer = await workbook.xlsx.writeBuffer();
+    const fileData = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    saveAs(
+      fileData,
+      `Top_Stores_${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
+  };
 
   // Remove a single filter
   const removeFilter = (filterKey, section) => {
@@ -142,6 +194,9 @@ const Store = () => {
       try {
         const response = await axios.get(backEndURL(`/store/top-stores`));
         console.log(response);
+        setTopStoresData(
+          response.data?.cachedData || response.data?.topStoresDetails
+        );
         setPaginatedResults(
           response.data?.cachedData || response.data?.topStoresDetails
         );
@@ -170,6 +225,7 @@ const Store = () => {
         );
         console.log(response?.data);
         setResults(response.data?.cachedData);
+        setTopStoresData(response.data?.cachedData);
         setCurrentPage(1);
         if (response.data?.cachedData?.length > 0)
           setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
@@ -204,6 +260,7 @@ const Store = () => {
         backEndURL(`/store/top-stores?${queryParams}`)
       );
       setResults(response.data?.cachedData);
+      setTopStoresData(response.data?.cachedData);
       setCurrentPage(1);
       if (response.data?.cachedData?.length > 0)
         setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
@@ -649,7 +706,7 @@ const Store = () => {
                 </ul>
               </div>
 
-              {/* FILTERS */}
+              {/* FILTERS and DOWNLOAD BUTTON */}
               <div className="flex items-center gap-3">
                 {!query &&
                   filtersToShowBottom.map((filter) => (
@@ -662,6 +719,13 @@ const Store = () => {
                       setSelectedFilters={setSelectedFiltersBottom}
                     />
                   ))}
+
+                <button
+                  onClick={downloadExcel}
+                  className="bg-green-500 hover:bg-green-700 transition-all duration-200 text-white px-4 py-2 rounded"
+                >
+                  Download Excel
+                </button>
               </div>
             </div>
 
