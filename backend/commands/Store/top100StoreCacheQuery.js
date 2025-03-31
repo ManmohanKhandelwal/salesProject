@@ -1,8 +1,6 @@
 /**
  * @name Store
  * @description Query to get the top 100 stores by average retailing
- * @param {String} ? - Start date
- * @param {String} ? - End date
  * @returns {
  * store_code: String,
  * store_name: String,
@@ -20,8 +18,6 @@ const top100StoresQuery = `
                 DATE_FORMAT (document_date, '%Y-%m') AS month
             FROM
                 psr_data
-            WHERE
-                document_date BETWEEN ? AND ?
             ORDER BY
                 month DESC
             LIMIT

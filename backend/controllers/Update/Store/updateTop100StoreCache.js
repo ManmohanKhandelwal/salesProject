@@ -3,18 +3,9 @@ import mySqlPool from "#config/db.js";
 import { DB_CACHE_KEYS } from "#config/key.js";
 import { updateCache } from "#utils/cacheManager.js";
 
-export const updateTop100StoreCache = async (startDate, endDate) => {
+export const updateTop100StoreCache = async () => {
     try {
-        // Default date range (last 3 months) if not provided
-        if (!startDate) {
-            startDate = new Date(new Date().setMonth(new Date().getMonth() - CACHE_KEY_TOP_100_STORE_MONTH_RANGE))
-                .toISOString()
-                .split("T")[0];
-            endDate = new Date().toISOString().split("T")[0];
-        }
-        if (!endDate) endDate = new Date().toISOString().split("T")[0];
-
-        const [result] = await mySqlPool.query(top100StoresQuery, [startDate, endDate])
+        const [result] = await mySqlPool.query(top100StoresQuery);
         await updateCache(DB_CACHE_KEYS.TOP_100_STORE, result);
         return result;
 

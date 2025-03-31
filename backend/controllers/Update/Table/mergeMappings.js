@@ -2,7 +2,7 @@ import mySqlPool from "#config/db.js";
 import { updateTracking } from "#utils/trackingStatus.js";
 import { deleteFileByUUID } from "#utils/deleteFileByUUID.js";
 
-export const updateMappings = async (req, res) => {
+export const mergeMappings = async (req, res) => {
   try {
     const { jobId, tableType } = req.body;
 

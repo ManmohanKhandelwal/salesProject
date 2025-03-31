@@ -2,10 +2,10 @@ import mySqlPool from "#config/db.js";
 import { updateTracking } from "#utils/trackingStatus.js";
 import { deleteFileByUUID } from "#utils/deleteFileByUUID.js";
 
-export const updatePSRTable = async (req, res) => {
+export const mergePsrTable = async (req, res) => {
   try {
     const { jobId, tableType } = req.body;
-    if (!tableType==="psr_data") throw { message: "Table Type is required! (psr_data)", status: 400 };
+    if (!tableType === "psr_data") throw { message: "Table Type is required! (psr_data)", status: 400 };
     if (!jobId) throw { message: "File Path is required!", status: 400 };
     // Insert data from temp_psr_data into psr_data excluding the auto-increment primary
     // key (psr_id)
@@ -41,15 +41,13 @@ export const updatePSRTable = async (req, res) => {
             temp_psr_data;
             `
       )
-      .then(() => {
-        // Drop the temp_psr_data table
-        mySqlPool.query(`DROP TABLE temp_${tableType}`);
-      })
-      .then(() => {
-        // Update the tracking status & delete the file
-        updateTracking(jobId, { status: `Data Inserted into ${tableType}!` });
-        deleteFileByUUID(jobId);
-      });
+
+    // Drop Temporary Table
+    mySqlPool.query(`DROP TABLE temp_${tableType}`);
+    // Update the tracking status & delete the file
+    updateTracking(jobId, { status: `Data Inserted into ${tableType}!` });
+    deleteFileByUUID(jobId);
+
     return res
       .status(200)
       .json({ message: `${tableType} updated successfully & File Removed !` });

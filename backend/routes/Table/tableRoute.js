@@ -5,8 +5,8 @@ import { downloadFile } from "#controllers/Fetch/Table/downloadFile.js";
 import { getFileList } from "#controllers/Fetch/Table/getFileList.js";
 import { getTablesMetaData } from "#controllers/Fetch/Table/getTablesMetaData.js";
 import { uploadFile } from "#controllers/Update/Table/uploadFile.js";
-import { updateMappings } from "#controllers/Update/Table/updateMappings.js";
-import { updatePSRTable } from "#controllers/Update/Table/updatePsrTable.js";
+import { mergeMappings } from "#controllers/Update/Table/mergeMappings.js";
+import { mergePsrTable } from "#controllers/Update/Table/mergePsrTable.js";
 import express from "express";
 
 const tableRouter = express.Router();
@@ -69,7 +69,7 @@ tableRouter.post("/upload/new-csv-data", uploadFile);
  *         description: Internal server error.
  */
 
-tableRouter.post("/update/psr-data-table", updatePSRTable);
+tableRouter.post("/update/psr-data-table", mergePsrTable);
 
 /**
  * @swagger
@@ -131,7 +131,7 @@ tableRouter.post("/update/psr-data-table", updatePSRTable);
  *                   example: "Internal Server Error"
  */
 
-tableRouter.post("/update/mappings-table", updateMappings);
+tableRouter.post("/update/mappings-table", mergeMappings);
 
 /**
  * @swagger
