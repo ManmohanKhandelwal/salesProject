@@ -110,9 +110,12 @@ const Store = () => {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
     if (selectedBranchBottom)
-      saveAs(fileData,
-        `Top_Stores - ${selectedBranchBottom} ${new Date().toISOString().slice(0, 10)}.xlsx`
-      )
+      saveAs(
+        fileData,
+        `Top_Stores - ${selectedBranchBottom} ${new Date()
+          .toISOString()
+          .slice(0, 10)}.xlsx`
+      );
     else
       saveAs(
         fileData,
@@ -781,6 +784,9 @@ const Store = () => {
                         Rank
                       </th>
                       <th className="p-4 text-center text-sm font-semibold border border-gray-300 dark:border-gray-700">
+                        Branch
+                      </th>
+                      <th className="p-4 text-center text-sm font-semibold border border-gray-300 dark:border-gray-700">
                         Store Code
                       </th>
                       <th className="p-4 text-center text-sm font-semibold border border-gray-300 dark:border-gray-700">
@@ -809,6 +815,11 @@ const Store = () => {
                         {/* Rank */}
                         <td className="p-4 text-center text-gray-800 dark:text-gray-300">
                           {index + 1 + (currentPage - 1) * itemsPerPage}
+                        </td>
+
+                        {/* Branch Name */}
+                        <td className="p-4 text-center text-gray-800 dark:text-gray-300">
+                          {storeDetails["branch_name"]}
                         </td>
 
                         {/* Store Code (Clickable) */}
