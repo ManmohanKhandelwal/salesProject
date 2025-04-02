@@ -12,16 +12,11 @@ export const pages = [
   },
   {
     id: 2,
-    path: "/product",
-    title: "Products",
-  },
-  {
-    id: 3,
     path: "/forecast",
     title: "Forecast",
   },
   {
-    id: 4,
+    id: 3,
     path: "/upload",
     title: "Upload",
   },
