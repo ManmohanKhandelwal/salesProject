@@ -269,121 +269,105 @@ storeRouter.get("/store", getStoresList);
 
 /**
  * @swagger
- * /store/top-stores:
- *   get:
- *     summary: Get top-performing stores
- *     description: Fetches the top stores based on sales data, with optional filtering by branch, manager, category, and brand.
- *     tags:
- *       - Store
- *     parameters:
- *       - name: branchName
- *         in: query
- *         description: Filter by branch name
- *         schema:
- *           type: string
- *       - name: topStoresCount
- *         in: query
- *         description: Number of top stores to retrieve (default is 100)
- *         schema:
- *           type: integer
- *           default: 100
- *       - name: zoneManager
- *         in: query
- *         description: Filter by Zone Manager
- *         schema:
- *           type: string
- *       - name: salesManager
- *         in: query
- *         description: Filter by Sales Manager
- *         schema:
- *           type: string
- *       - name: branchExecutive
- *         in: query
- *         description: Filter by Branch Executive
- *         schema:
- *           type: string
- *       - name: categoryName
- *         in: query
- *         description: Filter by category name
- *         schema:
- *           type: string
- *       - name: brandName
- *         in: query
- *         description: Filter by brand name
- *         schema:
- *           type: string
- *       - name: brandFormName
- *         in: query
- *         description: Filter by brand form name
- *         schema:
- *           type: string
- *       - name: subBrandFormName
- *         in: query
- *         description: Filter by sub-brand form name
- *         schema:
- *           type: string
- *       - name: channelName
- *         in: query
- *         description: Filter by channel name
- *         schema:
- *           type: string
- *       - name: offset
- *         in: query
- *         description: Pagination offset (default is 0)
- *         schema:
- *           type: integer
- *           default: 0
- *     responses:
- *       200:
- *         description: Successful response with top stores data.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 cached:
- *                   type: boolean
- *                   description: Indicates if data was retrieved from cache.
- *                 cachedData:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       store_code:
- *                         type: string
- *                         description: Unique store code.
- *                       store_name:
- *                         type: string
- *                         description: Store name.
- *                       branch_name:
- *                         type: string
- *                         description: Name of the branch.
- *                       customer_type:
- *                         type: string
- *                         description: Type of customer.
- *                       channel:
- *                         type: string
- *                         description: Store channel description.
- *                       total_retailing:
- *                         type: number
- *                         format: float
- *                         description: Total retail sales amount.
- *                       avg_retailing:
- *                         type: number
- *                         format: float
- *                         description: Average retail sales amount.
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message.
- */
-storeRouter.get("/store/top-stores", getTopStores);
+*  /store/top-stores:
+*    post:
+*      summary: Get Top Stores
+*      description: Fetches the top-performing stores based on filters like branch, category, brand, etc.
+*      tags:
+*        - Store
+*      requestBody:
+*        required: true
+*        content:
+*          application/json:
+*            schema:
+*              type: object
+*              properties:
+*                branchName:
+*                  type: string
+*                  description: Name of the branch
+*                topStoresCount:
+*                  type: integer
+*                  description: Number of top stores to fetch
+*                  default: 100
+*                zoneManager:
+*                  type: string
+*                  description: Zone manager name
+*                salesManager:
+*                  type: string
+*                  description: Sales manager name
+*                branchExecutive:
+*                  type: string
+*                  description: Branch executive name
+*                categoryName:
+*                  type: array
+*                  items:
+*                    type: string
+*                  description: List of product categories
+*                brandName:
+*                  type: array
+*                  items:
+*                    type: string
+*                  description: List of brands
+*                brandFormName:
+*                  type: array
+*                  items:
+*                    type: string
+*                  description: List of brand forms
+*                broadChannelName:
+*                  type: array
+*                  items:
+*                    type: string
+*                  description: List of broad channel names
+*                offset:
+*                  type: integer
+*                  description: Offset for pagination
+*                  default: 0
+*      responses:
+*        "200":
+*          description: Successful response with store data
+*          content:
+*            application/json:
+*              schema:
+*                type: object
+*                properties:
+*                  cached:
+*                    type: boolean
+*                    description: Indicates whether the response is from cache
+*                  cachedData:
+*                    type: array
+*                    items:
+*                      type: object
+*                      properties:
+*                        store_code:
+*                          type: string
+*                          description: Unique code for the store
+*                        store_name:
+*                          type: string
+*                          description: Name of the store
+*                        branch_name:
+*                          type: string
+*                          description: Branch name
+*                        customer_type:
+*                          type: string
+*                          description: Type of customer
+*                        channel:
+*                          type: string
+*                          description: Channel description
+*                        total_retailing:
+*                          type: number
+*                          format: float
+*                          description: Total retailing value
+*                        avg_retailing:
+*                          type: number
+*                          format: float
+*                          description: Average retailing per month
+*        "400":
+*          description: Invalid request parameters
+*        "500":
+*          description: Internal server error
+*/
+
+storeRouter.post("/store/top-stores", getTopStores);
 
 
 /**

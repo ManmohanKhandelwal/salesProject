@@ -1,41 +1,62 @@
-
-import mySqlPool from "#config/db.js"; // Ensure correct import
+import mySqlPool from "#config/db.js";
 import { DB_CACHE_KEYS } from "#config/key.js";
 import { getCachedData } from "#utils/cacheManager.js";
-
-
+/**
+ * 
+ * @param {String} branchName
+ * @param {Number} topStoresCount
+ * @param {String} zoneManager
+ * @param {String} salesManager
+ * @param {String} branchExecutive
+ * @param {Array} categoryName 
+ * @param {Array} brandName
+ * @param {Array} brandFormName
+ * @param {Array} broadChannelName
+ * @param {Number} offset
+ * @returns 
+ */
 export const getTopStores = async (req, res) => {
   try {
     let {
+      branchName = "",
+      topStoresCount = 100,
+      zoneManager = "",
+      salesManager = "",
+      branchExecutive = "",
+      categoryName = [],
+      brandName = [],
+      brandFormName = [],
+      broadChannelName = [],
+      offset = 0,
+    } = req.body; // ✅ Use req.query instead of req.params
+
+    // ✅ Only check meaningful filters (excluding topStoresCount & offset)
+    const filters = [
       branchName,
-      topStoresCount,
       zoneManager,
       salesManager,
       branchExecutive,
       categoryName,
       brandName,
       brandFormName,
-      broadChannelName,
-      offset,
-    } = req.query;
-    // Default values
-    topStoresCount = parseInt(topStoresCount, 10) || 100;
-    offset = parseInt(offset, 10) || 0;
+      broadChannelName
+    ];
 
-    // const shouldUseCache = filters.every(filter => !filter);
-    const shouldUseCache = branchName && topStoresCount && zoneManager && salesManager && branchExecutive && categoryName && brandName && brandFormName && broadChannelName;
+    const shouldNotUseCache = filters.some(filter => filter);
 
-    // Check cache
-    if (!shouldUseCache) {
+    console.log("query", req.query);
+    console.log("shouldNotUseCache", shouldNotUseCache);
+
+    // ✅ Use cache only when no filters are applied
+    if (!shouldNotUseCache) {
+      console.log("Getting cached data for:", DB_CACHE_KEYS.TOP_100_STORE);
       const cachedData = await getCachedData(DB_CACHE_KEYS.TOP_100_STORE);
       if (cachedData) {
-        return res.json({
-          cached: true,
-          cachedData: cachedData,
-        });
+        return res.json({ cached: true, cachedData });
       }
     }
-    // **Build SQL Query Dynamically Based on Filters**
+
+    // ✅ **SQL Query with Dynamic Filters**
     let query = `
     WITH Last_Three_Months AS (
         SELECT DISTINCT
@@ -54,35 +75,45 @@ export const getTopStores = async (req, res) => {
         SUM(psr.retailing) / COUNT(DISTINCT DATE_FORMAT(psr.document_date, '%Y-%m')) AS avg_retailing
     FROM psr_data psr
     JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
-    ${broadChannelName ? "JOIN channel_mapping cm ON psr.customer_type = cm.customer_type" : ""}
-    WHERE DATE_FORMAT(psr.document_date, '%Y-%m') IN (
-        SELECT month FROM Last_Three_Months
-    )`;
+    ${broadChannelName.length ? "JOIN channel_mapping cm ON psr.customer_type = cm.customer_type" : ""}
+    WHERE DATE_FORMAT(psr.document_date, '%Y-%m') IN (SELECT month FROM Last_Three_Months)`;
 
     let queryParams = [];
+    let queryConditions = [];
 
-    // Apply optional filters
     const queryFilters = [
-      { field: "store.New_Branch", value: branchName },
-      { field: "store.ZM", value: zoneManager },
-      { field: "store.SM", value: salesManager },
-      { field: "store.BE", value: branchExecutive },
-      { field: "psr.category", value: categoryName },
-      { field: "psr.brand", value: brandName },
-      { field: "psr.brandform", value: brandFormName },
-      { field: "cm.broad_channel", value: broadChannelName },
+      { field: "store.New_Branch", value: branchName, type: "string" },
+      { field: "store.ZM", value: zoneManager, type: "string" },
+      { field: "store.SM", value: salesManager, type: "string" },
+      { field: "store.BE", value: branchExecutive, type: "string" },
+      { field: "psr.category", value: categoryName, type: "array" },
+      { field: "psr.brand", value: brandName, type: "array" },
+      { field: "psr.brandform", value: brandFormName, type: "array" },
+      { field: "cm.broad_channel", value: broadChannelName, type: "array" },
     ];
 
-    queryFilters.forEach(({ field, value }) => {
-      if (value) {
-        query += ` AND ${field} = ?`;
+    // Build Query Conditions
+    queryFilters.forEach(({ field, value, type }) => {
+      if (!value) return; // Skip if value is empty
+      if (Array.isArray(value) && value.length > 0 && type === "array") {
+        // Handle array values
+        queryConditions.push(`${field} IN (?)`);
         queryParams.push(value);
       }
-    });
+      else if (type === "string") {
+        // Handle string values
+        queryConditions.push(`${field} = ?`);
+        queryParams.push(value);
+      }
+    }
+    );
 
+    // **Final Query Construction**
+    if (queryConditions.length > 0) {
+      query += " AND " + queryConditions.join(" AND ");
+    }
 
-
-    // Grouping, ordering, and limiting results
+    // ✅ **Final Query Structure**
     query += `
     GROUP BY
         psr.customer_code,
@@ -92,22 +123,20 @@ export const getTopStores = async (req, res) => {
         psr.channel_description
     ORDER BY
         avg_retailing DESC
-    LIMIT ? OFFSET ?;
-`;
+    LIMIT ? OFFSET ?;`;
 
     queryParams.push(topStoresCount, offset);
 
-    // **Query Database**
+    console.log("Query Params", queryParams);
+    console.log("Query", query);
+
+    // ✅ **Execute Database Query**
     const [topStoresDetails] = await mySqlPool.query(query, queryParams);
 
-    res.json({
-      cached: false,
-      cachedData: topStoresDetails,
-    });
+    res.json({ cached: false, cachedData: topStoresDetails });
+
   } catch (error) {
     console.error("Error fetching top stores:", error?.message || error);
-    res
-      .status(error?.status || 500)
-      .json({ error: error?.message || "Internal Server Error" });
+    res.status(error?.status || 500).json({ error: error?.message || "Internal Server Error" });
   }
 };
