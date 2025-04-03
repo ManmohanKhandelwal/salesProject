@@ -5,7 +5,7 @@ const readCache = async (CACHE_FILE, VALID_TIME_SPAN) => {
   try {
     const fileData = await fs.readFile(CACHE_FILE, "utf-8");
     const cachedData = JSON.parse(fileData);
-    console.log(fileData);
+    // console.log(fileData);
     if (Date.now() - cachedData.timestamp < VALID_TIME_SPAN) {
       return cachedData.data;
     }

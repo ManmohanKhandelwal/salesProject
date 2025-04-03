@@ -1,3 +1,4 @@
+
 import mySqlPool from "#config/db.js"; // Ensure correct import
 import { DB_CACHE_KEYS } from "#config/key.js";
 import { getCachedData } from "#utils/cacheManager.js";
@@ -7,24 +8,25 @@ export const getTopStores = async (req, res) => {
   try {
     let {
       branchName,
-      startDate,
-      endDate,
       topStoresCount,
       zoneManager,
       salesManager,
       branchExecutive,
+      categoryName,
+      brandName,
+      brandFormName,
+      broadChannelName,
       offset,
     } = req.query;
-
     // Default values
     topStoresCount = parseInt(topStoresCount, 10) || 100;
     offset = parseInt(offset, 10) || 0;
 
-    // If no filters are applied, check cache
-    const shouldUseCache = !branchName && !zoneManager && !salesManager && !branchExecutive && !startDate && !endDate;
+    // const shouldUseCache = filters.every(filter => !filter);
+    const shouldUseCache = branchName && topStoresCount && zoneManager && salesManager && branchExecutive && categoryName && brandName && brandFormName && broadChannelName;
 
     // Check cache
-    if (shouldUseCache) {
+    if (!shouldUseCache) {
       const cachedData = await getCachedData(DB_CACHE_KEYS.TOP_100_STORE);
       if (cachedData) {
         return res.json({
@@ -52,6 +54,7 @@ export const getTopStores = async (req, res) => {
         SUM(psr.retailing) / COUNT(DISTINCT DATE_FORMAT(psr.document_date, '%Y-%m')) AS avg_retailing
     FROM psr_data psr
     JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
+    ${broadChannelName ? "JOIN channel_mapping cm ON psr.customer_type = cm.customer_type" : ""}
     WHERE DATE_FORMAT(psr.document_date, '%Y-%m') IN (
         SELECT month FROM Last_Three_Months
     )`;
@@ -59,22 +62,25 @@ export const getTopStores = async (req, res) => {
     let queryParams = [];
 
     // Apply optional filters
-    if (branchName) {
-      query += ` AND store.New_Branch = ?`;
-      queryParams.push(branchName);
-    }
-    if (zoneManager) {
-      query += ` AND store.ZM = ?`;
-      queryParams.push(zoneManager);
-    }
-    if (salesManager) {
-      query += ` AND store.SM = ?`;
-      queryParams.push(salesManager);
-    }
-    if (branchExecutive) {
-      query += ` AND store.BE = ?`;
-      queryParams.push(branchExecutive);
-    }
+    const queryFilters = [
+      { field: "store.New_Branch", value: branchName },
+      { field: "store.ZM", value: zoneManager },
+      { field: "store.SM", value: salesManager },
+      { field: "store.BE", value: branchExecutive },
+      { field: "psr.category", value: categoryName },
+      { field: "psr.brand", value: brandName },
+      { field: "psr.brandform", value: brandFormName },
+      { field: "cm.broad_channel", value: broadChannelName },
+    ];
+
+    queryFilters.forEach(({ field, value }) => {
+      if (value) {
+        query += ` AND ${field} = ?`;
+        queryParams.push(value);
+      }
+    });
+
+
 
     // Grouping, ordering, and limiting results
     query += `
@@ -90,7 +96,6 @@ export const getTopStores = async (req, res) => {
 `;
 
     queryParams.push(topStoresCount, offset);
-    console.log(query, queryParams);
 
     // **Query Database**
     const [topStoresDetails] = await mySqlPool.query(query, queryParams);

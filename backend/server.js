@@ -39,12 +39,12 @@ const PORT = process.env.PORT || 5000;
 
 // Server Listening
 app.listen(PORT, () => {
-  console.log(`🚀 Server Running : http://localhost:${PORT}/`);
+  console.info(`🚀 Server Running : http://localhost:${PORT}/`);
 });
 
 // Close MySQL connection on Server Close
 process.on("SIGINT", async () => {
-  console.log("Closing MySQL connection");
+  console.info("Closing MySQL connection");
   await mySqlPool.end();
   process.exit(0);
 });

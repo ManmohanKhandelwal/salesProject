@@ -10,7 +10,7 @@ export const getFilteredDashBoardData = async (req, res) => {
     const filteredQueries = Object.entries(queries).reduce(
       (acc, [key, value]) => {
         if (value.length > 0 && !value.includes("all")) {
-          console.log("Key:", key, "Value:", value);
+          // console.log("Key:", key, "Value:", value);
           // Map month names to numbers if the key is "month"
           acc[key] =
             key === "month"
@@ -22,8 +22,8 @@ export const getFilteredDashBoardData = async (req, res) => {
       {}
     );
 
-    console.log("Queries:", queries);
-    console.log("Filtered Queries:", filteredQueries);
+    // console.log("Queries:", queries);
+    // console.log("Filtered Queries:", filteredQueries);
 
     // Identify tables required based on filters
     const requiresStoreMapping = Object.keys(filteredQueries).some((key) =>
@@ -55,9 +55,9 @@ export const getFilteredDashBoardData = async (req, res) => {
           })
           .join(" AND ");
     }
-    console.clear();
+    // console.clear();
     // console.log("Query Params:", queryParams);
-    console.log("Where Clause:", whereClause);
+    // console.log("Where Clause:", whereClause);
 
     // Construct FROM and JOINs based on required tables
     let fromClause = "FROM psr_data"; // Alias pd for pd
@@ -113,7 +113,7 @@ export const getFilteredDashBoardData = async (req, res) => {
     ORDER BY totalRetailing DESC
     LIMIT 10
   `;
-    console.log(sqlQueryRetailCategoryData, queryParams);
+    // console.log(sqlQueryRetailCategoryData, queryParams);
 
     // Execute all queries in parallel
     const [

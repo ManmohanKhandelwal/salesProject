@@ -10,12 +10,12 @@ export const deleteFileByUUID = (uuid) => {
 
   if (fileToDelete) {
     fs.unlinkSync(path.join(CACHE_DIR, fileToDelete));
-    console.log(`✅ File ${fileToDelete} deleted successfully.`);
+    console.info(`✅ File ${fileToDelete} deleted successfully.`);
     updateTracking(uuid, {
       status: "deleted",
       deleteTime: new Date(),
     });
   } else {
-    console.log("🚫 No file found with the provided UUID.");
+    console.warn("🚫 No file found with the provided UUID.");
   }
 };

@@ -5,7 +5,7 @@ export const getProductSuggestions = async (req, res) => {
     let { brandName, brandFormName, searchType, limit = 10 } = req.query;
 
     if (!brandName && !brandFormName) {
-      console.log(brandName, brandFormName, searchType);
+      // console.log(brandName, brandFormName, searchType);
       throw {
         message: "Either Brand-Name or Brand-Form-Name is required!",
         status: 400,

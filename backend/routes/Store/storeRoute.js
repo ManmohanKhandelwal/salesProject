@@ -271,58 +271,71 @@ storeRouter.get("/store", getStoresList);
  * @swagger
  * /store/top-stores:
  *   get:
- *     summary: Get top-performing stores based on average retailing
- *     description: Retrieves a list of top stores ranked by average retailing over a specified date range. Supports filtering by branch, zone manager, and sales manager.
+ *     summary: Get top-performing stores
+ *     description: Fetches the top stores based on sales data, with optional filtering by branch, manager, category, and brand.
  *     tags:
  *       - Store
  *     parameters:
- *       - in: query
- *         name: branchName
- *         schema:
- *           type: string
- *         required: false
+ *       - name: branchName
+ *         in: query
  *         description: Filter by branch name
- *       - in: query
- *         name: startDate
  *         schema:
  *           type: string
- *           format: date
- *         required: false
- *         description: Start date for the data range (default last 6 months)
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         required: false
- *         description: End date for the data range (default today)
- *       - in: query
- *         name: topStoresCount
+ *       - name: topStoresCount
+ *         in: query
+ *         description: Number of top stores to retrieve (default is 100)
  *         schema:
  *           type: integer
- *         required: false
- *         description: Number of top stores to retrieve (default 20, max 100 for caching)
- *       - in: query
- *         name: zoneManager
+ *           default: 100
+ *       - name: zoneManager
+ *         in: query
+ *         description: Filter by Zone Manager
  *         schema:
  *           type: string
- *         required: false
- *         description: Filter by zone manager
- *       - in: query
- *         name: salesManager
+ *       - name: salesManager
+ *         in: query
+ *         description: Filter by Sales Manager
  *         schema:
  *           type: string
- *         required: false
- *         description: Filter by sales manager
- *       - in: query
- *         name: offset
+ *       - name: branchExecutive
+ *         in: query
+ *         description: Filter by Branch Executive
+ *         schema:
+ *           type: string
+ *       - name: categoryName
+ *         in: query
+ *         description: Filter by category name
+ *         schema:
+ *           type: string
+ *       - name: brandName
+ *         in: query
+ *         description: Filter by brand name
+ *         schema:
+ *           type: string
+ *       - name: brandFormName
+ *         in: query
+ *         description: Filter by brand form name
+ *         schema:
+ *           type: string
+ *       - name: subBrandFormName
+ *         in: query
+ *         description: Filter by sub-brand form name
+ *         schema:
+ *           type: string
+ *       - name: channelName
+ *         in: query
+ *         description: Filter by channel name
+ *         schema:
+ *           type: string
+ *       - name: offset
+ *         in: query
+ *         description: Pagination offset (default is 0)
  *         schema:
  *           type: integer
- *         required: false
- *         description: Pagination offset (default 0)
+ *           default: 0
  *     responses:
  *       200:
- *         description: Successfully retrieved top stores
+ *         description: Successful response with top stores data.
  *         content:
  *           application/json:
  *             schema:
@@ -330,44 +343,48 @@ storeRouter.get("/store", getStoresList);
  *               properties:
  *                 cached:
  *                   type: boolean
- *                   example: false
- *                 branchName:
- *                   type: string
- *                 startDate:
- *                   type: string
- *                   format: date
- *                 endDate:
- *                   type: string
- *                   format: date
- *                 topStoresCount:
- *                   type: integer
- *                   example: 20
- *                 zoneManager:
- *                   type: string
- *                 salesManager:
- *                   type: string
- *                 offset:
- *                   type: integer
- *                 topStoresDetails:
+ *                   description: Indicates if data was retrieved from cache.
+ *                 cachedData:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       store_code:
  *                         type: string
+ *                         description: Unique store code.
  *                       store_name:
  *                         type: string
+ *                         description: Store name.
+ *                       branch_name:
+ *                         type: string
+ *                         description: Name of the branch.
+ *                       customer_type:
+ *                         type: string
+ *                         description: Type of customer.
  *                       channel:
  *                         type: string
+ *                         description: Store channel description.
+ *                       total_retailing:
+ *                         type: number
+ *                         format: float
+ *                         description: Total retail sales amount.
  *                       avg_retailing:
- *                         type: string
- *                         example: "15000.00"
- *       400:
- *         description: Bad request due to invalid parameters
+ *                         type: number
+ *                         format: float
+ *                         description: Average retail sales amount.
  *       500:
- *         description: Internal server error
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message.
  */
 storeRouter.get("/store/top-stores", getTopStores);
+
 
 /**
  * @swagger
