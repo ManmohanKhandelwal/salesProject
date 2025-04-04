@@ -8,7 +8,7 @@ import { saveAs } from "file-saver";
 import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { MapPin, X } from "lucide-react";
-import { months, years, zm, sm, be } from "@/constants";
+import { months, years, zm, sm, be, category, brand, brandform, broadChannel } from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
 import StoreAdditionalDetails from "@/components/ui/storeAdditionalDetails";
 import StorePagePieChart from "@/components/ui/StorePagePieChart";
@@ -31,6 +31,12 @@ const filtersToShowBottom = [
   { filterModule: be, filterLabel: "BE", filterKey: "be" },
 ];
 
+const productFilter = [
+  { filterModule: category, filterLabel: "Category", filterKey: "category" },
+  { filterModule: brand, filterLabel: "Brand", filterKey: "brand" },
+  { filterModule: brandform, filterLabel: "Brandform", filterKey: "brandform" },
+  { filterModule: broadChannel, filterLabel: "Broad Channel", filterKey: "broadChannel" }
+]
 const Store = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedStores, setSearchedStores] = useState(null);
@@ -66,6 +72,11 @@ const Store = () => {
     sm: ["all"],
     be: ["all"],
   });
+  const [selectedProductFilters, setSelectedProductFilters] = useState({
+    category: ["all"], brand: ["all"], brandform: ["all"], broadChannel:["all"]
+  });
+
+  const isBottomFilterSelected = Object.values(selectedFiltersBottom).some(filter => filter[0]!=="all");
 
   // Download Excel
   const downloadExcel = async () => {
@@ -136,6 +147,12 @@ const Store = () => {
       : setSelectedFiltersBottom(updatedFilters);
   };
 
+  const removeProductFilter = (filterKey) => {
+    let updatedFilters = { ...selectedProductFilters };
+    delete updatedFilters[filterKey];
+    setSelectedProductFilters(updatedFilters);
+  }
+
   const debouncedSearch = useCallback(
     debounce(async (q) => {
       if (!q) return;
@@ -199,7 +216,7 @@ const Store = () => {
     setDashboardLoading(true);
     const fetchTop100Stores = async () => {
       try {
-        const response = await axios.get(backEndURL(`/store/top-stores`));
+        const response = await axios.post(`http://localhost:5000/store/top-stores`,{});
         console.log(response);
         setTopStoresData(
           response.data?.cachedData || response.data?.topStoresDetails
@@ -222,14 +239,16 @@ const Store = () => {
 
   const getTopStores = useCallback(
     async (query) => {
-      if (query?.trim() === "") return;
+      if (query?.trim() === "" && selectedBranchBottom === "") return;
       setLoading(true);
       try {
-        const response = await axios.get(
-          backEndURL(
-            `/store/top-stores?branchName=${query}&topStoresCount=100&offset=0`
-          )
-        );
+        const response = await axios.post( `http://localhost:5000/store/top-stores`, {
+          branchName:query || selectedBranchBottom,
+          brandName:selectedProductFilters?.brand?.includes("all")?"":selectedProductFilters.brand,
+          categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
+          brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
+          broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
+        });
         console.log(response?.data);
         setResults(response.data?.cachedData);
         setTopStoresData(response.data?.cachedData);
@@ -242,29 +261,27 @@ const Store = () => {
         setLoading(false);
       }
     },
-    [selectedBranchBottom]
+    [selectedBranchBottom,selectedProductFilters]
   );
 
   const getTopStoresByFilter = useCallback(async () => {
-    const lookupForFilter = {
-      zm: "zoneManager",
-      sm: "salesManager",
-      be: "branchExecutive",
-    };
     const queryParams = Object.entries(selectedFiltersBottom)
       .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
-      .map(
-        ([key, values]) =>
-          `${lookupForFilter[key]}=${encodeURIComponent(values[0])}`
-      ) // Send only the first valid value
-      .join("&");
     if (queryParams?.length === 0) return;
-    if (queryParams?.split("&")?.length > 1) return;
+    //if (queryParams?.split("&")?.length > 1) return;
     console.log("queryParams: ", queryParams);
     setLoading(true);
     try {
-      const response = await axios.get(
-        backEndURL(`/store/top-stores?${queryParams}`)
+      const response = await axios.post(`http://localhost:5000/store/top-stores`,
+        {
+          zoneManager:selectedFiltersBottom.zm[0]==="all"?"":selectedFiltersBottom.zm[0],
+          salesManager:selectedFiltersBottom.sm[0]==="all"?"":selectedFiltersBottom.sm[0],
+          branchExecutive:selectedFiltersBottom.be[0]==="all"?"":selectedFiltersBottom.be[0],
+          brandName:selectedProductFilters?.brand?.includes("all")?"":selectedProductFilters.brand,
+          categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
+          brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
+          broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
+        }
       );
       setResults(response.data?.cachedData);
       setTopStoresData(response.data?.cachedData);
@@ -276,7 +293,7 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedFiltersBottom]);
+  }, [selectedFiltersBottom,selectedProductFilters]);
 
   const displayedStores =
     (query === "" || selectedBranchBottom === "") &&
@@ -390,7 +407,8 @@ const Store = () => {
 
   useEffect(() => {
     getTopStoresByFilter();
-  }, [selectedFiltersBottom]);
+    getTopStores();
+  }, [selectedFiltersBottom, selectedProductFilters]);
 
   useEffect(() => {
     return () => {
@@ -672,7 +690,7 @@ const Store = () => {
             </p>
 
             {/* Search Input */}
-            <div className="flex gap-6 items-center justify-center mt-3">
+            {!isBottomFilterSelected && <div className="flex gap-6 items-center justify-center mt-3">
               <div className="relative w-2/5">
                 <input
                   type="text"
@@ -711,10 +729,10 @@ const Store = () => {
                       </li>
                     ))}
                 </ul>
-              </div>
-
-              {/* FILTERS and DOWNLOAD BUTTON */}
-              <div className="flex items-center gap-3">
+              </div>  
+            </div>}
+            {/* FILTERS and DOWNLOAD BUTTON */}
+            <div className="flex items-center justify-center my-3 gap-3">
                 {!query &&
                   filtersToShowBottom.map((filter) => (
                     <FilterDropdown
@@ -726,7 +744,18 @@ const Store = () => {
                       setSelectedFilters={setSelectedFiltersBottom}
                     />
                   ))}
-
+                {
+                  productFilter.map((filter) => (
+                    <FilterDropdown
+                    key={filter.filterKey}
+                    filter={filter.filterModule}
+                    name={filter.filterLabel}
+                    filterKey={filter.filterKey}
+                    selectedFilters={selectedProductFilters}
+                    setSelectedFilters={setSelectedProductFilters}
+                    />
+                  ))
+                }
                 <button
                   onClick={downloadExcel}
                   className="bg-green-500 hover:bg-green-700 transition-all duration-200 text-white px-4 py-2 rounded"
@@ -734,12 +763,13 @@ const Store = () => {
                   Download Excel
                 </button>
               </div>
-            </div>
 
             {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
-            {Object.values(selectedFiltersBottom).some(
-              (filter) => filter.length > 0 && !filter.includes("all")
-            ) && (
+            {(Object.values(selectedFiltersBottom).some(
+              (filter) => filter.length > 0 && !filter.includes("all")) || 
+              Object.values(selectedProductFilters).some(
+                (filter) => filter.length > 0 && !filter.includes("all")))
+             && (
               <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
                 {Object.entries(selectedFiltersBottom)
                   .filter(
@@ -767,15 +797,38 @@ const Store = () => {
                       </div>
                     );
                   })}
+                  {Object.entries(selectedProductFilters)
+                  .filter(
+                    ([, selectedValues]) => !selectedValues.includes("all")
+                  )
+                  .map(([filterKey, selectedValues]) => {
+                    const filter = filtersToShowBottom.find(
+                      (f) => f.filterKey === filterKey
+                    );
+                    return (
+                      <div
+                        key={filterKey}
+                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
+                      >
+                        <span className="font-semibold">
+                          {filter?.filterLabel || filterKey}
+                        </span>
+                        : {selectedValues.join(", ")}
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => removeProductFilter(filterKey)}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
               </div>
             )}
 
             {/* Results Table */}
-            {paginatedResults &&
-            paginatedResults.length > 0 &&
-            !top100StoresLoading &&
-            displayedStores.length > 0 ? (
-              <div className="overflow-x-auto mt-6">
+            {(!top100StoresLoading && !loading && displayedStores?.length>0) ? (
+              <div className="overflow-x-auto mt-3">
                 <table className="w-full max-w-5xl mx-auto border border-gray-300 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
                   {/* Table Header */}
                   <thead className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
