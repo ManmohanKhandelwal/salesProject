@@ -31,6 +31,10 @@ export const getTopStores = async (req, res) => {
     } = req.body; // ✅ Use req.query instead of req.params
 
     // ✅ Only check meaningful filters (excluding topStoresCount & offset)
+    const isTruthyFilter = (value) => {
+      if (Array.isArray(value)) return value.length > 0;
+      return Boolean(value);
+    };
     const filters = [
       branchName,
       zoneManager,
@@ -42,7 +46,7 @@ export const getTopStores = async (req, res) => {
       broadChannelName
     ];
 
-    const shouldNotUseCache = filters.some(filter => filter);
+    const shouldNotUseCache = filters.some(isTruthyFilter);
 
     console.log("query", req.query);
     console.log("shouldNotUseCache", shouldNotUseCache);
@@ -127,8 +131,8 @@ export const getTopStores = async (req, res) => {
 
     queryParams.push(topStoresCount, offset);
 
-    console.log("Query Params", queryParams);
-    console.log("Query", query);
+    // console.log("Query Params", queryParams);
+    // console.log("Query", query);
 
     // ✅ **Execute Database Query**
     const [topStoresDetails] = await mySqlPool.query(query, queryParams);
