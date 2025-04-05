@@ -77,7 +77,7 @@ const Store = () => {
   });
 
   const isBottomFilterSelected = Object.values(selectedFiltersBottom).some(filter => filter[0]!=="all");
-
+  const isProductFilterSelected = Object.values(selectedProductFilters).some(filter => !filter.includes("all"));
   // Download Excel
   const downloadExcel = async () => {
     if (topStoresData.length === 0) {
@@ -207,7 +207,7 @@ const Store = () => {
     const queryParams = Object.entries(selectedFiltersBottom).filter(
       ([key, values]) => values.length > 0 && !values.includes("all")
     );
-    return queryParams.length > 0 ? true : false;
+    return queryParams.length > 0 ;
   };
 
   //Fetch Dashboard Data
@@ -238,8 +238,10 @@ const Store = () => {
   }, []);
 
   const getTopStores = useCallback(
-    async (query) => {
-      if (query?.trim() === "" && selectedBranchBottom === "") return;
+    async (query="") => {
+      if(isAnyBottomFilterSelected()) return;
+      if (query?.trim() === "" && selectedBranchBottom?.trim() === "") return;
+      console.log("query: ",query,"selectedBranchBottom: ",selectedBranchBottom)
       setLoading(true);
       try {
         const response = await axios.post( `http://localhost:5000/store/top-stores`, {
@@ -265,11 +267,10 @@ const Store = () => {
   );
 
   const getTopStoresByFilter = useCallback(async () => {
-    const queryParams = Object.entries(selectedFiltersBottom)
-      .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
-    if (queryParams?.length === 0) return;
+    //if(selectedBranchBottom?.trim() !== "") return; 
+    if(!isAnyBottomFilterSelected()) return;
     //if (queryParams?.split("&")?.length > 1) return;
-    console.log("queryParams: ", queryParams);
+    //console.log("queryParams: ", queryParams);
     setLoading(true);
     try {
       const response = await axios.post(`http://localhost:5000/store/top-stores`,
@@ -295,9 +296,39 @@ const Store = () => {
     }
   }, [selectedFiltersBottom,selectedProductFilters]);
 
+  const getTopStoresByOnlyProductFilter = useCallback(async() => {
+    if(selectedBranchBottom?.trim() !== "") return;
+    if(isAnyBottomFilterSelected()) return;
+    const queryParams = Object.entries(selectedProductFilters)
+      .filter(([key, values]) => values.length > 0 && !values.includes("all")) // Remove empty and "all"
+    if (queryParams?.length === 0) return;
+    console.log("queryParams: ", queryParams);
+
+    setLoading(true);
+    try {
+      const response = await axios.post(`http://localhost:5000/store/top-stores`,
+        {
+          brandName:selectedProductFilters?.brand?.includes("all")?"":selectedProductFilters.brand,
+          categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
+          brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
+          broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
+        }
+      );
+      setResults(response.data?.cachedData);
+      setTopStoresData(response.data?.cachedData);
+      setCurrentPage(1);
+      if (response.data?.cachedData?.length > 0)
+        setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
+    } catch (error) {
+      console.error("Error fetching stores, Error: ",error);
+    } finally {
+      setLoading(false);
+    }
+  },[selectedProductFilters])
+
   const displayedStores =
     (query === "" || selectedBranchBottom === "") &&
-    !isAnyBottomFilterSelected()
+    (!isAnyBottomFilterSelected() && !isProductFilterSelected)
       ? paginatedResults?.slice(
           (currentPage - 1) * itemsPerPage,
           currentPage * itemsPerPage
@@ -408,6 +439,7 @@ const Store = () => {
   useEffect(() => {
     getTopStoresByFilter();
     getTopStores();
+    getTopStoresByOnlyProductFilter();
   }, [selectedFiltersBottom, selectedProductFilters]);
 
   useEffect(() => {
@@ -827,7 +859,7 @@ const Store = () => {
             )}
 
             {/* Results Table */}
-            {(!top100StoresLoading && !loading && displayedStores?.length>0) ? (
+            {(!top100StoresLoading && !loading && displayedStores.length>0) ? (
               <div className="overflow-x-auto mt-3">
                 <table className="w-full max-w-5xl mx-auto border border-gray-300 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
                   {/* Table Header */}
