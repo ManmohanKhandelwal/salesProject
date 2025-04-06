@@ -1,20 +1,13 @@
 import mySqlPool from "#config/db.js";
 import { DB_CACHE_KEYS } from "#config/key.js";
 import { getCachedData } from "#utils/cacheManager.js";
-/**
- * 
- * @param {String} branchName
- * @param {Number} topStoresCount
- * @param {String} zoneManager
- * @param {String} salesManager
- * @param {String} branchExecutive
- * @param {Array} categoryName 
- * @param {Array} brandName
- * @param {Array} brandFormName
- * @param {Array} broadChannelName
- * @param {Number} offset
- * @returns 
- */
+
+// ✅ Only check meaningful filters (excluding topStoresCount & offset)
+const isTruthyFilter = (value) => {
+  if (Array.isArray(value)) return value.length > 0;
+  return Boolean(value);
+};
+
 export const getTopStores = async (req, res) => {
   try {
     let {
@@ -27,14 +20,11 @@ export const getTopStores = async (req, res) => {
       brandName = [],
       brandFormName = [],
       broadChannelName = [],
+      startDate = "",
+      endDate = "",
       offset = 0,
     } = req.body; // ✅ Use req.query instead of req.params
 
-    // ✅ Only check meaningful filters (excluding topStoresCount & offset)
-    const isTruthyFilter = (value) => {
-      if (Array.isArray(value)) return value.length > 0;
-      return Boolean(value);
-    };
     const filters = [
       branchName,
       zoneManager,
@@ -48,40 +38,93 @@ export const getTopStores = async (req, res) => {
 
     const shouldNotUseCache = filters.some(isTruthyFilter);
 
-    console.log("query", req.query);
-    console.log("shouldNotUseCache", shouldNotUseCache);
+    console.log("Request Body : ", req.body);
+    console.log("Should Use Cache ? :--- ", !shouldNotUseCache);
 
     // ✅ Use cache only when no filters are applied
     if (!shouldNotUseCache) {
-      console.log("Getting cached data for:", DB_CACHE_KEYS.TOP_100_STORE);
       const cachedData = await getCachedData(DB_CACHE_KEYS.TOP_100_STORE);
       if (cachedData) {
         return res.json({ cached: true, cachedData });
       }
     }
-
-    // ✅ **SQL Query with Dynamic Filters**
-    let query = `
-    WITH Last_Three_Months AS (
-        SELECT DISTINCT
-            DATE_FORMAT(document_date, '%Y-%m') AS month
-        FROM psr_data
-        ORDER BY month DESC
-        LIMIT 3
-    )
-    SELECT
-        psr.customer_code AS store_code,
-        psr.customer_name AS store_name,
-        store.New_Branch AS branch_name,
-        psr.customer_type,
-        psr.channel_description AS channel,
-        SUM(psr.retailing) AS total_retailing,
-        SUM(psr.retailing) / COUNT(DISTINCT DATE_FORMAT(psr.document_date, '%Y-%m')) AS avg_retailing
-    FROM psr_data psr
-    JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
-    ${broadChannelName.length ? "JOIN channel_mapping cm ON psr.customer_type = cm.customer_type" : ""}
-    WHERE DATE_FORMAT(psr.document_date, '%Y-%m') IN (SELECT month FROM Last_Three_Months)`;
-
+    let query = '';
+    if (startDate && endDate) {
+      query = `
+        WITH
+            Filtered_Months AS (
+              SELECT DISTINCT
+                DATE_FORMAT (document_date, '%Y-%m') AS month
+              FROM
+                psr_data
+              WHERE
+                document_date BETWEEN ${startDate} AND ${endDate}
+            ),
+            Month_Count AS (
+              SELECT
+                COUNT(*) AS month_count
+              FROM
+                Filtered_Months
+            )
+          SELECT
+            psr.customer_code AS store_code,
+            psr.customer_name AS store_name,
+            store.New_Branch AS branch_name,
+            psr.customer_type,
+            psr.channel_description AS channel,
+            SUM(psr.retailing) AS total_retailing,
+            SUM(psr.retailing) / (
+              SELECT
+                month_count
+              FROM
+                Month_Count
+            ) AS avg_retailing
+          FROM
+            psr_data psr
+            JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
+            ${broadChannelName.length ? "JOIN channel_mapping cm ON psr.customer_type = cm.customer_type" : ""}
+          WHERE
+            DATE_FORMAT (psr.document_date, '%Y-%m') IN (
+              SELECT
+                month
+              FROM
+                Filtered_Months
+            )
+      `;
+    }
+    else {
+      query = `
+    WITH
+      Last_Three_Months AS (
+          SELECT DISTINCT
+              DATE_FORMAT (document_date, '%Y-%m') AS month
+          FROM
+              psr_data
+          ORDER BY
+              month DESC
+          LIMIT
+              3
+      )
+  SELECT
+      psr.customer_code AS store_code,
+      psr.customer_name AS store_name,
+      store.New_Branch AS branch_name,
+      psr.customer_type,
+      psr.channel_description AS channel,
+      SUM(psr.retailing) AS total_retailing,
+      SUM(psr.retailing) / COUNT(DISTINCT DATE_FORMAT (psr.document_date, '%Y-%m')) AS avg_retailing
+  FROM
+      psr_data psr
+      JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
+      ${broadChannelName.length ? "JOIN channel_mapping cm ON psr.customer_type = cm.customer_type" : ""}
+  WHERE
+      DATE_FORMAT (psr.document_date, '%Y-%m') IN (
+          SELECT
+              month
+          FROM
+              Last_Three_Months
+      )`;
+    }
     let queryParams = [];
     let queryConditions = [];
 
@@ -132,7 +175,7 @@ export const getTopStores = async (req, res) => {
     queryParams.push(topStoresCount, offset);
 
     // console.log("Query Params", queryParams);
-    // console.log("Query", query);
+    // console.log("Query", query);s
 
     // ✅ **Execute Database Query**
     const [topStoresDetails] = await mySqlPool.query(query, queryParams);
