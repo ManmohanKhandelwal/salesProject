@@ -787,7 +787,7 @@ const Store = () => {
                   ))}
                 {
                   productFilter.map((filter) => filter.filterKey === "dateRange" ? (
-                    <DateRangeDropdownFilterStorePage
+                    ((query && selectedBranchBottom) || isAnyBottomFilterSelected() || isProductFilterSelected) && <DateRangeDropdownFilterStorePage
                       key={filter.filterKey}
                       name={filter.filterLabel}
                       filterKey={filter.filterKey}
