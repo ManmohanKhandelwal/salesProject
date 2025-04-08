@@ -17,6 +17,7 @@ import DateRangeDropdownFilterStorePage from "@/components/DateRangeDropdownFilt
 import { format } from "date-fns";
 
 import BranchWiseStores from "@/components/ui/BranchWiseStores";
+import DateRangeFilter from "@/components/DateRangeFilter";
 
 const HashLoader = dynamic(() => import("react-spinners/HashLoader"), {
   ssr: false,
@@ -50,8 +51,10 @@ const productFilter = [
   { filterModule: brand, filterLabel: "Brand", filterKey: "brand" },
   { filterModule: brandform, filterLabel: "Brandform", filterKey: "brandform" },
   { filterModule: broadChannel, filterLabel: "Broad Channel", filterKey: "broadChannel" },
-  { filterLabel: "Date Range", filterKey: "dateRange" },
-]
+];
+
+const dateRangeFilter = { filterLabel: "Date Range", filterKey: "dateRange" };
+
 const Store = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedStores, setSearchedStores] = useState(null);
@@ -89,21 +92,19 @@ const Store = () => {
     be: ["all"],
   });
   const [selectedProductFilters, setSelectedProductFilters] = useState({
-    category: ["all"], brand: ["all"], brandform: ["all"], broadChannel:["all"], dateRange: { from: "", to: "" }
+    category: ["all"], brand: ["all"], brandform: ["all"], broadChannel:["all"]
   });
+  const [selectedDateRangeFilter, setSelectedDateRangeFilter] = useState({
+    dateRange: { from: "", to: "" }
+  })
 
   const isBottomFilterSelected = Object.values(selectedFiltersBottom).some(filter => filter[0]!=="all");
-  const isProductFilterSelected = Object.entries(selectedProductFilters).some(([, value]) => {
-    if (Array.isArray(value)) {
-      return !value.includes("all");
-    }
-  
+  const isProductFilterSelected = Object.entries(selectedProductFilters).some(([, value]) => value.length>0 && !value.includes("all"));
+  const isDateRangeFilterSelected = Object.entries(selectedDateRangeFilter).some(([_,value]) => {
     if (typeof value === "object" && value !== null) {
       // For dateRange filters
       return !!value.from || !!value.to;
     }
-  
-    return false;
   });
   // Download Excel
   const downloadExcel = async () => {
@@ -178,6 +179,12 @@ const Store = () => {
     let updatedFilters = { ...selectedProductFilters };
     delete updatedFilters[filterKey];
     setSelectedProductFilters(updatedFilters);
+  }
+
+  const removeDateRangeFilter = (filterKey) => {
+    let updatedFilters = { ...selectedDateRangeFilter };
+    delete updatedFilters[filterKey];
+    setSelectedDateRangeFilter(updatedFilters);
   }
 
   const debouncedSearch = useCallback(
@@ -268,8 +275,6 @@ const Store = () => {
     async (query="") => {
       if(isAnyBottomFilterSelected()) return;
       if (query?.trim() === "" && selectedBranchBottom?.trim() === "") return;
-      if(selectedProductFilters?.dateRange?.from!=="" && selectedProductFilters?.dateRange?.to==="") return;
-      if(selectedProductFilters?.dateRange?.from==="" && selectedProductFilters?.dateRange?.to!=="") return;
       console.log("query: ",query,"selectedBranchBottom: ",selectedBranchBottom)
       setLoading(true);
       try {
@@ -279,8 +284,8 @@ const Store = () => {
           categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
           brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
           broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
-          startDate:selectedProductFilters?.dateRange?.from===""?"":selectedProductFilters?.dateRange?.from,
-          endDate:selectedProductFilters?.dateRange?.to===""?"":selectedProductFilters?.dateRange?.to,
+          startDate:selectedDateRangeFilter?.dateRange?.from===""?"":selectedDateRangeFilter?.dateRange?.from,
+          endDate:selectedDateRangeFilter?.dateRange?.to===""?"":selectedDateRangeFilter?.dateRange?.to,
         });
         console.log(response?.data);
         setResults(response.data?.cachedData);
@@ -298,12 +303,7 @@ const Store = () => {
   );
 
   const getTopStoresByFilter = useCallback(async () => {
-    //if(selectedBranchBottom?.trim() !== "") return; 
-    if(!isAnyBottomFilterSelected()) return;
-    if(selectedProductFilters?.dateRange?.from!=="" && selectedProductFilters?.dateRange?.to==="") return;
-    if(selectedProductFilters?.dateRange?.from==="" && selectedProductFilters?.dateRange?.to!=="") return;
-    //if (queryParams?.split("&")?.length > 1) return;
-    //console.log("queryParams: ", queryParams);
+    if(!isAnyBottomFilterSelected()) return; 
     setLoading(true);
     try {
       const response = await axios.post(`http://localhost:5000/store/top-stores`,
@@ -315,8 +315,8 @@ const Store = () => {
           categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
           brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
           broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
-          startDate:selectedProductFilters?.dateRange?.from===""?"":selectedProductFilters?.dateRange?.from,
-          endDate:selectedProductFilters?.dateRange?.to===""?"":selectedProductFilters?.dateRange?.to,
+          startDate:selectedDateRangeFilter?.dateRange?.from===""?"":selectedDateRangeFilter?.dateRange?.from,
+          endDate:selectedDateRangeFilter?.dateRange?.to===""?"":selectedDateRangeFilter?.dateRange?.to,
         }
       );
       setResults(response.data?.cachedData);
@@ -335,8 +335,6 @@ const Store = () => {
     if(selectedBranchBottom?.trim() !== "") return;
     if(isAnyBottomFilterSelected()) return;
     if(!isProductFilterSelected) return;
-    if(selectedProductFilters?.dateRange?.from!=="" && selectedProductFilters?.dateRange?.to==="") return;
-    if(selectedProductFilters?.dateRange?.from==="" && selectedProductFilters?.dateRange?.to!=="") return;
 
     setLoading(true);
     try {
@@ -346,8 +344,8 @@ const Store = () => {
           categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
           brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
           broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
-          startDate:selectedProductFilters?.dateRange?.from===""?"":selectedProductFilters?.dateRange?.from,
-          endDate:selectedProductFilters?.dateRange?.to===""?"":selectedProductFilters?.dateRange?.to,
+          startDate:selectedDateRangeFilter?.dateRange?.from===""?"":selectedDateRangeFilter?.dateRange?.from,
+          endDate:selectedDateRangeFilter?.dateRange?.to===""?"":selectedDateRangeFilter?.dateRange?.to,
         }
       );
       setResults(response.data?.cachedData);
@@ -361,6 +359,15 @@ const Store = () => {
       setLoading(false);
     }
   },[selectedProductFilters])
+
+  const submitDateRangeFilter = () => {
+    if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to==="") return;
+    if(selectedProductFilters?.dateRange?.from!=="" && selectedProductFilters?.dateRange?.to==="") return;
+    if(selectedProductFilters?.dateRange?.from==="" && selectedProductFilters?.dateRange?.to!=="") return;
+    getTopStoresByFilter();
+    getTopStores();
+    getTopStoresByOnlyProductFilter();
+  }
 
   const displayedStores =
     (query === "" || selectedBranchBottom === "") &&
@@ -786,15 +793,7 @@ const Store = () => {
                     />
                   ))}
                 {
-                  productFilter.map((filter) => filter.filterKey === "dateRange" ? (
-                    ((query && selectedBranchBottom) || isAnyBottomFilterSelected() || isProductFilterSelected) && <DateRangeDropdownFilterStorePage
-                      key={filter.filterKey}
-                      name={filter.filterLabel}
-                      filterKey={filter.filterKey}
-                      selectedFilters={selectedProductFilters}
-                      setSelectedFilters={setSelectedProductFilters}
-                    />
-                  ) : (
+                  productFilter.map((filter) =>
                     <FilterDropdown
                       key={filter.filterKey}
                       filter={filter.filterModule}
@@ -803,8 +802,19 @@ const Store = () => {
                       selectedFilters={selectedProductFilters}
                       setSelectedFilters={setSelectedProductFilters}
                     />
-                  ))
+                  )
                 }
+                {
+                  <DateRangeDropdownFilterStorePage
+                    key={dateRangeFilter.filterKey}
+                    name={dateRangeFilter.filterLabel}
+                    filterKey={dateRangeFilter.filterKey}
+                    selectedFilters={selectedDateRangeFilter}
+                    setSelectedFilters={setSelectedDateRangeFilter}
+                  />
+                }
+                <button className={`text-sm p-3 rounded-full bg-blue-600 ${isDateRangeFilterSelected?'block':'hidden'}`} onClick={submitDateRangeFilter}>
+                </button>
                 <button
                   onClick={downloadExcel}
                   className="bg-green-500 hover:bg-green-700 transition-all duration-200 text-white px-4 py-2 rounded"
@@ -816,7 +826,7 @@ const Store = () => {
             {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
             {(Object.values(selectedFiltersBottom).some(
               (filter) => filter.length > 0 && !filter.includes("all")) || 
-              isProductFilterSelected)
+              isProductFilterSelected || isDateRangeFilterSelected)
              && (
               <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
                 {Object.entries(selectedFiltersBottom)
@@ -846,39 +856,9 @@ const Store = () => {
                     );
                   })}
                   {Object.entries(selectedProductFilters)
-                  .filter(([, value]) => {
-                    if (Array.isArray(value)) {
-                      return !value.includes("all");
-                    }
-                    if (typeof value === "object" && value !== null) {
-                      return value.from || value.to;
-                    }
-                    return false;
-                  })
+                  .filter(([, value]) => !value.includes("all"))
                   .map(([filterKey, selectedValues]) => {
                     const filter = productFilter.find((f) => f.filterKey === filterKey);
-                  
-                    // Format the value for display
-                    let displayValue = "";
-                  
-                    if (Array.isArray(selectedValues)) {
-                      displayValue = selectedValues.join(", ");
-                    } else if (typeof selectedValues === "object" && selectedValues !== null) {
-                      let startDate = selectedValues.from;
-                      let endDate = selectedValues.to;
-                      if (startDate && endDate) {
-                        displayValue = `${format(new Date(startDate), "yyyy-MM-dd")} to ${format(
-                          new Date(endDate),
-                          "yyyy-MM-dd"
-                        )}`;
-                        console.log("Date Here 892: ",displayValue)
-                      } else if (startDate) {
-                        displayValue = `From ${format(new Date(startDate), "yyyy-MM-dd")}`;
-                      } else if (endDate) {
-                        displayValue = `Until ${format(new Date(endDate), "yyyy-MM-dd")}`;
-                      }
-                    }
-                  
                     return (
                       <div
                         key={filterKey}
@@ -887,7 +867,7 @@ const Store = () => {
                         <span className="font-semibold">
                           {filter?.filterLabel || filterKey}
                         </span>
-                        : {displayValue}
+                        : {selectedValues.join(", ")}
                         <button
                           className="text-red-500 hover:text-red-700"
                           onClick={() => removeProductFilter(filterKey)}
@@ -897,11 +877,51 @@ const Store = () => {
                       </div>
                     );
                   })}
+                  {
+                    Object.entries(selectedDateRangeFilter).filter(([,value]) => {if (typeof value === "object" && value !== null) {
+                      return value.from || value.to;}
+                    })
+                    .map(([filterKey,selectedValue]) => {
+                      let displayValue = "";
+                      if (typeof selectedValue === "object" && selectedValue !== null) {
+                      let startDate = selectedValue.from;
+                      let endDate = selectedValue.to;
+                      if (startDate && endDate) {
+                        displayValue = `${format(new Date(startDate), "yyyy-MM-dd")} to ${format(
+                          new Date(endDate),
+                          "yyyy-MM-dd"
+                        )}`;
+                        console.log("Date Here 898: ",displayValue)
+                      } else if (startDate) {
+                        displayValue = `From ${format(new Date(startDate), "yyyy-MM-dd")}`;
+                      } else if (endDate) {
+                        displayValue = `Until ${format(new Date(endDate), "yyyy-MM-dd")}`;
+                      }
+                      }
+                      return (
+                        <div
+                          key={filterKey}
+                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
+                        >
+                          <span className="font-semibold">
+                            {dateRangeFilter.filterLabel}
+                          </span>
+                          : {displayValue}
+                          <button
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => removeDateRangeFilter(filterKey)}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      );
+                    })
+                  }
               </div>
             )}
 
             {/* Results Table */}
-            {(!top100StoresLoading && !loading && displayedStores.length>0) ? (
+            {(!top100StoresLoading && !loading && displayedStores?.length>0) ? (
               <div className="overflow-x-auto mt-3">
                 <table className="w-full max-w-5xl mx-auto border border-gray-300 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
                   {/* Table Header */}

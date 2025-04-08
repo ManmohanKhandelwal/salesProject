@@ -185,7 +185,7 @@ export const getTopStores = async (req, res) => {
     // ✅ **Execute Database Query**
     const [topStoresDetails] = await mySqlPool.query(query, queryParams);
 
-    res.status(200).json(topStoresDetails);
+    res.status(200).json({cached:false, cachedData: topStoresDetails});
   } catch (error) {
     console.error("Error fetching top stores:", error?.message || error);
     res
