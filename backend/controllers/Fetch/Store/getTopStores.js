@@ -34,6 +34,8 @@ export const getTopStores = async (req, res) => {
       brandName,
       brandFormName,
       broadChannelName,
+      startDate,
+      endDate
     ];
 
     const shouldNotUseCache = filters.some(isTruthyFilter);

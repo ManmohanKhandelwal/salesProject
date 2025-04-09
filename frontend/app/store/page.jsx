@@ -275,6 +275,8 @@ const Store = () => {
     async (query="") => {
       if(isAnyBottomFilterSelected()) return;
       if (query?.trim() === "" && selectedBranchBottom?.trim() === "") return;
+      if(selectedDateRangeFilter?.dateRange?.from!=="" && selectedDateRangeFilter?.dateRange?.to==="") return;
+      if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to!=="") return;
       console.log("query: ",query,"selectedBranchBottom: ",selectedBranchBottom)
       setLoading(true);
       try {
@@ -299,11 +301,13 @@ const Store = () => {
         setLoading(false);
       }
     },
-    [selectedBranchBottom,selectedProductFilters]
+    [selectedBranchBottom,selectedProductFilters,selectedDateRangeFilter]
   );
 
   const getTopStoresByFilter = useCallback(async () => {
     if(!isAnyBottomFilterSelected()) return; 
+    if(selectedDateRangeFilter?.dateRange?.from!=="" && selectedDateRangeFilter?.dateRange?.to==="") return;
+    if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to!=="") return;
     setLoading(true);
     try {
       const response = await axios.post(`http://localhost:5000/store/top-stores`,
@@ -329,13 +333,14 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedFiltersBottom,selectedProductFilters]);
+  }, [selectedFiltersBottom,selectedProductFilters,selectedDateRangeFilter]);
 
   const getTopStoresByOnlyProductFilter = useCallback(async() => {
     if(selectedBranchBottom?.trim() !== "") return;
     if(isAnyBottomFilterSelected()) return;
     if(!isProductFilterSelected) return;
-
+    if(selectedDateRangeFilter?.dateRange?.from!=="" && selectedDateRangeFilter?.dateRange?.to==="") return;
+    if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to!=="") return;
     setLoading(true);
     try {
       const response = await axios.post(`http://localhost:5000/store/top-stores`,
@@ -358,15 +363,40 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
-  },[selectedProductFilters])
+  },[selectedProductFilters,selectedDateRangeFilter])
+
+  const getTopStoresByDateRange = useCallback(async() => {
+    if(selectedBranchBottom?.trim()!=="") return;
+    if(isAnyBottomFilterSelected()) return;
+    if(isProductFilterSelected) return;
+    setLoading(true);
+    try {
+      const response = await axios.post(`http://localhost:5000/store/top-stores`,
+        {
+          startDate:selectedDateRangeFilter?.dateRange?.from===""?"":selectedDateRangeFilter?.dateRange?.from,
+          endDate:selectedDateRangeFilter?.dateRange?.to===""?"":selectedDateRangeFilter?.dateRange?.to,
+        }
+      );
+      setResults(response.data?.cachedData);
+      setTopStoresData(response.data?.cachedData);
+      setCurrentPage(1);
+      if (response.data?.cachedData?.length > 0)
+        setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
+    } catch (error) {
+      console.error("Error fetching stores, Error: ",error);
+    } finally {
+      setLoading(false)
+    }
+  },[selectedDateRangeFilter])
 
   const submitDateRangeFilter = () => {
     if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to==="") return;
-    if(selectedProductFilters?.dateRange?.from!=="" && selectedProductFilters?.dateRange?.to==="") return;
-    if(selectedProductFilters?.dateRange?.from==="" && selectedProductFilters?.dateRange?.to!=="") return;
+    if(selectedDateRangeFilter?.dateRange?.from!=="" && selectedDateRangeFilter?.dateRange?.to==="") return;
+    if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to!=="") return;
     getTopStoresByFilter();
     getTopStores();
     getTopStoresByOnlyProductFilter();
+    getTopStoresByDateRange();
   }
 
   const displayedStores =
@@ -456,7 +486,7 @@ const Store = () => {
     getTopStoresByFilter();
     getTopStores();
     getTopStoresByOnlyProductFilter();
-  }, [selectedFiltersBottom, selectedProductFilters]);
+  }, [selectedFiltersBottom, selectedProductFilters,selectedDateRangeFilter]);
 
   useEffect(() => {
     return () => {
