@@ -8,7 +8,17 @@ import { saveAs } from "file-saver";
 import FilterDropdown from "@/components/FilterDropdown";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { MapPin, X } from "lucide-react";
-import { months, years, zm, sm, be, category, brand, brandform, broadChannel } from "@/constants";
+import {
+  months,
+  years,
+  zm,
+  sm,
+  be,
+  category,
+  brand,
+  brandform,
+  broadChannel,
+} from "@/constants";
 import StoreRetailMonthYear from "@/components/ui/storeRetailMonthYear";
 import StoreAdditionalDetails from "@/components/ui/storeAdditionalDetails";
 import StorePagePieChart from "@/components/ui/StorePagePieChart";
@@ -26,14 +36,14 @@ const HashLoader = dynamic(() => import("react-spinners/HashLoader"), {
 const getDateToday = (subtractRange = 0) => {
   const padZero = (num) => (num < 10 ? `0${num}` : num);
   const date = new Date();
-  if(subtractRange!==0) date.setMonth(date.getMonth()- subtractRange)
+  if (subtractRange !== 0) date.setMonth(date.getMonth() - subtractRange);
   const yyyy = date.getFullYear();
   const mm = padZero(date.getMonth() + 1); // getMonth() is zero-based
   const dd = padZero(date.getDate());
   const formatted = `${yyyy}-${mm}-${dd}`;
-  console.log("Today's date: ",formatted);
+  console.log("Today's date: ", formatted);
   return formatted;
-}
+};
 
 const filtersToShowTop = [
   { filterModule: years, filterLabel: "Year", filterKey: "years" },
@@ -50,7 +60,11 @@ const productFilter = [
   { filterModule: category, filterLabel: "Category", filterKey: "category" },
   { filterModule: brand, filterLabel: "Brand", filterKey: "brand" },
   { filterModule: brandform, filterLabel: "Brandform", filterKey: "brandform" },
-  { filterModule: broadChannel, filterLabel: "Broad Channel", filterKey: "broadChannel" },
+  {
+    filterModule: broadChannel,
+    filterLabel: "Broad Channel",
+    filterKey: "broadChannel",
+  },
 ];
 
 const dateRangeFilter = { filterLabel: "Date Range", filterKey: "dateRange" };
@@ -79,7 +93,6 @@ const Store = () => {
 
   const middleSectionRef = useRef(null);
 
-
   //DashBoard Data
   const [dashBoardData, setDashBoardData] = useState({});
   const [selectedFiltersTop, setSelectedFiltersTop] = useState({
@@ -92,15 +105,24 @@ const Store = () => {
     be: ["all"],
   });
   const [selectedProductFilters, setSelectedProductFilters] = useState({
-    category: ["all"], brand: ["all"], brandform: ["all"], broadChannel:["all"]
+    category: ["all"],
+    brand: ["all"],
+    brandform: ["all"],
+    broadChannel: ["all"],
   });
   const [selectedDateRangeFilter, setSelectedDateRangeFilter] = useState({
-    dateRange: { from: "", to: "" }
-  })
+    dateRange: { from: "", to: "" },
+  });
 
-  const isBottomFilterSelected = Object.values(selectedFiltersBottom).some(filter => filter[0]!=="all");
-  const isProductFilterSelected = Object.entries(selectedProductFilters).some(([, value]) => value.length>0 && !value.includes("all"));
-  const isDateRangeFilterSelected = Object.entries(selectedDateRangeFilter).some(([_,value]) => {
+  const isBottomFilterSelected = Object.values(selectedFiltersBottom).some(
+    (filter) => filter[0] !== "all"
+  );
+  const isProductFilterSelected = Object.entries(selectedProductFilters).some(
+    ([, value]) => value.length > 0 && !value.includes("all")
+  );
+  const isDateRangeFilterSelected = Object.entries(
+    selectedDateRangeFilter
+  ).some(([_, value]) => {
     if (typeof value === "object" && value !== null) {
       // For dateRange filters
       return !!value.from || !!value.to;
@@ -179,13 +201,13 @@ const Store = () => {
     let updatedFilters = { ...selectedProductFilters };
     delete updatedFilters[filterKey];
     setSelectedProductFilters(updatedFilters);
-  }
+  };
 
   const removeDateRangeFilter = (filterKey) => {
     let updatedFilters = { ...selectedDateRangeFilter };
     delete updatedFilters[filterKey];
     setSelectedDateRangeFilter(updatedFilters);
-  }
+  };
 
   const debouncedSearch = useCallback(
     debounce(async (q) => {
@@ -241,7 +263,7 @@ const Store = () => {
     const queryParams = Object.entries(selectedFiltersBottom).filter(
       ([key, values]) => values.length > 0 && !values.includes("all")
     );
-    return queryParams.length > 0 ;
+    return queryParams.length > 0;
   };
 
   //Fetch Dashboard Data
@@ -250,7 +272,10 @@ const Store = () => {
     setDashboardLoading(true);
     const fetchTop100Stores = async () => {
       try {
-        const response = await axios.post(`http://localhost:5000/store/top-stores`,{});
+        const response = await axios.post(
+          `http://localhost:5000/store/top-stores`,
+          {}
+        );
         console.log(response);
         setTopStoresData(
           response.data?.cachedData || response.data?.topStoresDetails
@@ -272,23 +297,55 @@ const Store = () => {
   }, []);
 
   const getTopStores = useCallback(
-    async (query="") => {
-      if(isAnyBottomFilterSelected()) return;
+    async (query = "") => {
+      if (isAnyBottomFilterSelected()) return;
       if (query?.trim() === "" && selectedBranchBottom?.trim() === "") return;
-      if(selectedDateRangeFilter?.dateRange?.from!=="" && selectedDateRangeFilter?.dateRange?.to==="") return;
-      if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to!=="") return;
-      console.log("query: ",query,"selectedBranchBottom: ",selectedBranchBottom)
+      if (
+        selectedDateRangeFilter?.dateRange?.from !== "" &&
+        selectedDateRangeFilter?.dateRange?.to === ""
+      )
+        return;
+      if (
+        selectedDateRangeFilter?.dateRange?.from === "" &&
+        selectedDateRangeFilter?.dateRange?.to !== ""
+      )
+        return;
+      console.log(
+        "query: ",
+        query,
+        "selectedBranchBottom: ",
+        selectedBranchBottom
+      );
       setLoading(true);
       try {
-        const response = await axios.post( `http://localhost:5000/store/top-stores`, {
-          branchName:query || selectedBranchBottom,
-          brandName:selectedProductFilters?.brand?.includes("all")?"":selectedProductFilters.brand,
-          categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
-          brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
-          broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
-          startDate:selectedDateRangeFilter?.dateRange?.from===""?"":selectedDateRangeFilter?.dateRange?.from,
-          endDate:selectedDateRangeFilter?.dateRange?.to===""?"":selectedDateRangeFilter?.dateRange?.to,
-        });
+        const response = await axios.post(
+          `http://localhost:5000/store/top-stores`,
+          {
+            branchName: query || selectedBranchBottom,
+            brandName: selectedProductFilters?.brand?.includes("all")
+              ? ""
+              : selectedProductFilters.brand,
+            categoryName: selectedProductFilters?.category?.includes("all")
+              ? ""
+              : selectedProductFilters.category,
+            brandFormName: selectedProductFilters?.brandform?.includes("all")
+              ? ""
+              : selectedProductFilters.brandform,
+            broadChannelName: selectedProductFilters?.broadChannel?.includes(
+              "all"
+            )
+              ? ""
+              : selectedProductFilters.broadChannel,
+            startDate:
+              selectedDateRangeFilter?.dateRange?.from === ""
+                ? ""
+                : selectedDateRangeFilter?.dateRange?.from,
+            endDate:
+              selectedDateRangeFilter?.dateRange?.to === ""
+                ? ""
+                : selectedDateRangeFilter?.dateRange?.to,
+          }
+        );
         console.log(response?.data);
         setResults(response.data?.cachedData);
         setTopStoresData(response.data?.cachedData);
@@ -301,26 +358,60 @@ const Store = () => {
         setLoading(false);
       }
     },
-    [selectedBranchBottom,selectedProductFilters,selectedDateRangeFilter]
+    [selectedBranchBottom, selectedProductFilters, selectedDateRangeFilter]
   );
 
   const getTopStoresByFilter = useCallback(async () => {
-    if(!isAnyBottomFilterSelected()) return; 
-    if(selectedDateRangeFilter?.dateRange?.from!=="" && selectedDateRangeFilter?.dateRange?.to==="") return;
-    if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to!=="") return;
+    if (!isAnyBottomFilterSelected()) return;
+    if (
+      selectedDateRangeFilter?.dateRange?.from !== "" &&
+      selectedDateRangeFilter?.dateRange?.to === ""
+    )
+      return;
+    if (
+      selectedDateRangeFilter?.dateRange?.from === "" &&
+      selectedDateRangeFilter?.dateRange?.to !== ""
+    )
+      return;
     setLoading(true);
     try {
-      const response = await axios.post(`http://localhost:5000/store/top-stores`,
+      const response = await axios.post(
+        `http://localhost:5000/store/top-stores`,
         {
-          zoneManager:selectedFiltersBottom.zm[0]==="all"?"":selectedFiltersBottom.zm[0],
-          salesManager:selectedFiltersBottom.sm[0]==="all"?"":selectedFiltersBottom.sm[0],
-          branchExecutive:selectedFiltersBottom.be[0]==="all"?"":selectedFiltersBottom.be[0],
-          brandName:selectedProductFilters?.brand?.includes("all")?"":selectedProductFilters.brand,
-          categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
-          brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
-          broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
-          startDate:selectedDateRangeFilter?.dateRange?.from===""?"":selectedDateRangeFilter?.dateRange?.from,
-          endDate:selectedDateRangeFilter?.dateRange?.to===""?"":selectedDateRangeFilter?.dateRange?.to,
+          zoneManager:
+            selectedFiltersBottom.zm[0] === "all"
+              ? ""
+              : selectedFiltersBottom.zm[0],
+          salesManager:
+            selectedFiltersBottom.sm[0] === "all"
+              ? ""
+              : selectedFiltersBottom.sm[0],
+          branchExecutive:
+            selectedFiltersBottom.be[0] === "all"
+              ? ""
+              : selectedFiltersBottom.be[0],
+          brandName: selectedProductFilters?.brand?.includes("all")
+            ? ""
+            : selectedProductFilters.brand,
+          categoryName: selectedProductFilters?.category?.includes("all")
+            ? ""
+            : selectedProductFilters.category,
+          brandFormName: selectedProductFilters?.brandform?.includes("all")
+            ? ""
+            : selectedProductFilters.brandform,
+          broadChannelName: selectedProductFilters?.broadChannel?.includes(
+            "all"
+          )
+            ? ""
+            : selectedProductFilters.broadChannel,
+          startDate:
+            selectedDateRangeFilter?.dateRange?.from === ""
+              ? ""
+              : selectedDateRangeFilter?.dateRange?.from,
+          endDate:
+            selectedDateRangeFilter?.dateRange?.to === ""
+              ? ""
+              : selectedDateRangeFilter?.dateRange?.to,
         }
       );
       setResults(response.data?.cachedData);
@@ -333,24 +424,49 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedFiltersBottom,selectedProductFilters,selectedDateRangeFilter]);
+  }, [selectedFiltersBottom, selectedProductFilters, selectedDateRangeFilter]);
 
-  const getTopStoresByOnlyProductFilter = useCallback(async() => {
-    if(selectedBranchBottom?.trim() !== "") return;
-    if(isAnyBottomFilterSelected()) return;
-    if(!isProductFilterSelected) return;
-    if(selectedDateRangeFilter?.dateRange?.from!=="" && selectedDateRangeFilter?.dateRange?.to==="") return;
-    if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to!=="") return;
+  const getTopStoresByOnlyProductFilter = useCallback(async () => {
+    if (selectedBranchBottom?.trim() !== "") return;
+    if (isAnyBottomFilterSelected()) return;
+    if (!isProductFilterSelected) return;
+    if (
+      selectedDateRangeFilter?.dateRange?.from !== "" &&
+      selectedDateRangeFilter?.dateRange?.to === ""
+    )
+      return;
+    if (
+      selectedDateRangeFilter?.dateRange?.from === "" &&
+      selectedDateRangeFilter?.dateRange?.to !== ""
+    )
+      return;
     setLoading(true);
     try {
-      const response = await axios.post(`http://localhost:5000/store/top-stores`,
+      const response = await axios.post(
+        `http://localhost:5000/store/top-stores`,
         {
-          brandName:selectedProductFilters?.brand?.includes("all")?"":selectedProductFilters.brand,
-          categoryName:selectedProductFilters?.category?.includes("all")?"":selectedProductFilters.category,
-          brandFormName:selectedProductFilters?.brandform?.includes("all")?"":selectedProductFilters.brandform,
-          broadChannelName:selectedProductFilters?.broadChannel?.includes("all")?"":selectedProductFilters.broadChannel,
-          startDate:selectedDateRangeFilter?.dateRange?.from===""?"":selectedDateRangeFilter?.dateRange?.from,
-          endDate:selectedDateRangeFilter?.dateRange?.to===""?"":selectedDateRangeFilter?.dateRange?.to,
+          brandName: selectedProductFilters?.brand?.includes("all")
+            ? ""
+            : selectedProductFilters.brand,
+          categoryName: selectedProductFilters?.category?.includes("all")
+            ? ""
+            : selectedProductFilters.category,
+          brandFormName: selectedProductFilters?.brandform?.includes("all")
+            ? ""
+            : selectedProductFilters.brandform,
+          broadChannelName: selectedProductFilters?.broadChannel?.includes(
+            "all"
+          )
+            ? ""
+            : selectedProductFilters.broadChannel,
+          startDate:
+            selectedDateRangeFilter?.dateRange?.from === ""
+              ? ""
+              : selectedDateRangeFilter?.dateRange?.from,
+          endDate:
+            selectedDateRangeFilter?.dateRange?.to === ""
+              ? ""
+              : selectedDateRangeFilter?.dateRange?.to,
         }
       );
       setResults(response.data?.cachedData);
@@ -359,49 +475,70 @@ const Store = () => {
       if (response.data?.cachedData?.length > 0)
         setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
     } catch (error) {
-      console.error("Error fetching stores, Error: ",error);
+      console.error("Error fetching stores, Error: ", error);
     } finally {
       setLoading(false);
     }
-  },[selectedProductFilters,selectedDateRangeFilter])
+  }, [selectedProductFilters, selectedDateRangeFilter]);
 
-  const getTopStoresByDateRange = useCallback(async() => {
-    if(selectedBranchBottom?.trim()!=="") return;
-    if(isAnyBottomFilterSelected()) return;
-    if(isProductFilterSelected) return;
+  const getTopStoresByDateRange = useCallback(async () => {
+    if (selectedBranchBottom?.trim() !== "") return;
+    if (isAnyBottomFilterSelected()) return;
+    if (isProductFilterSelected) return;
     setLoading(true);
     try {
-      const response = await axios.post(`http://localhost:5000/store/top-stores`,
+      const response = await axios.post(
+        `http://localhost:5000/store/top-stores`,
         {
-          startDate:selectedDateRangeFilter?.dateRange?.from===""?"":selectedDateRangeFilter?.dateRange?.from,
-          endDate:selectedDateRangeFilter?.dateRange?.to===""?"":selectedDateRangeFilter?.dateRange?.to,
+          startDate:
+            selectedDateRangeFilter?.dateRange?.from === ""
+              ? ""
+              : selectedDateRangeFilter?.dateRange?.from,
+          endDate:
+            selectedDateRangeFilter?.dateRange?.to === ""
+              ? ""
+              : selectedDateRangeFilter?.dateRange?.to,
         }
       );
       setResults(response.data?.cachedData);
-      setResults(response.data?.cachedData);
+      setTopStoresData(response.data?.cachedData);
       setCurrentPage(1);
       if (response.data?.cachedData?.length > 0)
         setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
     } catch (error) {
-      console.error("Error fetching stores, Error: ",error);
+      console.error("Error fetching stores, Error: ", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  },[selectedDateRangeFilter])
+  }, [selectedDateRangeFilter]);
 
   const submitDateRangeFilter = () => {
-    if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to==="") return;
-    if(selectedDateRangeFilter?.dateRange?.from!=="" && selectedDateRangeFilter?.dateRange?.to==="") return;
-    if(selectedDateRangeFilter?.dateRange?.from==="" && selectedDateRangeFilter?.dateRange?.to!=="") return;
+    if (
+      selectedDateRangeFilter?.dateRange?.from === "" &&
+      selectedDateRangeFilter?.dateRange?.to === ""
+    )
+      return;
+    if (
+      selectedDateRangeFilter?.dateRange?.from !== "" &&
+      selectedDateRangeFilter?.dateRange?.to === ""
+    )
+      return;
+    if (
+      selectedDateRangeFilter?.dateRange?.from === "" &&
+      selectedDateRangeFilter?.dateRange?.to !== ""
+    )
+      return;
     getTopStoresByFilter();
     getTopStores();
     getTopStoresByOnlyProductFilter();
     getTopStoresByDateRange();
-  }
+  };
 
   const displayedStores =
     (query === "" || selectedBranchBottom === "") &&
-    (!isAnyBottomFilterSelected() && !isProductFilterSelected && !isDateRangeFilterSelected)
+    !isAnyBottomFilterSelected() &&
+    !isProductFilterSelected &&
+    !isDateRangeFilterSelected
       ? paginatedResults?.slice(
           (currentPage - 1) * itemsPerPage,
           currentPage * itemsPerPage
@@ -486,7 +623,7 @@ const Store = () => {
     getTopStoresByFilter();
     getTopStores();
     getTopStoresByOnlyProductFilter();
-  }, [selectedFiltersBottom, selectedProductFilters,selectedDateRangeFilter]);
+  }, [selectedFiltersBottom, selectedProductFilters, selectedDateRangeFilter]);
 
   useEffect(() => {
     return () => {
@@ -768,96 +905,101 @@ const Store = () => {
             </p>
 
             {/* Search Input */}
-            {!isBottomFilterSelected && <div className="flex gap-6 items-center justify-center mt-3">
-              <div className="relative w-2/5">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={query}
-                  onChange={(e) => branchInputChange(e, "lower")}
-                  onKeyDown={handleKeyPress}
-                  className="text-black w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
-                />
-                <ul
-                  className={`${
-                    hideBranchSearchLower ? "hidden" : ""
-                  } absolute top-[110%] w-full left-0 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide`}
-                >
-                  {query &&
-                    branchResultLower?.length > 0 &&
-                    branchResultLower.map((branch, index) => (
-                      <li
-                        key={index}
-                        className={`py-2 px-4 cursor-pointer truncate text-sm ${
-                          index !== branchResultLower.length - 1
-                            ? "border-b border-gray-300"
-                            : ""
-                        }`}
-                        onClick={() => {
-                          setHideBranchSearchLower(true);
-                          setQuery(branch);
-                          setSelectedBranchBottom(branch);
-                          getTopStores(branch);
-                        }}
-                      >
-                        <span className="inline-flex gap-3 items-center">
-                          <MapPin width={16} height={16} strokeWidth={2.5} />
-                          <strong> {branch}</strong>
-                        </span>
-                      </li>
-                    ))}
-                </ul>
-              </div>  
-            </div>}
+            {!isBottomFilterSelected && (
+              <div className="flex gap-6 items-center justify-center mt-3">
+                <div className="relative w-2/5">
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={query}
+                    onChange={(e) => branchInputChange(e, "lower")}
+                    onKeyDown={handleKeyPress}
+                    className="text-black w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 dark:focus:ring-orange-500 focus:ring-green-500"
+                  />
+                  <ul
+                    className={`${
+                      hideBranchSearchLower ? "hidden" : ""
+                    } absolute top-[110%] w-full left-0 bg-white text-black shadow-md rounded-lg max-h-40 overflow-auto scrollbar-hide`}
+                  >
+                    {query &&
+                      branchResultLower?.length > 0 &&
+                      branchResultLower.map((branch, index) => (
+                        <li
+                          key={index}
+                          className={`py-2 px-4 cursor-pointer truncate text-sm ${
+                            index !== branchResultLower.length - 1
+                              ? "border-b border-gray-300"
+                              : ""
+                          }`}
+                          onClick={() => {
+                            setHideBranchSearchLower(true);
+                            setQuery(branch);
+                            setSelectedBranchBottom(branch);
+                            getTopStores(branch);
+                          }}
+                        >
+                          <span className="inline-flex gap-3 items-center">
+                            <MapPin width={16} height={16} strokeWidth={2.5} />
+                            <strong> {branch}</strong>
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+            )}
             {/* FILTERS and DOWNLOAD BUTTON */}
             <div className="flex items-center justify-center my-3 gap-3">
-                {!query &&
-                  filtersToShowBottom.map((filter) => (
-                    <FilterDropdown
-                      key={filter.filterKey}
-                      filter={filter.filterModule}
-                      name={filter.filterLabel}
-                      filterKey={filter.filterKey}
-                      selectedFilters={selectedFiltersBottom}
-                      setSelectedFilters={setSelectedFiltersBottom}
-                    />
-                  ))}
-                {
-                  productFilter.map((filter) =>
-                    <FilterDropdown
-                      key={filter.filterKey}
-                      filter={filter.filterModule}
-                      name={filter.filterLabel}
-                      filterKey={filter.filterKey}
-                      selectedFilters={selectedProductFilters}
-                      setSelectedFilters={setSelectedProductFilters}
-                    />
-                  )
-                }
-                {
-                  <DateRangeDropdownFilterStorePage
-                    key={dateRangeFilter.filterKey}
-                    name={dateRangeFilter.filterLabel}
-                    filterKey={dateRangeFilter.filterKey}
-                    selectedFilters={selectedDateRangeFilter}
-                    setSelectedFilters={setSelectedDateRangeFilter}
+              {!query &&
+                filtersToShowBottom.map((filter) => (
+                  <FilterDropdown
+                    key={filter.filterKey}
+                    filter={filter.filterModule}
+                    name={filter.filterLabel}
+                    filterKey={filter.filterKey}
+                    selectedFilters={selectedFiltersBottom}
+                    setSelectedFilters={setSelectedFiltersBottom}
                   />
-                }
-                <button className={`text-sm p-3 rounded-full bg-blue-600 ${isDateRangeFilterSelected?'block':'hidden'}`} onClick={submitDateRangeFilter}>
-                </button>
-                <button
-                  onClick={downloadExcel}
-                  className="bg-green-500 hover:bg-green-700 transition-all duration-200 text-white px-4 py-2 rounded"
-                >
-                  Download Excel
-                </button>
-              </div>
+                ))}
+              {productFilter.map((filter) => (
+                <FilterDropdown
+                  key={filter.filterKey}
+                  filter={filter.filterModule}
+                  name={filter.filterLabel}
+                  filterKey={filter.filterKey}
+                  selectedFilters={selectedProductFilters}
+                  setSelectedFilters={setSelectedProductFilters}
+                />
+              ))}
+              {
+                <DateRangeDropdownFilterStorePage
+                  key={dateRangeFilter.filterKey}
+                  name={dateRangeFilter.filterLabel}
+                  filterKey={dateRangeFilter.filterKey}
+                  selectedFilters={selectedDateRangeFilter}
+                  setSelectedFilters={setSelectedDateRangeFilter}
+                />
+              }
+              <button
+                className={`text-sm p-3 rounded-full bg-blue-600 ${
+                  isDateRangeFilterSelected ? "block" : "hidden"
+                }`}
+                onClick={submitDateRangeFilter}
+              ></button>
+              <button
+                onClick={downloadExcel}
+                className="bg-green-500 hover:bg-green-700 transition-all duration-200 text-white px-4 py-2 rounded"
+              >
+                Download Excel
+              </button>
+            </div>
 
             {/* DISPLAY SELECTED FILTERS WITH REMOVE OPTION */}
             {(Object.values(selectedFiltersBottom).some(
-              (filter) => filter.length > 0 && !filter.includes("all")) || 
-              isProductFilterSelected || isDateRangeFilterSelected)
-             && (
+              (filter) => filter.length > 0 && !filter.includes("all")
+            ) ||
+              isProductFilterSelected ||
+              isDateRangeFilterSelected) && (
               <div className="w-full max-w-5xl px-3 py-2 mt-2 border border-gray-200 rounded-md bg-gray-50 text-sm flex flex-wrap gap-2 justify-self-center">
                 {Object.entries(selectedFiltersBottom)
                   .filter(
@@ -885,10 +1027,12 @@ const Store = () => {
                       </div>
                     );
                   })}
-                  {Object.entries(selectedProductFilters)
+                {Object.entries(selectedProductFilters)
                   .filter(([, value]) => !value.includes("all"))
                   .map(([filterKey, selectedValues]) => {
-                    const filter = productFilter.find((f) => f.filterKey === filterKey);
+                    const filter = productFilter.find(
+                      (f) => f.filterKey === filterKey
+                    );
                     return (
                       <div
                         key={filterKey}
@@ -907,51 +1051,61 @@ const Store = () => {
                       </div>
                     );
                   })}
-                  {
-                    Object.entries(selectedDateRangeFilter).filter(([,value]) => {if (typeof value === "object" && value !== null) {
-                      return value.from || value.to;}
-                    })
-                    .map(([filterKey,selectedValue]) => {
-                      let displayValue = "";
-                      if (typeof selectedValue === "object" && selectedValue !== null) {
+                {Object.entries(selectedDateRangeFilter)
+                  .filter(([, value]) => {
+                    if (typeof value === "object" && value !== null) {
+                      return value.from || value.to;
+                    }
+                  })
+                  .map(([filterKey, selectedValue]) => {
+                    let displayValue = "";
+                    if (
+                      typeof selectedValue === "object" &&
+                      selectedValue !== null
+                    ) {
                       let startDate = selectedValue.from;
                       let endDate = selectedValue.to;
                       if (startDate && endDate) {
-                        displayValue = `${format(new Date(startDate), "yyyy-MM-dd")} to ${format(
+                        displayValue = `${format(
+                          new Date(startDate),
+                          "yyyy-MM-dd"
+                        )} to ${format(new Date(endDate), "yyyy-MM-dd")}`;
+                        console.log("Date Here 898: ", displayValue);
+                      } else if (startDate) {
+                        displayValue = `From ${format(
+                          new Date(startDate),
+                          "yyyy-MM-dd"
+                        )}`;
+                      } else if (endDate) {
+                        displayValue = `Until ${format(
                           new Date(endDate),
                           "yyyy-MM-dd"
                         )}`;
-                        console.log("Date Here 898: ",displayValue)
-                      } else if (startDate) {
-                        displayValue = `From ${format(new Date(startDate), "yyyy-MM-dd")}`;
-                      } else if (endDate) {
-                        displayValue = `Until ${format(new Date(endDate), "yyyy-MM-dd")}`;
                       }
-                      }
-                      return (
-                        <div
-                          key={filterKey}
-                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
+                    }
+                    return (
+                      <div
+                        key={filterKey}
+                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg flex items-center gap-2"
+                      >
+                        <span className="font-semibold">
+                          {dateRangeFilter.filterLabel}
+                        </span>
+                        : {displayValue}
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => removeDateRangeFilter(filterKey)}
                         >
-                          <span className="font-semibold">
-                            {dateRangeFilter.filterLabel}
-                          </span>
-                          : {displayValue}
-                          <button
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => removeDateRangeFilter(filterKey)}
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      );
-                    })
-                  }
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
               </div>
             )}
 
             {/* Results Table */}
-            {(!top100StoresLoading && !loading && displayedStores?.length>0) ? (
+            {!top100StoresLoading && !loading && displayedStores?.length > 0 ? (
               <div className="overflow-x-auto mt-3">
                 <table className="w-full max-w-5xl mx-auto border border-gray-300 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
                   {/* Table Header */}
