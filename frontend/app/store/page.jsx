@@ -378,7 +378,7 @@ const Store = () => {
         }
       );
       setResults(response.data?.cachedData);
-      setTopStoresData(response.data?.cachedData);
+      setResults(response.data?.cachedData);
       setCurrentPage(1);
       if (response.data?.cachedData?.length > 0)
         setTotalPages(Math.ceil(response.data?.cachedData?.length / 20));
