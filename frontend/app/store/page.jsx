@@ -401,7 +401,7 @@ const Store = () => {
 
   const displayedStores =
     (query === "" || selectedBranchBottom === "") &&
-    (!isAnyBottomFilterSelected() && !isProductFilterSelected)
+    (!isAnyBottomFilterSelected() && !isProductFilterSelected && !isDateRangeFilterSelected)
       ? paginatedResults?.slice(
           (currentPage - 1) * itemsPerPage,
           currentPage * itemsPerPage
