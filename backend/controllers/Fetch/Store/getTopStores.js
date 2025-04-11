@@ -35,7 +35,7 @@ export const getTopStores = async (req, res) => {
       brandFormName,
       broadChannelName,
       startDate,
-      endDate
+      endDate,
     ];
 
     const shouldNotUseCache = filters.some(isTruthyFilter);
@@ -75,12 +75,7 @@ export const getTopStores = async (req, res) => {
             psr.customer_type,
             psr.channel_description AS channel,
             SUM(psr.retailing) AS total_retailing,
-            SUM(psr.retailing) / (
-              SELECT
-                month_count
-              FROM
-                Month_Count
-            ) AS avg_retailing
+            SUM(psr.retailing) / COUNT(DISTINCT DATE_FORMAT(psr.document_date, '%Y-%m')) AS avg_retailing
           FROM
             psr_data psr
             JOIN store_mapping store ON psr.customer_code = store.Old_Store_Code
@@ -187,7 +182,7 @@ export const getTopStores = async (req, res) => {
     // ✅ **Execute Database Query**
     const [topStoresDetails] = await mySqlPool.query(query, queryParams);
 
-    res.status(200).json({cached:false, cachedData: topStoresDetails});
+    res.status(200).json({ cached: false, cachedData: topStoresDetails });
   } catch (error) {
     console.error("Error fetching top stores:", error?.message || error);
     res
