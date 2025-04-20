@@ -131,81 +131,22 @@ const Store = () => {
 
   // Download Excel
   const downloadExcel = async () => {
-    if (topStoresData.length === 0) {
-      console.error("No data available for download.");
-      return;
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Top Stores");
-
-    // Identify dynamic month columns
-    const fixedKeys = [
-      "store_code",
-      "store_name",
-      "branch_name",
-      "customer_type",
-      "channel",
-      "total_retailing",
-      "avg_retailing",
-    ];
-
-    // Get all keys from first row
-    const allKeys = Object.keys(topStoresData[0] || {});
-    const monthKeys = allKeys.filter((key) => !fixedKeys.includes(key));
-
-    // Sort month keys in order (e.g. "july_2023", "august_2023", etc.)
-    const sortedMonthKeys = monthKeys.sort((a, b) => {
-      const parseDate = (key) => {
-        const [monthStr, year] = key.split("_");
-        return new Date(`${monthStr} 1, ${year}`);
-      };
-      return parseDate(a) - parseDate(b);
+    const res = await fetch("/api/excelFile", {
+      body: JSON.stringify({
+        data: topStoresData,
+      }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
-
-    // Define Column Headers
-    worksheet.columns = [
-      { header: "Store Code", key: "store_code", width: 15 },
-      { header: "Store Name", key: "store_name", width: 25 },
-      { header: "Branch Name", key: "branch_name", width: 20 },
-      { header: "Customer Type", key: "customer_type", width: 15 },
-      { header: "Channel", key: "channel", width: 15 },
-      ...sortedMonthKeys.map((month) => ({
-        header: month.replace("_", " ").toUpperCase(), // e.g., JULY 2023
-        key: month,
-        width: 20,
-      })),
-      { header: "Total Retailing", key: "total_retailing", width: 20 },
-      { header: "Avg Retailing", key: "avg_retailing", width: 20 },
-    ];
-
-    // Add Data Rows
-    topStoresData.forEach((store) => {
-      worksheet.addRow(store);
-    });
-
-    // Style the Header Row
-    worksheet.getRow(1).eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.alignment = { horizontal: "center" };
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFF00" }, // Yellow
-      };
-    });
-
-    // Generate & Download Excel File
-    const buffer = await workbook.xlsx.writeBuffer();
-    const fileData = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const fileName = selectedBranchBottom
-      ? `Top_Stores - ${selectedBranchBottom} ${new Date()
-          .toISOString()
-          .slice(0, 10)}.xlsx`
-      : `Top_Stores_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    saveAs(fileData, fileName);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Top_Stores.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // Remove a single filter
